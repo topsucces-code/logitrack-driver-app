@@ -15,8 +15,8 @@ async function initApp() {
     try {
       await StatusBar.setStyle({ style: Style.Light });
       await StatusBar.setBackgroundColor({ color: '#f97316' });
-    } catch (e) {
-      console.log('StatusBar not available');
+    } catch {
+      // StatusBar not available on web
     }
   }
 

@@ -17,27 +17,13 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Capacitor } from '@capacitor/core';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { FALLBACK_ZONES, MOBILE_MONEY_PROVIDERS } from '../config/app.config';
 
 // Zone type from database
 interface Zone {
   id: string;
   name: string;
 }
-
-// Fallback zones for Abidjan (used if database fetch fails)
-const FALLBACK_ZONES = [
-  'Cocody', 'Plateau', 'Yopougon', 'Adjamé', 'Abobo',
-  'Treichville', 'Marcory', 'Koumassi', 'Port-Bouët', 'Bingerville',
-  'Anyama', 'Songon', 'Attécoubé', 'Riviera', 'Angré',
-  '2 Plateaux', 'Palmeraie', 'Zone 4', 'Banco', 'Williamsville'
-];
-
-const MOBILE_MONEY_PROVIDERS = [
-  { id: 'orange', name: 'Orange Money', color: 'bg-orange-500' },
-  { id: 'mtn', name: 'MTN MoMo', color: 'bg-yellow-500' },
-  { id: 'moov', name: 'Moov Money', color: 'bg-blue-500' },
-  { id: 'wave', name: 'Wave', color: 'bg-cyan-500' },
-];
 
 interface OnboardingData {
   fullName: string;
@@ -70,20 +56,22 @@ export default function OnboardingPage() {
 
   // Try to fetch zones from database (optional enhancement)
   useEffect(() => {
-    supabase
-      .from('logitrack_zones')
-      .select('id, name')
-      .eq('is_active', true)
-      .order('name')
-      .then(({ data, error }) => {
+    async function loadZones() {
+      try {
+        const { data, error } = await supabase
+          .from('logitrack_zones')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name');
+
         if (!error && data && data.length > 0) {
-          console.log('Loaded zones from DB:', data.length);
           setAvailableZones(data);
         }
-      })
-      .catch(() => {
+      } catch {
         // Keep using fallback zones
-      });
+      }
+    }
+    loadZones();
   }, []);
 
   const [data, setData] = useState<OnboardingData>({
@@ -192,10 +180,8 @@ export default function OnboardingPage() {
 
     try {
       const userId = user.id;
-      console.log('Starting registration for user:', userId);
 
       // Upload all photos
-      console.log('Uploading photos...');
       const [
         profilePhotoUrl,
         cniFrontUrl,
@@ -209,7 +195,6 @@ export default function OnboardingPage() {
         data.vehiclePhoto ? uploadPhoto(data.vehiclePhoto, 'driver-documents', `${userId}/vehicle.jpg`) : null,
         data.licensePhoto ? uploadPhoto(data.licensePhoto, 'driver-documents', `${userId}/license.jpg`) : null,
       ]);
-      console.log('Photos uploaded:', { profilePhotoUrl, cniFrontUrl, cniBackUrl, licenseUrl });
 
       // Map mobile money provider to the new enum format
       const momoProviderMap: Record<string, string> = {
@@ -251,27 +236,22 @@ export default function OnboardingPage() {
         is_available: true,
         updated_at: new Date().toISOString(),
       };
-      console.log('Upserting driver data:', driverData);
 
       // Update or create driver profile in logitrack_drivers
-      const { error, data: upsertResult } = await supabase
+      const { error } = await supabase
         .from('logitrack_drivers')
         .upsert(driverData, { onConflict: 'user_id' })
         .select();
 
       if (error) {
-        console.error('Upsert error:', error);
         throw error;
       }
 
-      console.log('Upsert successful:', upsertResult);
-
       await refreshDriver();
-      console.log('Driver refreshed, navigating to home...');
       navigate('/');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Registration error:', err);
-      const errorMessage = err?.message || err?.details || 'Erreur lors de l\'inscription. Veuillez réessayer.';
+      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'inscription. Veuillez réessayer.';
       setSubmitError(errorMessage);
     }
 

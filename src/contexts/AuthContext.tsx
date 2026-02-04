@@ -41,8 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
         .maybeSingle();
       setDriver(data);
-    } catch (e) {
-      console.log('Fetch driver error:', e);
+    } catch {
+      // Driver not found or not yet registered
     }
   }, []);
 
@@ -54,9 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes only
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log('Auth event:', event);
-
+      async (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
 

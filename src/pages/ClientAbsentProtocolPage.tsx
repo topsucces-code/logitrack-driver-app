@@ -12,13 +12,8 @@ import {
 } from 'lucide-react';
 import { supabase, Delivery } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-
-// Configuration du protocole
-const PROTOCOL_CONFIG = {
-  maxCalls: 3,
-  waitTimeSeconds: 15 * 60, // 15 minutes
-  partialPaymentPercent: 50,
-};
+import { PROTOCOL_CONFIG } from '../config/app.config';
+import { useToast } from '../contexts/ToastContext';
 
 // Types pour les étapes
 type ProtocolStep = 1 | 2 | 3;
@@ -33,6 +28,7 @@ export default function ClientAbsentProtocolPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { driver } = useAuth();
+  const { showError } = useToast();
 
   // State
   const [delivery, setDelivery] = useState<Delivery | null>(null);
@@ -65,14 +61,19 @@ export default function ClientAbsentProtocolPage() {
       setLoading(false);
 
       // Restaurer l'état du protocole si déjà commencé
-      const savedState = localStorage.getItem(`protocol_${id}`);
-      if (savedState) {
-        const state = JSON.parse(savedState);
-        setCallAttempts(state.callAttempts.map((c: any) => ({ ...c, timestamp: new Date(c.timestamp) })));
-        setTimerSeconds(state.timerSeconds);
-        setProtocolStarted(true);
-        setTimerActive(true);
-        updateStep(state.callAttempts.length);
+      try {
+        const savedState = localStorage.getItem(`protocol_${id}`);
+        if (savedState) {
+          const state = JSON.parse(savedState) as { callAttempts: Array<{ timestamp: string }>; timerSeconds: number };
+          setCallAttempts(state.callAttempts.map((c) => ({ ...c, timestamp: new Date(c.timestamp) })));
+          setTimerSeconds(state.timerSeconds || 0);
+          setProtocolStarted(true);
+          setTimerActive(true);
+          updateStep(state.callAttempts.length);
+        }
+      } catch {
+        // Si les données sont corrompues, on les supprime
+        localStorage.removeItem(`protocol_${id}`);
       }
     }
 
@@ -211,7 +212,7 @@ export default function ClientAbsentProtocolPage() {
 
     } catch (err) {
       console.error('Error returning package:', err);
-      alert('Erreur lors du retour du colis');
+      showError('Erreur lors du retour du colis');
     }
 
     setReturning(false);

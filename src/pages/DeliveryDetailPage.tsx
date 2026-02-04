@@ -21,6 +21,8 @@ import { useLocation } from '../contexts/LocationContext';
 import { supabase, Delivery } from '../lib/supabase';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
+import { MAP_CONFIG } from '../config/app.config';
+import { useToast } from '../contexts/ToastContext';
 
 // Fix Leaflet marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -53,6 +55,7 @@ export default function DeliveryDetailPage() {
   const navigate = useNavigate();
   const { refreshDriver } = useAuth();
   const { position } = useLocation();
+  const { showError } = useToast();
 
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,7 +119,7 @@ export default function DeliveryDetailPage() {
     });
 
     if (error || !data?.success) {
-      alert(data?.error || 'Erreur lors de la mise à jour');
+      showError(data?.error || 'Erreur lors de la mise à jour');
     } else {
       if (newStatus === 'delivered') {
         refreshDriver();
@@ -200,7 +203,7 @@ export default function DeliveryDetailPage() {
       setShowProofModal(false);
     } catch (err) {
       console.error('Error completing delivery:', err);
-      alert('Erreur lors de l\'envoi de la preuve');
+      showError('Erreur lors de l\'envoi de la preuve');
     }
 
     setUpdating(false);
@@ -264,10 +267,10 @@ export default function DeliveryDetailPage() {
       <div className="h-48 relative">
         <MapContainer
           center={[
-            pickupCoords?.lat || 5.3600,
-            pickupCoords?.lng || -4.0083,
+            pickupCoords?.lat || MAP_CONFIG.defaultCenter.lat,
+            pickupCoords?.lng || MAP_CONFIG.defaultCenter.lng,
           ]}
-          zoom={13}
+          zoom={MAP_CONFIG.defaultZoom}
           className="h-full w-full"
           zoomControl={false}
         >

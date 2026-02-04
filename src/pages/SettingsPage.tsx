@@ -14,13 +14,14 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { DRIVER_CONFIG, APP_CONFIG } from '../config/app.config';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { driver, refreshDriver } = useAuth();
 
   const [autoAccept, setAutoAccept] = useState(driver?.auto_accept || false);
-  const [maxDistance, setMaxDistance] = useState(driver?.max_distance_km || 15);
+  const [maxDistance, setMaxDistance] = useState(driver?.max_distance_km || DRIVER_CONFIG.defaultMaxDistanceKm);
   const [saving, setSaving] = useState(false);
 
   async function updateSettings() {
@@ -109,8 +110,8 @@ export default function SettingsPage() {
             </div>
             <input
               type="range"
-              min="3"
-              max="30"
+              min={DRIVER_CONFIG.minMaxDistanceKm}
+              max={DRIVER_CONFIG.maxMaxDistanceKm}
               value={maxDistance}
               onChange={(e) => {
                 setMaxDistance(parseInt(e.target.value));
@@ -120,9 +121,9 @@ export default function SettingsPage() {
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary-500"
             />
             <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>3 km</span>
+              <span>{DRIVER_CONFIG.minMaxDistanceKm} km</span>
               <span className="font-medium text-primary-600">{maxDistance} km</span>
-              <span>30 km</span>
+              <span>{DRIVER_CONFIG.maxMaxDistanceKm} km</span>
             </div>
           </div>
         </div>
@@ -186,8 +187,8 @@ export default function SettingsPage() {
 
         {/* Version */}
         <div className="text-center py-4">
-          <p className="text-xs text-gray-400">LogiTrack Livreur v1.0.0</p>
-          <p className="text-xs text-gray-400">© 2024 LogiTrack Africa</p>
+          <p className="text-xs text-gray-400">{APP_CONFIG.name} v{APP_CONFIG.version}</p>
+          <p className="text-xs text-gray-400">© {APP_CONFIG.year} {APP_CONFIG.company}</p>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { calculateRating } from '../lib/supabase';
+import { SUPPORT_CONFIG } from '../config/app.config';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -240,7 +241,7 @@ export default function ProfilePage() {
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
             <button
-              onClick={() => window.open('https://wa.me/22507000000', '_blank')}
+              onClick={() => window.open(SUPPORT_CONFIG.whatsappUrl, '_blank')}
               className="w-full p-4 flex items-center gap-3 hover:bg-gray-50"
             >
               <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">

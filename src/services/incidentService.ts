@@ -60,9 +60,9 @@ class IncidentService {
       });
 
       return { success: true, incident };
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error in createIncident:', err);
-      return { success: false, error: err.message };
+      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
     }
   }
 

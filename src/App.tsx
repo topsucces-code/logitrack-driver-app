@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LocationProvider } from './contexts/LocationContext';
+import { ToastProvider } from './contexts/ToastContext';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -200,9 +201,11 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <LocationProvider>
-          <div className="h-screen overflow-hidden bg-gray-50">
-            <AppRoutes />
-          </div>
+          <ToastProvider>
+            <div className="h-screen overflow-hidden bg-gray-50">
+              <AppRoutes />
+            </div>
+          </ToastProvider>
         </LocationProvider>
       </AuthProvider>
     </BrowserRouter>

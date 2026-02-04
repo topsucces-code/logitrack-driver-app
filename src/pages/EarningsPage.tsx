@@ -14,10 +14,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, WalletTransaction } from '../lib/supabase';
 import { format, startOfWeek, startOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { PAYMENT_CONFIG } from '../config/app.config';
+import { useToast } from '../contexts/ToastContext';
 
 export default function EarningsPage() {
   const navigate = useNavigate();
   const { driver, refreshDriver } = useAuth();
+  const { showError, showSuccess } = useToast();
 
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [stats, setStats] = useState({
@@ -71,7 +74,7 @@ export default function EarningsPage() {
       let weekEarnings = 0;
       let monthEarnings = 0;
 
-      (deliveries || []).forEach((d: any) => {
+      (deliveries || []).forEach((d: { driver_earnings: number | null; delivered_at: string }) => {
         const deliveredAt = new Date(d.delivered_at);
         const earning = d.driver_earnings || 0;
 
@@ -89,7 +92,7 @@ export default function EarningsPage() {
         .eq('payout_status', 'pending');
 
       const pendingAmount = (pendingTx || []).reduce(
-        (sum, tx: any) => sum + Math.abs(tx.amount),
+        (sum: number, tx: { amount: number }) => sum + Math.abs(tx.amount),
         0
       );
 
@@ -109,18 +112,18 @@ export default function EarningsPage() {
   async function requestWithdrawal() {
     const amount = parseInt(withdrawAmount);
 
-    if (!amount || amount < 2000) {
-      alert('Montant minimum: 2000 FCFA');
+    if (!amount || amount < PAYMENT_CONFIG.minWithdrawalAmount) {
+      showError(`Montant minimum: ${PAYMENT_CONFIG.minWithdrawalAmount} ${PAYMENT_CONFIG.currency}`);
       return;
     }
 
     if (amount > (driver?.wallet_balance || 0)) {
-      alert('Solde insuffisant');
+      showError('Solde insuffisant');
       return;
     }
 
     if (!withdrawAccount.trim()) {
-      alert('Veuillez entrer votre numéro');
+      showError('Veuillez entrer votre numéro');
       return;
     }
 
@@ -133,9 +136,9 @@ export default function EarningsPage() {
     });
 
     if (error || data?.error) {
-      alert(data?.error || 'Erreur lors de la demande');
+      showError(data?.error || 'Erreur lors de la demande');
     } else {
-      alert('Demande de retrait envoyée !');
+      showSuccess('Demande de retrait envoyée !');
       setShowWithdrawModal(false);
       setWithdrawAmount('');
       setWithdrawAccount('');
@@ -196,15 +199,15 @@ export default function EarningsPage() {
       <div className="px-4 py-4">
         <button
           onClick={() => setShowWithdrawModal(true)}
-          disabled={driver.wallet_balance < 2000}
+          disabled={driver.wallet_balance < PAYMENT_CONFIG.minWithdrawalAmount}
           className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <Wallet className="w-5 h-5" />
           Retirer mes gains
         </button>
-        {driver.wallet_balance < 2000 && (
+        {driver.wallet_balance < PAYMENT_CONFIG.minWithdrawalAmount && (
           <p className="text-xs text-gray-500 text-center mt-2">
-            Minimum de retrait: 2000 FCFA
+            Minimum de retrait: {PAYMENT_CONFIG.minWithdrawalAmount} {PAYMENT_CONFIG.currency}
           </p>
         )}
       </div>
@@ -289,11 +292,11 @@ export default function EarningsPage() {
                 type="number"
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
-                placeholder="Min. 2000"
+                placeholder={`Min. ${PAYMENT_CONFIG.minWithdrawalAmount}`}
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Disponible: {driver.wallet_balance.toLocaleString()} FCFA
+                Disponible: {driver.wallet_balance.toLocaleString()} {PAYMENT_CONFIG.currency}
               </p>
             </div>
 

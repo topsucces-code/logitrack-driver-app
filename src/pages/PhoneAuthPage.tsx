@@ -51,9 +51,9 @@ export default function PhoneAuthPage() {
 
       setStep('otp');
       startCountdown();
-    } catch (err: any) {
+    } catch (err) {
       console.error('OTP error:', err);
-      setError(err.message || 'Erreur lors de l\'envoi du code');
+      setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi du code');
     }
 
     setLoading(false);
@@ -117,9 +117,9 @@ export default function PhoneAuthPage() {
           navigate('/dashboard');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Verify error:', err);
-      setError(err.message || 'Code invalide');
+      setError(err instanceof Error ? err.message : 'Code invalide');
     }
 
     setLoading(false);

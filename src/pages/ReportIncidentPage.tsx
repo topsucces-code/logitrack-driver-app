@@ -16,7 +16,7 @@ export default function ReportIncidentPage() {
   const { driver } = useAuth();
 
   // Get tracking code from navigation state if available
-  const trackingCode = (location.state as any)?.trackingCode || deliveryId?.slice(0, 8).toUpperCase();
+  const trackingCode = (location.state as { trackingCode?: string } | null)?.trackingCode || deliveryId?.slice(0, 8).toUpperCase();
 
   const [selectedType, setSelectedType] = useState<string>('');
   const [description, setDescription] = useState('');
@@ -113,8 +113,8 @@ export default function ReportIncidentPage() {
       } else {
         setError(result.error || 'Une erreur est survenue');
       }
-    } catch (err: any) {
-      setError(err.message || 'Une erreur est survenue');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {
       setSubmitting(false);
     }

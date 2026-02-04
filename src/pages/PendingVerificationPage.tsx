@@ -51,8 +51,7 @@ export default function PendingVerificationPage() {
             table: 'logitrack_drivers',
             filter: `id=eq.${driver.id}`
           },
-          (payload) => {
-            console.log('Driver updated:', payload);
+          () => {
             refreshDriver();
           }
         )

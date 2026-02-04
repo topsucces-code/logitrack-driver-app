@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase, Delivery } from '../lib/supabase';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { DELIVERY_CONFIG } from '../config/app.config';
 
 type FilterPeriod = 'week' | 'month' | 'all';
 
@@ -59,7 +60,7 @@ export default function HistoryPage() {
       query = query.gte('created_at', monthStart.toISOString());
     }
 
-    const { data, error } = await query.limit(100);
+    const { data, error } = await query.limit(DELIVERY_CONFIG.historyListLimit);
 
     if (error) {
       console.error('Error fetching history:', error);

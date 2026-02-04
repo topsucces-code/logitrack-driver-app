@@ -17,11 +17,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { supabase, Delivery, calculateRating } from '../lib/supabase';
 import { startOfWeek } from 'date-fns';
+import { DELIVERY_CONFIG } from '../config/app.config';
+import { useToast } from '../contexts/ToastContext';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { driver, refreshDriver, isVerified } = useAuth();
   const { startTracking } = useLocation();
+  const { showError } = useToast();
 
   const [isOnline, setIsOnline] = useState(driver?.is_online ?? false);
   const [pendingDeliveries, setPendingDeliveries] = useState<Delivery[]>([]);
@@ -62,13 +65,14 @@ export default function DashboardPage() {
           .select('*')
           .in('status', ['pending', 'assigned'])
           .is('driver_id', null)
-          .order('created_at', { ascending: false })
-          .limit(20);
+          .order('created_at', { ascending: false });
 
         // If driver belongs to a company, only show company deliveries
         if (driver.company_id) {
           query = query.eq('company_id', driver.company_id);
         }
+
+        query = query.limit(DELIVERY_CONFIG.defaultListLimit);
 
         const { data: pending } = await query;
         setPendingDeliveries((pending as Delivery[]) || []);
@@ -182,7 +186,7 @@ export default function DashboardPage() {
       fetchDeliveries();
       refreshDriver();
     } else {
-      alert(data?.error || 'Erreur lors de l\'acceptation');
+      showError(data?.error || 'Erreur lors de l\'acceptation');
     }
   }
 
@@ -470,8 +474,8 @@ function DeliveryCard({
       const diffMs = now.getTime() - created.getTime();
       const diffMin = Math.floor(diffMs / 60000);
 
-      // Assume 5 minute expiry window
-      const expiryMin = 5 - diffMin;
+      // Use configured expiry window
+      const expiryMin = DELIVERY_CONFIG.expiryMinutes - diffMin;
       if (expiryMin > 0) {
         const min = Math.floor(expiryMin);
         const sec = Math.floor((expiryMin - min) * 60);
