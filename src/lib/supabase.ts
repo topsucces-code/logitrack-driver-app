@@ -26,7 +26,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export type VehicleType = 'moto' | 'tricycle' | 'voiture' | 'velo';
 
 // Statut du livreur
-export type DriverStatus = 'pending' | 'active' | 'suspended' | 'inactive';
+export type DriverStatus = 'pending' | 'approved' | 'rejected' | 'suspended' | 'inactive';
 
 // Statut de vérification
 export type VerificationStatus = 'pending' | 'verified' | 'rejected';
@@ -455,7 +455,7 @@ export function calculateRating(ratingSum: number, ratingCount: number): number 
 
 // Vérifier si le livreur est vérifié et actif
 export function isDriverVerified(driver: Driver): boolean {
-  return driver.verification_status === 'verified' && driver.status === 'active';
+  return driver.verification_status === 'verified' && driver.status === 'approved';
 }
 
 // Obtenir l'étape d'inscription (pour la compatibilité)
