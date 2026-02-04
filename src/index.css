@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Safe area insets for notched phones */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+
+/* Disable text selection on mobile */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Active state for buttons */
+.btn-active:active {
+  transform: scale(0.97);
+}
+
+/* Leaflet map fixes */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Bottom navigation safe area */
+.safe-bottom {
+  padding-bottom: max(16px, var(--sab));
+}
+
+/* Top safe area */
+.safe-top {
+  padding-top: max(12px, var(--sat));
+}

@@ -1,0 +1,563 @@
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Navigation,
+  Package,
+  Camera,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Zap,
+  AlertTriangle,
+  UserX,
+} from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import { useAuth } from '../contexts/AuthContext';
+import { useLocation } from '../contexts/LocationContext';
+import { supabase, Delivery } from '../lib/supabase';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
+
+// Fix Leaflet marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+const pickupIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const deliveryIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const driverIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+export default function DeliveryDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { refreshDriver } = useAuth();
+  const { position } = useLocation();
+
+  const [delivery, setDelivery] = useState<Delivery | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [showProofModal, setShowProofModal] = useState(false);
+  const [proofPhoto, setProofPhoto] = useState<string | null>(null);
+  const [recipientName, setRecipientName] = useState('');
+
+  // Fetch delivery
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchDelivery() {
+      const { data, error } = await supabase
+        .from('logitrack_deliveries')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching delivery:', error);
+        navigate('/');
+        return;
+      }
+
+      setDelivery(data as Delivery);
+      setLoading(false);
+    }
+
+    fetchDelivery();
+
+    // Subscribe to updates
+    const channel = supabase
+      .channel(`logitrack-delivery-${id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'logitrack_deliveries', filter: `id=eq.${id}` },
+        (payload) => {
+          setDelivery(payload.new as Delivery);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, navigate]);
+
+  // Update delivery status
+  async function updateStatus(newStatus: string, extraData?: Record<string, any>) {
+    if (!delivery || !position) return;
+
+    setUpdating(true);
+
+    const { data, error } = await supabase.rpc('update_delivery_status', {
+      p_delivery_id: delivery.id,
+      p_status: newStatus,
+      p_lat: position.lat,
+      p_lng: position.lng,
+      ...extraData,
+    });
+
+    if (error || !data?.success) {
+      alert(data?.error || 'Erreur lors de la mise à jour');
+    } else {
+      if (newStatus === 'delivered') {
+        refreshDriver();
+        navigate('/');
+      }
+    }
+
+    setUpdating(false);
+  }
+
+  // Take photo for proof
+  async function takePhoto() {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Native: Use Capacitor Camera
+        const photo = await CapCamera.getPhoto({
+          quality: 80,
+          allowEditing: false,
+          resultType: CameraResultType.Base64,
+          source: CameraSource.Camera,
+        });
+
+        if (photo.base64String) {
+          setProofPhoto(`data:image/jpeg;base64,${photo.base64String}`);
+        }
+      } else {
+        // Web: Use file input
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.capture = 'environment';
+
+        input.onchange = (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              setProofPhoto(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+
+        input.click();
+      }
+    } catch (err) {
+      console.error('Camera error:', err);
+    }
+  }
+
+  // Upload proof and complete delivery
+  async function completeDelivery() {
+    if (!delivery || !proofPhoto) return;
+
+    setUpdating(true);
+
+    try {
+      // Upload photo to storage
+      const fileName = `${delivery.id}-${Date.now()}.jpg`;
+      const base64Data = proofPhoto.replace(/^data:image\/\w+;base64,/, '');
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('delivery-proofs')
+        .upload(fileName, decode(base64Data), {
+          contentType: 'image/jpeg',
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('delivery-proofs')
+        .getPublicUrl(fileName);
+
+      // Update status with proof
+      await updateStatus('delivered', {
+        p_proof_photo_url: urlData.publicUrl,
+        p_recipient_name: recipientName || null,
+      });
+
+      setShowProofModal(false);
+    } catch (err) {
+      console.error('Error completing delivery:', err);
+      alert('Erreur lors de l\'envoi de la preuve');
+    }
+
+    setUpdating(false);
+  }
+
+  // Call phone number
+  function callPhone(phone: string) {
+    window.open(`tel:${phone}`, '_system');
+  }
+
+  // Open navigation
+  function openNavigation(lat: number, lng: number) {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_system');
+  }
+
+  if (loading || !delivery) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Get coordinates from the new schema
+  const pickupCoords = delivery.pickup_latitude && delivery.pickup_longitude
+    ? { lat: Number(delivery.pickup_latitude), lng: Number(delivery.pickup_longitude) }
+    : null;
+  const deliveryCoords = delivery.delivery_latitude && delivery.delivery_longitude
+    ? { lat: Number(delivery.delivery_latitude), lng: Number(delivery.delivery_longitude) }
+    : null;
+
+  return (
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 safe-top px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => navigate('/')}
+          className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
+        </button>
+        <div className="flex-1">
+          <h1 className="font-semibold text-gray-900">Course #{delivery.id.slice(0, 8)}</h1>
+          <p className="text-sm text-gray-500 capitalize">
+            {delivery.status === 'accepted' && 'Assignée - En route vers pickup'}
+            {delivery.status === 'picking_up' && 'En route vers le point de collecte'}
+            {delivery.status === 'picked_up' && 'Colis récupéré'}
+            {delivery.status === 'in_transit' && 'En transit'}
+            {delivery.status === 'delivering' && 'En cours de livraison'}
+          </p>
+        </div>
+        {delivery.is_express && (
+          <span className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+            <Zap className="w-3 h-3" />
+            Express
+          </span>
+        )}
+      </header>
+
+      {/* Map */}
+      <div className="h-48 relative">
+        <MapContainer
+          center={[
+            pickupCoords?.lat || 5.3600,
+            pickupCoords?.lng || -4.0083,
+          ]}
+          zoom={13}
+          className="h-full w-full"
+          zoomControl={false}
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution=""
+          />
+          {pickupCoords && (
+            <Marker position={[pickupCoords.lat, pickupCoords.lng]} icon={pickupIcon}>
+              <Popup>Pickup: {delivery.pickup_contact_name || delivery.vendor_name}</Popup>
+            </Marker>
+          )}
+          {deliveryCoords && (
+            <Marker position={[deliveryCoords.lat, deliveryCoords.lng]} icon={deliveryIcon}>
+              <Popup>Livraison: {delivery.delivery_contact_name}</Popup>
+            </Marker>
+          )}
+          {position && (
+            <Marker position={[position.lat, position.lng]} icon={driverIcon}>
+              <Popup>Votre position</Popup>
+            </Marker>
+          )}
+        </MapContainer>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {/* Pickup */}
+        <div className={`bg-white rounded-xl p-4 ${
+          ['accepted', 'picking_up'].includes(delivery.status)
+            ? 'border-2 border-green-500'
+            : ''
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+              <MapPin className="w-4 h-4 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Point de collecte</p>
+              <p className="font-semibold text-gray-900">{delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 mb-2">{delivery.pickup_address}</p>
+          {delivery.pickup_instructions && (
+            <p className="text-sm text-gray-500 italic mb-3">
+              Instructions: {delivery.pickup_instructions}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => callPhone(delivery.pickup_contact_phone || delivery.vendor_phone || '')}
+              className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700"
+            >
+              <Phone className="w-4 h-4" />
+              Appeler
+            </button>
+            {pickupCoords && (
+              <button
+                onClick={() => openNavigation(pickupCoords.lat, pickupCoords.lng)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-100 hover:bg-green-200 rounded-lg text-sm font-medium text-green-700"
+              >
+                <Navigation className="w-4 h-4" />
+                Naviguer
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Delivery */}
+        <div className={`bg-white rounded-xl p-4 ${
+          ['picked_up', 'delivering'].includes(delivery.status)
+            ? 'border-2 border-red-500'
+            : ''
+        }`}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+              <MapPin className="w-4 h-4 text-red-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Point de livraison</p>
+              <p className="font-semibold text-gray-900">{delivery.delivery_contact_name || 'Destination'}</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 mb-2">{delivery.delivery_address}</p>
+          {delivery.delivery_instructions && (
+            <p className="text-sm text-gray-500 italic mb-3">
+              Instructions: {delivery.delivery_instructions}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => callPhone(delivery.delivery_contact_phone || '')}
+              className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700"
+            >
+              <Phone className="w-4 h-4" />
+              Appeler
+            </button>
+            {deliveryCoords && (
+              <button
+                onClick={() => openNavigation(deliveryCoords.lat, deliveryCoords.lng)}
+                className="flex-1 flex items-center justify-center gap-2 py-2 bg-red-100 hover:bg-red-200 rounded-lg text-sm font-medium text-red-700"
+              >
+                <Navigation className="w-4 h-4" />
+                Naviguer
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Package Info */}
+        {delivery.package_description && (
+          <div className="bg-white rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Package className="w-5 h-5 text-gray-400" />
+              <p className="font-medium text-gray-900">Description du colis</p>
+            </div>
+            <p className="text-sm text-gray-600">{delivery.package_description}</p>
+            {delivery.package_size && (
+              <p className="text-sm text-gray-500 mt-1">
+                Taille: <span className="capitalize">{delivery.package_size}</span>
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Earnings */}
+        <div className="bg-primary-50 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-primary-700">Votre gain</p>
+              <p className="text-2xl font-bold text-primary-600">
+                {delivery.driver_earnings?.toLocaleString()} FCFA
+              </p>
+            </div>
+            <div className="text-right text-sm text-gray-500">
+              <p>{Number(delivery.distance_km)?.toFixed(1) || '?'} km</p>
+              {delivery.tracking_code && <p>#{delivery.tracking_code}</p>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Button */}
+      <div className="bg-white border-t border-gray-200 p-4 safe-bottom">
+        {delivery.status === 'accepted' && (
+          <button
+            onClick={() => updateStatus('picking_up')}
+            disabled={updating}
+            className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
+            En route vers le pickup
+          </button>
+        )}
+
+        {delivery.status === 'picking_up' && (
+          <button
+            onClick={() => updateStatus('picked_up')}
+            disabled={updating}
+            className="w-full py-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Package className="w-5 h-5" />}
+            Colis récupéré
+          </button>
+        )}
+
+        {delivery.status === 'picked_up' && (
+          <button
+            onClick={() => updateStatus('delivering')}
+            disabled={updating}
+            className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
+            En route vers la livraison
+          </button>
+        )}
+
+        {delivery.status === 'delivering' && (
+          <>
+            <button
+              onClick={() => setShowProofModal(true)}
+              disabled={updating}
+              className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Confirmer la livraison
+            </button>
+            <button
+              onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
+              className="w-full mt-3 py-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+            >
+              <UserX className="w-5 h-5" />
+              Client absent
+            </button>
+          </>
+        )}
+
+        {/* Bouton Signaler un problème */}
+        <button
+          onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
+            state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
+          })}
+          className="w-full mt-3 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+        >
+          <AlertTriangle className="w-5 h-5" />
+          Signaler un problème
+        </button>
+      </div>
+
+      {/* Proof Modal */}
+      {showProofModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
+          <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Preuve de livraison</h2>
+
+            {/* Photo */}
+            <div className="mb-4">
+              {proofPhoto ? (
+                <div className="relative">
+                  <img
+                    src={proofPhoto}
+                    alt="Proof"
+                    className="w-full h-48 object-cover rounded-xl"
+                  />
+                  <button
+                    onClick={() => setProofPhoto(null)}
+                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full"
+                  >
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={takePhoto}
+                  className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-primary-500 hover:text-primary-500"
+                >
+                  <Camera className="w-10 h-10" />
+                  <span>Prendre une photo</span>
+                </button>
+              )}
+            </div>
+
+            {/* Recipient name */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nom du destinataire (optionnel)
+              </label>
+              <input
+                type="text"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                placeholder="Qui a reçu le colis ?"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowProofModal(false)}
+                className="flex-1 py-3 border border-gray-300 rounded-xl font-medium text-gray-700"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={completeDelivery}
+                disabled={!proofPhoto || updating}
+                className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {updating ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <CheckCircle className="w-5 h-5" />
+                )}
+                Confirmer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Helper function to decode base64
+function decode(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
