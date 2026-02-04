@@ -17,6 +17,7 @@ import SplashPage from './pages/SplashPage';
 import PendingVerificationPage from './pages/PendingVerificationPage';
 import ReportIncidentPage from './pages/ReportIncidentPage';
 import ClientAbsentProtocolPage from './pages/ClientAbsentProtocolPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -188,8 +189,8 @@ function AppRoutes() {
         }
       />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* 404 Page */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
 // LogiTrack Supabase configuration
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://nyxqnkldtdzgvudleshn.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55eHFua2xkdGR6Z3Z1ZGxlc2huIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMTk2NDcsImV4cCI6MjA4NTY5NTY0N30.QAvK878FXGBvoj1GQHWQ9dvObCpd2yILF9NwPA7bVHE';
+// IMPORTANT: Ces valeurs doivent être définies dans les variables d'environnement
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

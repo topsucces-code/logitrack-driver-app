@@ -187,10 +187,10 @@ export default function ClientAbsentProtocolPage() {
 
       // Mettre à jour le statut de la livraison
       const { error: updateError } = await supabase
-        .from('deliveries')
+        .from('logitrack_deliveries')
         .update({
           status: 'returning',
-          notes: `Client absent - Protocole complété: ${callAttempts.length} appels, ${formatTime(timerSeconds)} d'attente`,
+          cancellation_reason: `Client absent - Protocole complété: ${callAttempts.length} appels, ${formatTime(timerSeconds)} d'attente`,
         })
         .eq('id', delivery.id);
 
