@@ -19,6 +19,7 @@ import { supabase, Delivery, calculateRating } from '../lib/supabase';
 import { startOfWeek } from 'date-fns';
 import { DELIVERY_CONFIG } from '../config/app.config';
 import { useToast } from '../contexts/ToastContext';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -122,25 +123,19 @@ export default function DashboardPage() {
     }
   }, [driver]);
 
+  // Initial fetch
   useEffect(() => {
     fetchDeliveries();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('logitrack-deliveries-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'logitrack_deliveries' },
-        () => {
-          fetchDeliveries();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [fetchDeliveries]);
+
+  // Subscribe to realtime updates with graceful cleanup
+  useRealtimeSubscription({
+    channelName: 'logitrack-deliveries-updates',
+    table: 'logitrack_deliveries',
+    onPayload: useCallback(() => {
+      fetchDeliveries();
+    }, [fetchDeliveries]),
+  });
 
   // Sync isOnline state with driver
   useEffect(() => {

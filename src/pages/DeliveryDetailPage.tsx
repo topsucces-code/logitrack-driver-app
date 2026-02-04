@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -23,6 +23,7 @@ import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/
 import { Capacitor } from '@capacitor/core';
 import { MAP_CONFIG } from '../config/app.config';
 import { useToast } from '../contexts/ToastContext';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 
 // Fix Leaflet marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -86,23 +87,18 @@ export default function DeliveryDetailPage() {
     }
 
     fetchDelivery();
-
-    // Subscribe to updates
-    const channel = supabase
-      .channel(`logitrack-delivery-${id}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'logitrack_deliveries', filter: `id=eq.${id}` },
-        (payload) => {
-          setDelivery(payload.new as Delivery);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [id, navigate]);
+
+  // Subscribe to updates with graceful cleanup
+  useRealtimeSubscription({
+    channelName: `logitrack-delivery-${id}`,
+    table: 'logitrack_deliveries',
+    event: 'UPDATE',
+    filter: id ? `id=eq.${id}` : undefined,
+    onPayload: useCallback((payload) => {
+      setDelivery(payload.new as Delivery);
+    }, []),
+  });
 
   // Update delivery status
   async function updateStatus(newStatus: string, extraData?: Record<string, any>) {
@@ -181,7 +177,7 @@ export default function DeliveryDetailPage() {
       const fileName = `${delivery.id}-${Date.now()}.jpg`;
       const base64Data = proofPhoto.replace(/^data:image\/\w+;base64,/, '');
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('delivery-proofs')
         .upload(fileName, decode(base64Data), {
           contentType: 'image/jpeg',

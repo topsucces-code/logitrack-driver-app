@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Clock,
@@ -14,7 +14,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 
 interface VerificationStatus {
   profile: 'pending' | 'approved' | 'rejected';
@@ -39,29 +39,19 @@ export default function PendingVerificationPage() {
   useEffect(() => {
     if (driver) {
       checkStatus();
-
-      // Subscribe to realtime updates on logitrack_drivers table
-      const channel = supabase
-        .channel('logitrack-driver-verification')
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'logitrack_drivers',
-            filter: `id=eq.${driver.id}`
-          },
-          () => {
-            refreshDriver();
-          }
-        )
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     }
   }, [driver]);
+
+  // Subscribe to realtime updates with graceful cleanup
+  useRealtimeSubscription({
+    channelName: 'logitrack-driver-verification',
+    table: 'logitrack_drivers',
+    event: 'UPDATE',
+    filter: driver?.id ? `id=eq.${driver.id}` : undefined,
+    onPayload: useCallback(() => {
+      refreshDriver();
+    }, [refreshDriver]),
+  });
 
   // Redirect if verified
   useEffect(() => {
