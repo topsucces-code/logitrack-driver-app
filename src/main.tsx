@@ -1,12 +1,15 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Capacitor plugins initialization
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
+
+// PWA service worker registration
+import { registerSW } from 'virtual:pwa-register';
 
 // Initialize app
 async function initApp() {
@@ -20,9 +23,35 @@ async function initApp() {
     }
   }
 
-  // Render React app (StrictMode disabled to fix Supabase auth issues)
+  // Register service worker with auto-update
+  if ('serviceWorker' in navigator) {
+    registerSW({
+      immediate: true,
+      onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
+        console.log('SW registered:', swUrl);
+        // Check for updates every hour
+        if (registration) {
+          setInterval(() => {
+            registration.update();
+          }, 60 * 60 * 1000);
+        }
+      },
+      onOfflineReady() {
+        console.log('App ready to work offline');
+      },
+      onNeedRefresh() {
+        // Auto-refresh when new version available
+        console.log('New version available, refreshing...');
+        window.location.reload();
+      },
+    });
+  }
+
+  // Render React app with ErrorBoundary
   ReactDOM.createRoot(document.getElementById('root')!).render(
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   );
 
   // Hide splash screen
