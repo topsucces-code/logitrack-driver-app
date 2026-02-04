@@ -62,44 +62,28 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [currentPhotoField, setCurrentPhotoField] = useState<string | null>(null);
-  const [availableZones, setAvailableZones] = useState<Zone[]>([]);
-  const [zonesLoading, setZonesLoading] = useState(true);
+  // Initialize with fallback zones immediately, then try to fetch from DB
+  const [availableZones, setAvailableZones] = useState<Zone[]>(
+    FALLBACK_ZONES.map((name, idx) => ({ id: `fallback-${idx}`, name }))
+  );
+  const [zonesLoading, setZonesLoading] = useState(false);
 
-  // Fetch zones from database on mount, with fallback to hardcoded zones
+  // Try to fetch zones from database (optional enhancement)
   useEffect(() => {
-    async function fetchZones() {
-      setZonesLoading(true);
-
-      try {
-        console.log('Fetching zones from logitrack_zones...');
-        const { data, error } = await supabase
-          .from('logitrack_zones')
-          .select('id, name')
-          .eq('is_active', true)
-          .order('name');
-
-        console.log('Zones fetch result:', { data, error });
-
-        if (error) {
-          throw error;
-        }
-
-        if (data && data.length > 0) {
+    supabase
+      .from('logitrack_zones')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          console.log('Loaded zones from DB:', data.length);
           setAvailableZones(data);
-        } else {
-          // No zones in database, use fallback
-          console.warn('No zones found in database, using fallback');
-          setAvailableZones(FALLBACK_ZONES.map((name, idx) => ({ id: `fallback-${idx}`, name })));
         }
-      } catch (err: any) {
-        console.error('Error fetching zones:', err);
-        // Use fallback zones on error
-        setAvailableZones(FALLBACK_ZONES.map((name, idx) => ({ id: `fallback-${idx}`, name })));
-      } finally {
-        setZonesLoading(false);
-      }
-    }
-    fetchZones();
+      })
+      .catch(() => {
+        // Keep using fallback zones
+      });
   }, []);
 
   const [data, setData] = useState<OnboardingData>({
