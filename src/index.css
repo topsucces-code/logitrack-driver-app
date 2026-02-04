@@ -54,10 +54,18 @@ html, body {
 
 /* Bottom navigation safe area */
 .safe-bottom {
-  padding-bottom: max(16px, var(--sab));
+  padding-bottom: max(24px, calc(var(--sab) + 16px));
 }
 
 /* Top safe area */
 .safe-top {
-  padding-top: max(12px, var(--sat));
+  padding-top: max(16px, var(--sat));
+}
+
+/* Safe area margins */
+.safe-area-inset {
+  padding-top: max(16px, var(--sat));
+  padding-bottom: max(24px, calc(var(--sab) + 16px));
+  padding-left: max(16px, var(--sal));
+  padding-right: max(16px, var(--sar));
 }

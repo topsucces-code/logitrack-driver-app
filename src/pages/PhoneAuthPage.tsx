@@ -126,9 +126,9 @@ export default function PhoneAuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary-500 to-primary-600 flex flex-col">
+    <div className="min-h-screen h-full overflow-y-auto bg-gradient-to-b from-primary-500 to-primary-600 flex flex-col safe-top">
       {/* Header */}
-      <div className="safe-top p-4">
+      <div className="p-4 flex-shrink-0">
         {step === 'otp' && (
           <button
             onClick={() => setStep('phone')}
@@ -140,16 +140,16 @@ export default function PhoneAuthPage() {
       </div>
 
       {/* Logo */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-xl mb-6">
-          <span className="text-4xl">🚀</span>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 min-h-[200px]">
+        <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-xl mb-4">
+          <span className="text-3xl">🚀</span>
         </div>
-        <h1 className="text-3xl font-bold text-white mb-2">LogiTrack</h1>
-        <p className="text-white/80">Application Livreur</p>
+        <h1 className="text-2xl font-bold text-white mb-1">LogiTrack</h1>
+        <p className="text-white/80 text-sm">Application Livreur</p>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-t-3xl p-6 safe-bottom">
+      <div className="bg-white rounded-t-3xl p-6 pb-8 safe-bottom flex-shrink-0">
         {step === 'phone' ? (
           <>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Connexion</h2>
