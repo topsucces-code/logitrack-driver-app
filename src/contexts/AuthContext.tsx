@@ -136,12 +136,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Create driver profile
-      await supabase.rpc('register_logitrack_driver', {
+      const { error: rpcError } = await supabase.rpc('register_logitrack_driver', {
         p_user_id: authData.user.id,
         p_full_name: data.fullName,
         p_phone: cleanPhone,
         p_vehicle_type: data.vehicleType,
       });
+
+      if (rpcError) {
+        console.error('RPC register_logitrack_driver error:', rpcError);
+        // Don't fail completely - the user is created, profile can be completed in onboarding
+        // But log the error for debugging
+      }
 
       return { error: null };
     } catch (err) {

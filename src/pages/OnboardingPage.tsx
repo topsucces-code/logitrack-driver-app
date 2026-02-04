@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -18,8 +18,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { Capacitor } from '@capacitor/core';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 
-// Available zones in Abidjan
-const ABIDJAN_ZONES = [
+// Zone type from database
+interface Zone {
+  id: string;
+  name: string;
+}
+
+// Fallback zones for Abidjan (used if database fetch fails)
+const FALLBACK_ZONES = [
   'Cocody', 'Plateau', 'Yopougon', 'Adjamé', 'Abobo',
   'Treichville', 'Marcory', 'Koumassi', 'Port-Bouët', 'Bingerville',
   'Anyama', 'Songon', 'Attécoubé', 'Riviera', 'Angré',
@@ -56,6 +62,45 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [currentPhotoField, setCurrentPhotoField] = useState<string | null>(null);
+  const [availableZones, setAvailableZones] = useState<Zone[]>([]);
+  const [zonesLoading, setZonesLoading] = useState(true);
+
+  // Fetch zones from database on mount, with fallback to hardcoded zones
+  useEffect(() => {
+    async function fetchZones() {
+      setZonesLoading(true);
+
+      try {
+        console.log('Fetching zones from logitrack_zones...');
+        const { data, error } = await supabase
+          .from('logitrack_zones')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name');
+
+        console.log('Zones fetch result:', { data, error });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          setAvailableZones(data);
+        } else {
+          // No zones in database, use fallback
+          console.warn('No zones found in database, using fallback');
+          setAvailableZones(FALLBACK_ZONES.map((name, idx) => ({ id: `fallback-${idx}`, name })));
+        }
+      } catch (err: any) {
+        console.error('Error fetching zones:', err);
+        // Use fallback zones on error
+        setAvailableZones(FALLBACK_ZONES.map((name, idx) => ({ id: `fallback-${idx}`, name })));
+      } finally {
+        setZonesLoading(false);
+      }
+    }
+    fetchZones();
+  }, []);
 
   const [data, setData] = useState<OnboardingData>({
     fullName: '',
@@ -71,6 +116,7 @@ export default function OnboardingPage() {
     mobileMoneyProvider: '',
     mobileMoneyNumber: '',
   });
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const totalSteps = 5;
 
@@ -148,14 +194,24 @@ export default function OnboardingPage() {
 
   // Submit registration
   async function handleSubmit() {
-    if (!user) return;
+    setSubmitError(null);
+
+    if (!user) {
+      console.error('handleSubmit: No user session found');
+      setSubmitError('Session expirée. Veuillez vous reconnecter.');
+      // Redirect to auth after a short delay
+      setTimeout(() => navigate('/auth'), 2000);
+      return;
+    }
 
     setLoading(true);
 
     try {
       const userId = user.id;
+      console.log('Starting registration for user:', userId);
 
       // Upload all photos
+      console.log('Uploading photos...');
       const [
         profilePhotoUrl,
         cniFrontUrl,
@@ -169,6 +225,7 @@ export default function OnboardingPage() {
         data.vehiclePhoto ? uploadPhoto(data.vehiclePhoto, 'driver-documents', `${userId}/vehicle.jpg`) : null,
         data.licensePhoto ? uploadPhoto(data.licensePhoto, 'driver-documents', `${userId}/license.jpg`) : null,
       ]);
+      console.log('Photos uploaded:', { profilePhotoUrl, cniFrontUrl, cniBackUrl, licenseUrl });
 
       // Map mobile money provider to the new enum format
       const momoProviderMap: Record<string, string> = {
@@ -178,38 +235,60 @@ export default function OnboardingPage() {
         'wave': 'wave',
       };
 
-      // Update or create driver profile in logitrack_drivers
-      const { error } = await supabase
-        .from('logitrack_drivers')
-        .upsert({
-          user_id: userId,
-          full_name: data.fullName,
-          phone: user.user_metadata?.phone || data.mobileMoneyNumber,
-          photo_url: profilePhotoUrl,
-          id_card_front_url: cniFrontUrl,
-          id_card_back_url: cniBackUrl,
-          vehicle_type: data.vehicleType,
-          vehicle_plate: data.vehiclePlate,
-          driving_license_url: licenseUrl,
-          secondary_zones: data.zones,
-          momo_provider: momoProviderMap[data.mobileMoneyProvider] || data.mobileMoneyProvider,
-          momo_number: data.mobileMoneyNumber,
-          // New schema defaults
-          driver_type: 'independent',
-          status: 'pending',
-          verification_status: 'pending',
-          is_online: false,
-          is_available: true,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' });
+      // Convert zone names to UUIDs if zones were loaded from database (real UUIDs, not fallback)
+      // If using fallback zones (id starts with 'fallback-'), we skip secondary_zones
+      let zoneIds: string[] = [];
+      const hasRealZones = availableZones.length > 0 && !availableZones[0]?.id.startsWith('fallback-');
+      if (hasRealZones) {
+        zoneIds = data.zones
+          .map(zoneName => availableZones.find(z => z.name === zoneName)?.id)
+          .filter((id): id is string => id !== undefined && !id.startsWith('fallback-'));
+      }
 
-      if (error) throw error;
+      const driverData: Record<string, unknown> = {
+        user_id: userId,
+        full_name: data.fullName,
+        phone: user.user_metadata?.phone || data.mobileMoneyNumber,
+        photo_url: profilePhotoUrl,
+        id_card_front_url: cniFrontUrl,
+        id_card_back_url: cniBackUrl,
+        vehicle_type: data.vehicleType,
+        vehicle_plate: data.vehiclePlate,
+        driving_license_url: licenseUrl,
+        // Only include secondary_zones if we have valid UUIDs
+        ...(zoneIds.length > 0 ? { secondary_zones: zoneIds } : {}),
+        momo_provider: momoProviderMap[data.mobileMoneyProvider] || data.mobileMoneyProvider,
+        momo_number: data.mobileMoneyNumber,
+        // New schema defaults
+        driver_type: 'independent',
+        status: 'pending',
+        verification_status: 'pending',
+        is_online: false,
+        is_available: true,
+        updated_at: new Date().toISOString(),
+      };
+      console.log('Upserting driver data:', driverData);
+
+      // Update or create driver profile in logitrack_drivers
+      const { error, data: upsertResult } = await supabase
+        .from('logitrack_drivers')
+        .upsert(driverData, { onConflict: 'user_id' })
+        .select();
+
+      if (error) {
+        console.error('Upsert error:', error);
+        throw error;
+      }
+
+      console.log('Upsert successful:', upsertResult);
 
       await refreshDriver();
+      console.log('Driver refreshed, navigating to home...');
       navigate('/');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Registration error:', err);
-      alert('Erreur lors de l\'inscription. Veuillez réessayer.');
+      const errorMessage = err?.message || err?.details || 'Erreur lors de l\'inscription. Veuillez réessayer.';
+      setSubmitError(errorMessage);
     }
 
     setLoading(false);
@@ -498,20 +577,29 @@ export default function OnboardingPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {ABIDJAN_ZONES.map((zone) => (
-                <button
-                  key={zone}
-                  onClick={() => toggleZone(zone)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    data.zones.includes(zone)
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {data.zones.includes(zone) && <Check className="w-4 h-4 inline mr-1" />}
-                  {zone}
-                </button>
-              ))}
+              {zonesLoading ? (
+                <div className="w-full flex items-center justify-center py-4">
+                  <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mr-2" />
+                  <span className="text-gray-500 text-sm">Chargement des zones...</span>
+                </div>
+              ) : availableZones.length > 0 ? (
+                availableZones.map((zone) => (
+                  <button
+                    key={zone.id}
+                    onClick={() => toggleZone(zone.name)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      data.zones.includes(zone.name)
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {data.zones.includes(zone.name) && <Check className="w-4 h-4 inline mr-1" />}
+                    {zone.name}
+                  </button>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">Aucune zone disponible</p>
+              )}
             </div>
 
             <p className="text-sm text-gray-500 text-center">
@@ -590,6 +678,14 @@ export default function OnboardingPage() {
                 </div>
               </div>
             </div>
+
+            {/* Error display */}
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
+                <p className="text-red-600 text-sm font-medium">Erreur</p>
+                <p className="text-red-600 text-sm mt-1">{submitError}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
