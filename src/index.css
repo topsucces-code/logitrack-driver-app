@@ -10,14 +10,49 @@
   --sal: env(safe-area-inset-left);
 }
 
+/* Mobile optimizations */
+html {
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior-y: contain;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  /* Prevent text size adjustment */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html, body {
   height: 100%;
   overflow: hidden;
+  /* Prevent rubber-banding on iOS */
+  position: fixed;
+  width: 100%;
+  /* Touch optimization */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 #root {
   height: 100%;
   overflow: hidden;
+  /* Enable hardware acceleration */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Improve touch responsiveness */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Prevent callout on long press (iOS) */
+img, a {
+  -webkit-touch-callout: none;
+}
+
+/* Faster tap response */
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Custom scrollbar */

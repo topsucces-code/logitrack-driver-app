@@ -1,0 +1,42 @@
+{
+  "name": "LogiTrack Livreur",
+  "short_name": "LogiTrack",
+  "description": "Application de livraison pour les livreurs LogiTrack Africa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f97316",
+  "theme_color": "#f97316",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["business", "logistics", "delivery"],
+  "shortcuts": [
+    {
+      "name": "Mes courses",
+      "short_name": "Courses",
+      "url": "/dashboard",
+      "icons": [{ "src": "/logo.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Mes gains",
+      "short_name": "Gains",
+      "url": "/earnings",
+      "icons": [{ "src": "/logo.svg", "sizes": "any" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

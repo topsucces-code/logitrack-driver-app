@@ -2,19 +2,98 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+    <!-- Mobile viewport optimizations -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="MobileOptimized" content="width" />
+
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#f97316" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LogiTrack" />
+    <meta name="application-name" content="LogiTrack Livreur" />
+    <meta name="msapplication-TileColor" content="#f97316" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- SEO -->
+    <meta name="description" content="Application de livraison LogiTrack Africa - Gagnez de l'argent en livrant des colis" />
+    <meta name="keywords" content="livraison, livreur, LogiTrack, Côte d'Ivoire, Afrique, courses" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
     <title>LogiTrack Livreur</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://unpkg.com" />
+
+    <!-- Fonts with display swap -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Splash screen styles -->
+    <style>
+      #splash-screen {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease-out;
+      }
+      #splash-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #splash-screen svg {
+        width: 80px;
+        height: 80px;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.8; }
+      }
+    </style>
   </head>
   <body class="bg-gray-50">
+    <!-- Splash screen -->
+    <div id="splash-screen">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <rect width="512" height="512" rx="102" fill="white" fill-opacity="0.2"/>
+        <g fill="white">
+          <path d="M380 200H340V160C340 148.954 331.046 140 320 140H120C108.954 140 100 148.954 100 160V300C100 311.046 108.954 320 120 320H140C140 348.719 163.281 372 192 372C220.719 372 244 348.719 244 320H308C308 348.719 331.281 372 360 372C388.719 372 412 348.719 412 320H420C431.046 320 440 311.046 440 300V260C440 226.863 413.137 200 380 200ZM192 348C176.536 348 164 335.464 164 320C164 304.536 176.536 292 192 292C207.464 292 220 304.536 220 320C220 335.464 207.464 348 192 348ZM360 348C344.536 348 332 335.464 332 320C332 304.536 344.536 292 360 292C375.464 292 388 304.536 388 320C388 335.464 375.464 348 360 348ZM416 296H412C403.163 270.397 379.603 252 352 252H340V224H380C399.882 224 416 240.118 416 260V296Z"/>
+          <rect x="80" y="180" width="60" height="12" rx="6" opacity="0.8"/>
+          <rect x="60" y="220" width="80" height="12" rx="6" opacity="0.6"/>
+          <rect x="80" y="260" width="50" height="12" rx="6" opacity="0.4"/>
+        </g>
+      </svg>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Hide splash when app loads -->
+    <script>
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          document.getElementById('splash-screen')?.classList.add('hidden');
+          setTimeout(() => document.getElementById('splash-screen')?.remove(), 300);
+        }, 500);
+      });
+    </script>
   </body>
 </html>
