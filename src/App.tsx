@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LocationProvider } from './contexts/LocationContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { OfflineBanner } from './components/OfflineBanner';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
+import { initOfflineQueue } from './services/offlineQueue';
 
 // Pages
 import LoginPage from './pages/LoginPage';
@@ -197,11 +201,18 @@ function AppRoutes() {
 }
 
 export default function App() {
+  // Initialize offline queue on app start
+  useEffect(() => {
+    initOfflineQueue();
+  }, []);
+
   return (
     <BrowserRouter>
       <AuthProvider>
         <LocationProvider>
           <ToastProvider>
+            <OfflineBanner />
+            <PWAInstallPrompt />
             <div className="h-screen overflow-hidden bg-gray-50">
               <AppRoutes />
             </div>

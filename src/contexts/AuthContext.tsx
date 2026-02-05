@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, Driver, VehicleType, isDriverVerified, getRegistrationStep } from '../lib/supabase';
+import { initPushNotifications, removePushToken } from '../services/pushNotificationService';
 
 interface AuthContextType {
   user: User | null;
@@ -32,6 +33,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isVerified = driver ? isDriverVerified(driver) : false;
   const registrationStep = driver ? getRegistrationStep(driver) : 0;
+
+  // Initialize push notifications when driver is verified
+  useEffect(() => {
+    if (driver && isVerified) {
+      initPushNotifications(
+        // On notification received in foreground
+        (notification) => {
+          console.log('Push notification received:', notification);
+        },
+        // On notification action (user tapped)
+        (action) => {
+          console.log('Push notification action:', action);
+          // Handle navigation based on notification data
+          const data = action.notification.data;
+          if (data?.deliveryId) {
+            window.location.href = `/delivery/${data.deliveryId}`;
+          }
+        }
+      );
+    }
+  }, [driver, isVerified]);
 
   const fetchDriver = useCallback(async (userId: string) => {
     try {
@@ -155,6 +177,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    // Remove push token before signing out
+    await removePushToken();
+
     if (driver) {
       await supabase
         .from('logitrack_drivers')
