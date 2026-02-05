@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, ChevronLeft } from 'lucide-react';
+import { ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { Button } from '../components/ui/Button';
 import { phoneSchema, otpSchema, validateForm } from '../lib/validations';
 
 export default function PhoneAuthPage() {
@@ -133,13 +132,20 @@ export default function PhoneAuthPage() {
   }
 
   return (
-    <div className="min-h-screen h-full overflow-y-auto bg-gradient-to-b from-primary-500 to-primary-600 flex flex-col safe-top">
+    <div className="min-h-screen h-full overflow-y-auto bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 flex flex-col safe-top relative">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 blob" />
+        <div className="absolute top-1/4 -left-16 w-48 h-48 bg-white/5 rounded-full" />
+        <div className="absolute bottom-1/3 right-0 w-32 h-32 bg-primary-300/20 rounded-full blur-xl" />
+      </div>
+
       {/* Header */}
-      <div className="p-4 flex-shrink-0">
+      <div className="p-4 flex-shrink-0 relative z-10">
         {step === 'otp' && (
           <button
             onClick={() => setStep('phone')}
-            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white"
+            className="w-11 h-11 glass rounded-2xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -147,87 +153,98 @@ export default function PhoneAuthPage() {
       </div>
 
       {/* Logo */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6 min-h-[200px]">
-        <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-xl mb-4">
-          <span className="text-3xl">🚀</span>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 min-h-[220px] relative z-10">
+        <div className="animate-float">
+          <div className="w-24 h-24 bg-white rounded-[28px] flex items-center justify-center shadow-2xl mb-5 animate-pulse-glow">
+            <span className="text-4xl">🚀</span>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-1">LogiTrack</h1>
-        <p className="text-white/80 text-sm">Application Livreur</p>
+        <h1 className="text-3xl font-bold text-white mb-1 tracking-tight">LogiTrack</h1>
+        <p className="text-white/90 text-base font-medium">Application Livreur</p>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-t-3xl p-6 pb-8 safe-bottom flex-shrink-0">
+      <div className="bg-white rounded-t-[32px] p-6 pb-8 safe-bottom flex-shrink-0 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] relative z-10 animate-slide-up">
         {step === 'phone' ? (
-          <>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Connexion</h2>
-            <p className="text-gray-500 mb-6">
+          <div className="animate-fade-in-up">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Connexion</h2>
+            <p className="text-gray-500 mb-8 leading-relaxed">
               Entrez votre numéro de téléphone pour recevoir un code de connexion
             </p>
 
             {/* Phone Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="mb-8">
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Numéro de téléphone
               </label>
-              <div className="flex">
-                <span className="inline-flex items-center px-4 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-gray-600 font-medium">
-                  🇨🇮 +225
-                </span>
+              <div className="flex shadow-sm rounded-2xl overflow-hidden border-2 border-gray-100 focus-within:border-primary-500 focus-within:shadow-lg focus-within:shadow-primary-500/10 transition-all duration-300">
+                <div className="inline-flex items-center gap-2 px-4 py-4 bg-gradient-to-b from-gray-50 to-gray-100 border-r border-gray-200 text-gray-700 font-semibold">
+                  <span className="text-xl">🇨🇮</span>
+                  <span>+225</span>
+                </div>
                 <input
                   type="tel"
                   value={formatPhone(phone)}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   placeholder="07 XX XX XX XX"
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg"
+                  className="flex-1 px-4 py-4 focus:outline-none text-lg font-medium text-gray-800 placeholder:text-gray-400 bg-white"
                   maxLength={14}
                 />
               </div>
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm mb-4">{error}</p>
+              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
+                <p className="text-red-600 text-sm font-medium">{error}</p>
+              </div>
             )}
 
-            <Button
+            <button
               onClick={sendOTP}
-              disabled={phone.replace(/\D/g, '').length < 8}
-              loading={loading}
-              fullWidth
-              size="lg"
-              icon={<ArrowRight className="w-5 h-5" />}
-              iconPosition="right"
+              disabled={loading || phone.replace(/\D/g, '').length < 8}
+              className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
             >
-              Recevoir le code
-            </Button>
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Recevoir le code
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
 
-            <p className="text-center text-sm text-gray-500 mt-6">
-              En continuant, vous acceptez nos{' '}
-              <a href="#" className="text-primary-600">Conditions d'utilisation</a>
-            </p>
-
-            <div className="text-center mt-4 pt-4 border-t border-gray-100">
+            {/* Register Link - placed prominently after button */}
+            <div className="text-center mt-6 pt-6 border-t border-gray-100">
               <p className="text-gray-600">
                 Pas encore de compte ?{' '}
-                <Link to="/register" className="text-primary-600 font-semibold hover:underline">
+                <Link to="/register" className="text-primary-600 font-bold hover:text-primary-700 transition-colors">
                   S'inscrire
                 </Link>
               </p>
             </div>
-          </>
+
+            <p className="text-center text-xs text-gray-400 mt-4">
+              En continuant, vous acceptez nos{' '}
+              <a href="#" className="text-primary-500 font-medium hover:text-primary-600 transition-colors">
+                Conditions d'utilisation
+              </a>
+            </p>
+          </div>
         ) : (
-          <>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Vérification</h2>
-            <p className="text-gray-500 mb-6">
+          <div className="animate-fade-in-up">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Vérification</h2>
+            <p className="text-gray-500 mb-8 leading-relaxed">
               Entrez le code envoyé au{' '}
-              <span className="font-medium text-gray-900">+225 {formatPhone(phone)}</span>
+              <span className="font-bold text-gray-900">+225 {formatPhone(phone)}</span>
             </p>
 
             {/* OTP Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="mb-8">
+              <label className="block text-sm font-semibold text-gray-700 mb-4">
                 Code de vérification
               </label>
-              <div className="flex gap-2 justify-between">
+              <div className="flex gap-3 justify-center">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <input
                     key={i}
@@ -254,43 +271,54 @@ export default function PhoneAuthPage() {
                         prev?.focus();
                       }
                     }}
-                    className="w-12 h-14 text-center text-2xl font-bold border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl otp-input focus:outline-none transition-all duration-200 ${
+                      otp[i]
+                        ? 'border-primary-500 bg-primary-50 text-primary-700'
+                        : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                    }`}
                   />
                 ))}
               </div>
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm mb-4">{error}</p>
+              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
+                <p className="text-red-600 text-sm font-medium">{error}</p>
+              </div>
             )}
 
-            <Button
+            <button
               onClick={verifyOTP}
-              disabled={otp.length !== 6}
-              loading={loading}
-              fullWidth
-              size="lg"
+              disabled={loading || otp.length !== 6}
+              className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
             >
-              Vérifier
-            </Button>
+              {loading ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                'Vérifier le code'
+              )}
+            </button>
 
             {/* Resend */}
-            <div className="text-center mt-6">
+            <div className="text-center mt-8">
               {countdown > 0 ? (
-                <p className="text-gray-500 text-sm">
-                  Renvoyer le code dans {countdown}s
-                </p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full">
+                  <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-primary-500 animate-spin" />
+                  <span className="text-gray-600 text-sm font-medium">
+                    Renvoyer dans {countdown}s
+                  </span>
+                </div>
               ) : (
                 <button
                   onClick={sendOTP}
                   disabled={loading}
-                  className="text-primary-600 font-medium text-sm"
+                  className="text-primary-600 font-bold text-sm hover:text-primary-700 transition-colors px-4 py-2 hover:bg-primary-50 rounded-full"
                 >
                   Renvoyer le code
                 </button>
               )}
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
