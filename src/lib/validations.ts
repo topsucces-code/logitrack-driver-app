@@ -63,38 +63,59 @@ export const onboardingPersonalInfoSchema = z.object({
     .string()
     .min(3, 'Le nom doit contenir au moins 3 caractères')
     .max(100, 'Le nom est trop long'),
-  phone: phoneSchema,
-  email: emailSchema.optional(),
+  profilePhoto: z.string().min(1, 'Photo de profil requise').nullable().refine((val) => val !== null, {
+    message: 'Photo de profil requise',
+  }),
+});
+
+// Onboarding Step 2: CNI/ID Documents
+export const onboardingCniSchema = z.object({
+  cniNumber: z
+    .string()
+    .min(8, 'Numéro CNI invalide (minimum 8 caractères)')
+    .max(20, 'Numéro CNI trop long'),
+  cniFront: z.string().min(1, 'Photo recto CNI requise').nullable().refine((val) => val !== null, {
+    message: 'Photo recto CNI requise',
+  }),
+  cniBack: z.string().min(1, 'Photo verso CNI requise').nullable().refine((val) => val !== null, {
+    message: 'Photo verso CNI requise',
+  }),
+});
+
+// Onboarding Step 4: Zones
+export const onboardingZonesSchema = z.object({
+  zones: z.array(z.string()).min(1, 'Sélectionnez au moins 1 zone de livraison'),
 });
 
 // Vehicle types
 const vehicleTypes = ['moto', 'tricycle', 'voiture', 'velo'] as const;
 
-// Onboarding Step 2: Vehicle info
+// Onboarding Step 3: Vehicle info
 export const onboardingVehicleSchema = z.object({
   vehicleType: z.enum(vehicleTypes),
+  vehiclePhoto: z.string().min(1, 'Photo du véhicule requise').nullable().refine((val) => val !== null, {
+    message: 'Photo du véhicule requise',
+  }),
   vehiclePlate: z
     .string()
-    .min(4, 'Plaque d\'immatriculation invalide')
     .max(20, 'Plaque d\'immatriculation trop longue')
-    .optional(),
-  vehicleBrand: z
-    .string()
-    .max(50, 'Marque trop longue')
-    .optional(),
-  vehicleModel: z
-    .string()
-    .max(50, 'Modèle trop long')
     .optional(),
 });
 
-// Mobile Money providers
+// Mobile Money providers (database format)
 const momoProviders = ['orange_money', 'mtn_momo', 'moov_money', 'wave'] as const;
+
+// Mobile Money providers (onboarding form format)
+const momoProviderIds = ['orange', 'mtn', 'moov', 'wave'] as const;
 
 // Onboarding Step 5: Mobile Money
 export const onboardingMomoSchema = z.object({
-  momoProvider: z.enum(momoProviders),
-  momoNumber: phoneSchema,
+  mobileMoneyProvider: z.enum(momoProviderIds),
+  mobileMoneyNumber: z
+    .string()
+    .min(8, 'Numéro Mobile Money invalide')
+    .max(10, 'Numéro Mobile Money invalide')
+    .regex(/^[0-9]+$/, 'Le numéro ne doit contenir que des chiffres'),
 });
 
 // Incident types
@@ -146,7 +167,9 @@ export type PhoneAuthFormData = z.infer<typeof phoneAuthFormSchema>;
 export type OtpVerificationFormData = z.infer<typeof otpVerificationFormSchema>;
 export type RegistrationFormData = z.infer<typeof registrationFormSchema>;
 export type OnboardingPersonalInfoData = z.infer<typeof onboardingPersonalInfoSchema>;
+export type OnboardingCniData = z.infer<typeof onboardingCniSchema>;
 export type OnboardingVehicleData = z.infer<typeof onboardingVehicleSchema>;
+export type OnboardingZonesData = z.infer<typeof onboardingZonesSchema>;
 export type OnboardingMomoData = z.infer<typeof onboardingMomoSchema>;
 export type IncidentReportData = z.infer<typeof incidentReportSchema>;
 export type WithdrawalFormData = z.infer<typeof withdrawalFormSchema>;

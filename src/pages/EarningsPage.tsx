@@ -4,8 +4,6 @@ import {
   ArrowLeft,
   Wallet,
   TrendingUp,
-  Calendar,
-  ChevronRight,
   ArrowDownCircle,
   ArrowUpCircle,
   Clock,
@@ -16,6 +14,8 @@ import { format, startOfWeek, startOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PAYMENT_CONFIG } from '../config/app.config';
 import { useToast } from '../contexts/ToastContext';
+import { Button } from '../components/ui/Button';
+import { Skeleton } from '../components/ui/Skeleton';
 
 export default function EarningsPage() {
   const navigate = useNavigate();
@@ -197,14 +197,14 @@ export default function EarningsPage() {
 
       {/* Withdraw Button */}
       <div className="px-4 py-4">
-        <button
+        <Button
           onClick={() => setShowWithdrawModal(true)}
           disabled={driver.wallet_balance < PAYMENT_CONFIG.minWithdrawalAmount}
-          className="w-full py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          fullWidth
+          icon={<Wallet className="w-5 h-5" />}
         >
-          <Wallet className="w-5 h-5" />
           Retirer mes gains
-        </button>
+        </Button>
         {driver.wallet_balance < PAYMENT_CONFIG.minWithdrawalAmount && (
           <p className="text-xs text-gray-500 text-center mt-2">
             Minimum de retrait: {PAYMENT_CONFIG.minWithdrawalAmount} {PAYMENT_CONFIG.currency}
@@ -218,10 +218,14 @@ export default function EarningsPage() {
 
         {loading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-4 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-32 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-24" />
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="bg-white rounded-xl p-4 flex items-center gap-3">
+                <Skeleton variant="circular" width={40} height={40} />
+                <div className="flex-1">
+                  <Skeleton width={120} height={16} className="mb-2" />
+                  <Skeleton width={80} height={12} />
+                </div>
+                <Skeleton width={60} height={20} />
               </div>
             ))}
           </div>
@@ -347,19 +351,20 @@ export default function EarningsPage() {
 
             {/* Actions */}
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={() => setShowWithdrawModal(false)}
-                className="flex-1 py-3 border border-gray-300 rounded-xl font-medium text-gray-700"
+                variant="outline"
+                className="flex-1"
               >
                 Annuler
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={requestWithdrawal}
-                disabled={withdrawing}
-                className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl disabled:opacity-50"
+                loading={withdrawing}
+                className="flex-1"
               >
-                {withdrawing ? 'Envoi...' : 'Confirmer'}
-              </button>
+                Confirmer
+              </Button>
             </div>
           </div>
         </div>

@@ -11,13 +11,21 @@ import {
   Camera,
   Check,
   Upload,
-  X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Capacitor } from '@capacitor/core';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { FALLBACK_ZONES, MOBILE_MONEY_PROVIDERS } from '../config/app.config';
+import { Button } from '../components/ui/Button';
+import {
+  onboardingPersonalInfoSchema,
+  onboardingCniSchema,
+  onboardingVehicleSchema,
+  onboardingZonesSchema,
+  onboardingMomoSchema,
+  validateForm,
+} from '../lib/validations';
 
 // Zone type from database
 interface Zone {
@@ -258,21 +266,68 @@ export default function OnboardingPage() {
     setLoading(false);
   }
 
-  // Validation for each step
-  function canProceed(): boolean {
+  const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
+
+  // Validation for each step using Zod schemas
+  function validateStep(): { isValid: boolean; errors: Record<string, string> } {
+    let result;
     switch (step) {
       case 1:
-        return data.fullName.length >= 3 && data.profilePhoto !== null;
+        result = validateForm(onboardingPersonalInfoSchema, {
+          fullName: data.fullName,
+          profilePhoto: data.profilePhoto,
+        });
+        break;
       case 2:
-        return data.cniNumber.length >= 8 && data.cniFront !== null && data.cniBack !== null;
+        result = validateForm(onboardingCniSchema, {
+          cniNumber: data.cniNumber,
+          cniFront: data.cniFront,
+          cniBack: data.cniBack,
+        });
+        break;
       case 3:
-        return data.vehicleType !== '' && data.vehiclePhoto !== null;
+        result = validateForm(onboardingVehicleSchema, {
+          vehicleType: data.vehicleType || undefined,
+          vehiclePhoto: data.vehiclePhoto,
+          vehiclePlate: data.vehiclePlate || undefined,
+        });
+        break;
       case 4:
-        return data.zones.length >= 1;
+        result = validateForm(onboardingZonesSchema, {
+          zones: data.zones,
+        });
+        break;
       case 5:
-        return data.mobileMoneyProvider !== '' && data.mobileMoneyNumber.length >= 8;
+        result = validateForm(onboardingMomoSchema, {
+          mobileMoneyProvider: data.mobileMoneyProvider || undefined,
+          mobileMoneyNumber: data.mobileMoneyNumber,
+        });
+        break;
       default:
-        return false;
+        return { isValid: false, errors: {} };
+    }
+
+    if (result.success) {
+      return { isValid: true, errors: {} };
+    }
+    return { isValid: false, errors: result.errors };
+  }
+
+  function canProceed(): boolean {
+    return validateStep().isValid;
+  }
+
+  function handleNext() {
+    const { isValid, errors } = validateStep();
+    if (!isValid) {
+      setStepErrors(errors);
+      return;
+    }
+    setStepErrors({});
+    if (step < totalSteps) {
+      setStep(step + 1);
+    } else {
+      handleSubmit();
     }
   }
 
@@ -656,31 +711,28 @@ export default function OnboardingPage() {
 
       {/* Footer */}
       <div className="bg-white border-t border-gray-200 p-4 safe-bottom flex-shrink-0">
-        <button
-          onClick={() => {
-            if (step < totalSteps) {
-              setStep(step + 1);
-            } else {
-              handleSubmit();
-            }
-          }}
-          disabled={!canProceed() || loading}
-          className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        {/* Step validation errors */}
+        {Object.keys(stepErrors).length > 0 && (
+          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+            <ul className="text-sm text-red-600 space-y-1">
+              {Object.values(stepErrors).map((error, idx) => (
+                <li key={idx}>• {error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <Button
+          onClick={handleNext}
+          disabled={!canProceed()}
+          loading={loading}
+          fullWidth
+          size="lg"
+          icon={step < totalSteps ? <ArrowRight className="w-5 h-5" /> : <Check className="w-5 h-5" />}
+          iconPosition={step < totalSteps ? 'right' : 'left'}
         >
-          {loading ? (
-            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : step < totalSteps ? (
-            <>
-              Continuer
-              <ArrowRight className="w-5 h-5" />
-            </>
-          ) : (
-            <>
-              <Check className="w-5 h-5" />
-              Terminer l'inscription
-            </>
-          )}
-        </button>
+          {step < totalSteps ? 'Continuer' : "Terminer l'inscription"}
+        </Button>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
+import { hapticSuccess, hapticError, hapticLight } from '../hooks/useHapticFeedback';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -66,6 +67,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = Date.now().toString();
     setToasts((prev) => [...prev, { id, type, message }]);
+
+    // Trigger haptic feedback based on toast type
+    if (type === 'success') {
+      hapticSuccess();
+    } else if (type === 'error') {
+      hapticError();
+    } else {
+      hapticLight();
+    }
 
     setTimeout(() => {
       removeToast(id);

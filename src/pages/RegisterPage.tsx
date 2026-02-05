@@ -7,12 +7,15 @@ import {
   EyeOff,
   User,
   Truck,
-  Loader2,
   ArrowLeft,
+  ArrowRight,
   Bike,
   Car,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/ui/Button';
+import { phoneSchema, passwordSchema, validateForm } from '../lib/validations';
+import { z } from 'zod';
 
 type VehicleType = 'moto' | 'tricycle' | 'voiture' | 'velo';
 
@@ -37,31 +40,40 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Validation schemas
+  const step1Schema = z.object({
+    fullName: z.string().min(3, 'Le nom doit contenir au moins 3 caractères'),
+    phone: phoneSchema,
+  });
+
+  const step2Schema = z.object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  });
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
 
-    // Validations Step 1
+    // Validations Step 1 with Zod
     if (step === 1) {
-      if (!fullName || fullName.length < 3) {
-        setError('Nom complet requis (min. 3 caractères)');
-        return;
-      }
-      if (!phone || phone.length < 10) {
-        setError('Numéro de téléphone invalide');
+      const cleanPhone = phone.replace(/\D/g, '');
+      const validation = validateForm(step1Schema, { fullName, phone: cleanPhone });
+      if (!validation.success) {
+        setError(Object.values(validation.errors)[0]);
         return;
       }
       setStep(2);
       return;
     }
 
-    // Validations Step 2
-    if (password.length < 6) {
-      setError('Mot de passe trop court (min. 6 caractères)');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+    // Validations Step 2 with Zod
+    const validation = validateForm(step2Schema, { password, confirmPassword });
+    if (!validation.success) {
+      setError(Object.values(validation.errors)[0]);
       return;
     }
 
@@ -180,12 +192,15 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <button
+              <Button
                 type="submit"
-                className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+                fullWidth
+                size="lg"
+                icon={<ArrowRight className="w-5 h-5" />}
+                iconPosition="right"
               >
                 Continuer
-              </button>
+              </Button>
             </form>
           </>
         ) : (
@@ -241,20 +256,14 @@ export default function RegisterPage() {
                 </div>
               )}
 
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                loading={loading}
+                fullWidth
+                size="lg"
               >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Création du compte...
-                  </>
-                ) : (
-                  'Créer mon compte'
-                )}
-              </button>
+                Créer mon compte
+              </Button>
             </form>
           </>
         )}

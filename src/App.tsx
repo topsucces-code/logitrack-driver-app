@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LocationProvider } from './contexts/LocationContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { OfflineBanner } from './components/OfflineBanner';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { initOfflineQueue } from './services/offlineQueue';
@@ -18,6 +20,10 @@ import EarningsPage from './pages/EarningsPage';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import HistoryPage from './pages/HistoryPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import WeeklyReportPage from './pages/WeeklyReportPage';
+import ChallengesPage from './pages/ChallengesPage';
+import RouteOptimizationPage from './pages/RouteOptimizationPage';
 import SplashPage from './pages/SplashPage';
 import PendingVerificationPage from './pages/PendingVerificationPage';
 import ReportIncidentPage from './pages/ReportIncidentPage';
@@ -193,6 +199,38 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <AnalyticsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <WeeklyReportPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/challenges"
+        element={
+          <ProtectedRoute>
+            <ChallengesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/route-optimization"
+        element={
+          <ProtectedRoute>
+            <RouteOptimizationPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* 404 Page */}
       <Route path="*" element={<NotFoundPage />} />
@@ -208,17 +246,21 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <LocationProvider>
-          <ToastProvider>
-            <OfflineBanner />
-            <PWAInstallPrompt />
-            <div className="h-screen overflow-hidden bg-gray-50">
-              <AppRoutes />
-            </div>
-          </ToastProvider>
-        </LocationProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <LocationProvider>
+              <ToastProvider>
+                <OfflineBanner />
+                <PWAInstallPrompt />
+                <div className="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+                  <AppRoutes />
+                </div>
+              </ToastProvider>
+            </LocationProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

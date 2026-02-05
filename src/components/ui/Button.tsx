@@ -1,5 +1,6 @@
 import { ButtonHTMLAttributes, forwardRef, ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
+import { hapticLight } from '../../hooks/useHapticFeedback';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -8,6 +9,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: ReactNode;
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
+  haptic?: boolean;
 }
 
 const variantStyles = {
@@ -36,16 +38,26 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       fullWidth = false,
       disabled,
       className = '',
+      haptic = true,
+      onClick,
       ...props
     },
     ref
   ) => {
     const isDisabled = disabled || loading;
 
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (haptic && !isDisabled) {
+        hapticLight();
+      }
+      onClick?.(e);
+    };
+
     return (
       <button
         ref={ref}
         disabled={isDisabled}
+        onClick={handleClick}
         className={`
           inline-flex items-center justify-center gap-2 font-medium
           transition-colors active:scale-[0.98]

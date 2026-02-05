@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Phone, ArrowRight, Loader2, ChevronLeft } from 'lucide-react';
+import { ArrowRight, ChevronLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { Button } from '../components/ui/Button';
+import { phoneSchema, otpSchema, validateForm } from '../lib/validations';
 
 export default function PhoneAuthPage() {
   const navigate = useNavigate();
@@ -25,8 +27,11 @@ export default function PhoneAuthPage() {
   // Send OTP
   async function sendOTP() {
     const cleanPhone = phone.replace(/\D/g, '');
-    if (cleanPhone.length < 8) {
-      setError('Numéro de téléphone invalide');
+
+    // Validate phone with Zod
+    const validation = validateForm(phoneSchema, cleanPhone);
+    if (!validation.success) {
+      setError(Object.values(validation.errors)[0]);
       return;
     }
 
@@ -75,8 +80,10 @@ export default function PhoneAuthPage() {
 
   // Verify OTP
   async function verifyOTP() {
-    if (otp.length !== 6) {
-      setError('Code à 6 chiffres requis');
+    // Validate OTP with Zod
+    const validation = validateForm(otpSchema, otp);
+    if (!validation.success) {
+      setError(Object.values(validation.errors)[0]);
       return;
     }
 
@@ -181,20 +188,17 @@ export default function PhoneAuthPage() {
               <p className="text-red-500 text-sm mb-4">{error}</p>
             )}
 
-            <button
+            <Button
               onClick={sendOTP}
-              disabled={loading || phone.replace(/\D/g, '').length < 8}
-              className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={phone.replace(/\D/g, '').length < 8}
+              loading={loading}
+              fullWidth
+              size="lg"
+              icon={<ArrowRight className="w-5 h-5" />}
+              iconPosition="right"
             >
-              {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <>
-                  Recevoir le code
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </button>
+              Recevoir le code
+            </Button>
 
             <p className="text-center text-sm text-gray-500 mt-6">
               En continuant, vous acceptez nos{' '}
@@ -260,17 +264,15 @@ export default function PhoneAuthPage() {
               <p className="text-red-500 text-sm mb-4">{error}</p>
             )}
 
-            <button
+            <Button
               onClick={verifyOTP}
-              disabled={loading || otp.length !== 6}
-              className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={otp.length !== 6}
+              loading={loading}
+              fullWidth
+              size="lg"
             >
-              {loading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                'Vérifier'
-              )}
-            </button>
+              Vérifier
+            </Button>
 
             {/* Resend */}
             <div className="text-center mt-6">
