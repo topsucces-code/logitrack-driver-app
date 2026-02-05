@@ -7,14 +7,16 @@ import {
   EyeOff,
   User,
   Truck,
-  Loader2,
   ArrowLeft,
+  ArrowRight,
   Bike,
   Car,
-  ArrowRight,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { phoneSchema, passwordSchema, validateForm } from '../lib/validations';
+import { z } from 'zod';
 
 type VehicleType = 'moto' | 'tricycle' | 'voiture' | 'velo';
 
@@ -39,31 +41,40 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Validation schemas
+  const step1Schema = z.object({
+    fullName: z.string().min(3, 'Le nom doit contenir au moins 3 caractères'),
+    phone: phoneSchema,
+  });
+
+  const step2Schema = z.object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  });
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
 
-    // Validations Step 1
+    // Validations Step 1 with Zod
     if (step === 1) {
-      if (!fullName || fullName.length < 3) {
-        setError('Nom complet requis (min. 3 caractères)');
-        return;
-      }
-      if (!phone || phone.length < 10) {
-        setError('Numéro de téléphone invalide');
+      const cleanPhone = phone.replace(/\D/g, '');
+      const validation = validateForm(step1Schema, { fullName, phone: cleanPhone });
+      if (!validation.success) {
+        setError(Object.values(validation.errors)[0]);
         return;
       }
       setStep(2);
       return;
     }
 
-    // Validations Step 2
-    if (password.length < 6) {
-      setError('Mot de passe trop court (min. 6 caractères)');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+    // Validations Step 2 with Zod
+    const validation = validateForm(step2Schema, { password, confirmPassword });
+    if (!validation.success) {
+      setError(Object.values(validation.errors)[0]);
       return;
     }
 

@@ -24,6 +24,10 @@ import { Capacitor } from '@capacitor/core';
 import { MAP_CONFIG } from '../config/app.config';
 import { useToast } from '../contexts/ToastContext';
 import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
+import { SOSButton } from '../components/SOSButton';
+import { NavigationButton } from '../components/NavigationButton';
+import { Button } from '../components/ui/Button';
+import { CustomerRating } from '../components/CustomerRating';
 
 // Fix Leaflet marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -64,6 +68,8 @@ export default function DeliveryDetailPage() {
   const [showProofModal, setShowProofModal] = useState(false);
   const [proofPhoto, setProofPhoto] = useState<string | null>(null);
   const [recipientName, setRecipientName] = useState('');
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [deliveryCompleted, setDeliveryCompleted] = useState(false);
 
   // Fetch delivery
   useEffect(() => {
@@ -119,7 +125,8 @@ export default function DeliveryDetailPage() {
     } else {
       if (newStatus === 'delivered') {
         refreshDriver();
-        navigate('/');
+        setDeliveryCompleted(true);
+        setShowRatingModal(true);
       }
     }
 
@@ -210,11 +217,6 @@ export default function DeliveryDetailPage() {
     window.open(`tel:${phone}`, '_system');
   }
 
-  // Open navigation
-  function openNavigation(lat: number, lng: number) {
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_system');
-  }
-
   if (loading || !delivery) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
@@ -257,6 +259,8 @@ export default function DeliveryDetailPage() {
             Express
           </span>
         )}
+        {/* SOS Button */}
+        <SOSButton deliveryId={delivery.id} compact />
       </header>
 
       {/* Map */}
@@ -324,13 +328,14 @@ export default function DeliveryDetailPage() {
               Appeler
             </button>
             {pickupCoords && (
-              <button
-                onClick={() => openNavigation(pickupCoords.lat, pickupCoords.lng)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-100 hover:bg-green-200 rounded-lg text-sm font-medium text-green-700"
-              >
-                <Navigation className="w-4 h-4" />
-                Naviguer
-              </button>
+              <NavigationButton
+                destination={{
+                  latitude: pickupCoords.lat,
+                  longitude: pickupCoords.lng,
+                  label: delivery.pickup_address,
+                }}
+                variant="inline"
+              />
             )}
           </div>
         </div>
@@ -365,13 +370,14 @@ export default function DeliveryDetailPage() {
               Appeler
             </button>
             {deliveryCoords && (
-              <button
-                onClick={() => openNavigation(deliveryCoords.lat, deliveryCoords.lng)}
-                className="flex-1 flex items-center justify-center gap-2 py-2 bg-red-100 hover:bg-red-200 rounded-lg text-sm font-medium text-red-700"
-              >
-                <Navigation className="w-4 h-4" />
-                Naviguer
-              </button>
+              <NavigationButton
+                destination={{
+                  latitude: deliveryCoords.lat,
+                  longitude: deliveryCoords.lng,
+                  label: delivery.delivery_address,
+                }}
+                variant="inline"
+              />
             )}
           </div>
         </div>
@@ -412,72 +418,83 @@ export default function DeliveryDetailPage() {
       {/* Action Button */}
       <div className="bg-white border-t border-gray-200 p-4 safe-bottom">
         {delivery.status === 'accepted' && (
-          <button
+          <Button
             onClick={() => updateStatus('picking_up')}
-            disabled={updating}
-            className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            loading={updating}
+            fullWidth
+            size="lg"
+            icon={<Navigation className="w-5 h-5" />}
+            className="bg-green-500 hover:bg-green-600"
           >
-            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
             En route vers le pickup
-          </button>
+          </Button>
         )}
 
         {delivery.status === 'picking_up' && (
-          <button
+          <Button
             onClick={() => updateStatus('picked_up')}
-            disabled={updating}
-            className="w-full py-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            loading={updating}
+            fullWidth
+            size="lg"
+            icon={<Package className="w-5 h-5" />}
+            className="bg-blue-500 hover:bg-blue-600"
           >
-            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Package className="w-5 h-5" />}
             Colis récupéré
-          </button>
+          </Button>
         )}
 
         {delivery.status === 'picked_up' && (
-          <button
+          <Button
             onClick={() => updateStatus('delivering')}
-            disabled={updating}
-            className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            loading={updating}
+            fullWidth
+            size="lg"
+            icon={<Navigation className="w-5 h-5" />}
+            className="bg-orange-500 hover:bg-orange-600"
           >
-            {updating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
             En route vers la livraison
-          </button>
+          </Button>
         )}
 
         {delivery.status === 'delivering' && (
           <>
-            <button
+            <Button
               onClick={() => setShowProofModal(true)}
               disabled={updating}
-              className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+              fullWidth
+              size="lg"
+              icon={<CheckCircle className="w-5 h-5" />}
             >
-              <CheckCircle className="w-5 h-5" />
               Confirmer la livraison
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
-              className="w-full mt-3 py-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+              variant="outline"
+              fullWidth
+              className="mt-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
+              icon={<UserX className="w-5 h-5" />}
             >
-              <UserX className="w-5 h-5" />
               Client absent
-            </button>
+            </Button>
           </>
         )}
 
         {/* Bouton Signaler un problème */}
-        <button
+        <Button
           onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
             state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
           })}
-          className="w-full mt-3 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+          variant="outline"
+          fullWidth
+          className="mt-3 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+          icon={<AlertTriangle className="w-5 h-5" />}
         >
-          <AlertTriangle className="w-5 h-5" />
           Signaler un problème
-        </button>
+        </Button>
       </div>
 
       {/* Proof Modal */}
-      {showProofModal && (
+      {showProofModal && !deliveryCompleted && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
           <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Preuve de livraison</h2>
@@ -546,6 +563,23 @@ export default function DeliveryDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Customer Rating Modal */}
+      {showRatingModal && deliveryCompleted && (
+        <CustomerRating
+          deliveryId={delivery.id}
+          customerName={delivery.delivery_contact_name || 'Client'}
+          address={delivery.delivery_address}
+          onClose={() => {
+            setShowRatingModal(false);
+            navigate('/');
+          }}
+          onSubmit={() => {
+            setShowRatingModal(false);
+            navigate('/');
+          }}
+        />
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Lock, Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { phoneSchema, passwordSchema, validateForm } from '../lib/validations';
 
 export default function LoginPage() {
   const { signIn } = useAuth();
@@ -14,21 +15,22 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+
+    // Validate with Zod
+    const cleanPhone = phone.replace(/\D/g, '');
+    const phoneValidation = validateForm(phoneSchema, cleanPhone);
+    if (!phoneValidation.success) {
+      setError(Object.values(phoneValidation.errors)[0]);
+      return;
+    }
+
+    const passwordValidation = validateForm(passwordSchema, password);
+    if (!passwordValidation.success) {
+      setError(Object.values(passwordValidation.errors)[0]);
+      return;
+    }
+
     setLoading(true);
-
-    // Validate
-    if (!phone || phone.length < 10) {
-      setError('Numéro de téléphone invalide');
-      setLoading(false);
-      return;
-    }
-
-    if (!password || password.length < 6) {
-      setError('Mot de passe trop court (min. 6 caractères)');
-      setLoading(false);
-      return;
-    }
-
     const { error: signInError } = await signIn(phone, password);
 
     if (signInError) {
