@@ -11,16 +11,18 @@ import {
   ArrowLeft,
   Bike,
   Car,
+  ArrowRight,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 type VehicleType = 'moto' | 'tricycle' | 'voiture' | 'velo';
 
-const vehicleOptions: { value: VehicleType; label: string; icon: React.ReactNode }[] = [
-  { value: 'moto', label: 'Moto', icon: <Bike className="w-6 h-6" /> },
-  { value: 'tricycle', label: 'Tricycle', icon: <Truck className="w-6 h-6" /> },
-  { value: 'voiture', label: 'Voiture', icon: <Car className="w-6 h-6" /> },
-  { value: 'velo', label: 'Vélo', icon: <Bike className="w-6 h-6" /> },
+const vehicleOptions: { value: VehicleType; label: string; icon: React.ReactNode; emoji: string }[] = [
+  { value: 'moto', label: 'Moto', icon: <Bike className="w-6 h-6" />, emoji: '🏍️' },
+  { value: 'tricycle', label: 'Tricycle', icon: <Truck className="w-6 h-6" />, emoji: '🛺' },
+  { value: 'voiture', label: 'Voiture', icon: <Car className="w-6 h-6" />, emoji: '🚗' },
+  { value: 'velo', label: 'Vélo', icon: <Bike className="w-6 h-6" />, emoji: '🚲' },
 ];
 
 export default function RegisterPage() {
@@ -85,74 +87,85 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-500 to-primary-700 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 flex flex-col relative">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/10 blob" />
+        <div className="absolute top-1/2 -right-16 w-48 h-48 bg-white/5 rounded-full" />
+        <div className="absolute bottom-1/3 left-0 w-32 h-32 bg-primary-300/20 rounded-full blur-xl" />
+      </div>
+
       {/* Header */}
-      <div className="safe-top px-6 pt-8 pb-6">
+      <div className="safe-top px-6 pt-6 pb-6 relative z-10">
         <div className="flex items-center gap-4">
           <button
             onClick={() => (step === 1 ? navigate('/login') : setStep(1))}
-            className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white"
+            className="w-11 h-11 glass rounded-2xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="text-white">
+          <div className="text-white flex-1">
             <h1 className="text-xl font-bold">Inscription</h1>
-            <p className="text-white/80 text-sm">Étape {step} sur 2</p>
+            <p className="text-white/80 text-sm font-medium">Étape {step} sur 2</p>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-4 flex gap-2">
-          <div className={`h-1 flex-1 rounded-full ${step >= 1 ? 'bg-white' : 'bg-white/30'}`} />
-          <div className={`h-1 flex-1 rounded-full ${step >= 2 ? 'bg-white' : 'bg-white/30'}`} />
+        <div className="mt-5 flex gap-3">
+          <div className="h-1.5 flex-1 rounded-full bg-white shadow-lg" />
+          <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-white shadow-lg' : 'bg-white/30'}`} />
         </div>
       </div>
 
       {/* Form Container */}
-      <div className="flex-1 bg-white rounded-t-3xl px-6 pt-8 pb-6 overflow-y-auto">
+      <div className="flex-1 bg-white rounded-t-[32px] px-6 pt-8 pb-6 overflow-y-auto shadow-[0_-10px_40px_rgba(0,0,0,0.1)] relative z-10 animate-slide-up">
         {step === 1 ? (
-          <>
+          <div className="animate-fade-in-up">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Vos informations</h2>
-            <p className="text-gray-500 mb-8">Entrez vos informations personnelles</p>
+            <p className="text-gray-500 mb-8 leading-relaxed">Entrez vos informations personnelles</p>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Full Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Nom complet
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                    <User className="w-5 h-5 text-primary-500" />
+                  </div>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Kouamé Jean"
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full pl-16 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Numéro de téléphone
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-primary-500" />
+                  </div>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="07 00 00 00 00"
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full pl-16 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
                   />
                 </div>
               </div>
 
               {/* Vehicle Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Type de véhicule
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -161,57 +174,65 @@ export default function RegisterPage() {
                       key={option.value}
                       type="button"
                       onClick={() => setVehicleType(option.value)}
-                      className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${
+                      className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 relative ${
                         vehicleType === option.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-600'
-                          : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                          ? 'border-primary-500 bg-primary-50 text-primary-600 shadow-lg shadow-primary-500/10'
+                          : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200 hover:bg-gray-100'
                       }`}
                     >
-                      {option.icon}
-                      <span className="text-sm font-medium">{option.label}</span>
+                      {vehicleType === option.value && (
+                        <div className="absolute top-2 right-2">
+                          <CheckCircle2 className="w-5 h-5 text-primary-500" />
+                        </div>
+                      )}
+                      <span className="text-3xl">{option.emoji}</span>
+                      <span className="text-sm font-semibold">{option.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                  <p className="text-red-600 text-sm">{error}</p>
+                <div className="p-4 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
+                  <p className="text-red-600 text-sm font-medium">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+                className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-primary-500/30"
               >
                 Continuer
+                <ArrowRight className="w-5 h-5" />
               </button>
             </form>
-          </>
+          </div>
         ) : (
-          <>
+          <div className="animate-fade-in-up">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Créer un mot de passe</h2>
-            <p className="text-gray-500 mb-8">Sécurisez votre compte</p>
+            <p className="text-gray-500 mb-8 leading-relaxed">Sécurisez votre compte</p>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Mot de passe
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-primary-500" />
+                  </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min. 6 caractères"
-                    className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full pl-16 pr-14 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -220,31 +241,61 @@ export default function RegisterPage() {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Confirmer le mot de passe
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-primary-500" />
+                  </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Répétez le mot de passe"
-                    className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full pl-16 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
                   />
                 </div>
               </div>
 
+              {/* Password Strength Indicator */}
+              <div className="p-4 bg-gray-50 rounded-2xl">
+                <p className="text-xs font-semibold text-gray-600 mb-2">Sécurité du mot de passe</p>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((level) => (
+                    <div
+                      key={level}
+                      className={`h-1.5 flex-1 rounded-full transition-all ${
+                        password.length >= level * 2
+                          ? password.length >= 8
+                            ? 'bg-green-500'
+                            : 'bg-yellow-500'
+                          : 'bg-gray-200'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {password.length === 0
+                    ? 'Entrez un mot de passe'
+                    : password.length < 6
+                    ? 'Trop court'
+                    : password.length < 8
+                    ? 'Acceptable'
+                    : 'Fort'}
+                </p>
+              </div>
+
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-                  <p className="text-red-600 text-sm">{error}</p>
+                <div className="p-4 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
+                  <p className="text-red-600 text-sm font-medium">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
               >
                 {loading ? (
                   <>
@@ -252,18 +303,21 @@ export default function RegisterPage() {
                     Création du compte...
                   </>
                 ) : (
-                  'Créer mon compte'
+                  <>
+                    Créer mon compte
+                    <ArrowRight className="w-5 h-5" />
+                  </>
                 )}
               </button>
             </form>
-          </>
+          </div>
         )}
 
         {/* Login Link */}
-        <div className="mt-8 text-center">
-          <p className="text-gray-500">
+        <div className="mt-8 text-center pt-6 border-t border-gray-100">
+          <p className="text-gray-600">
             Déjà un compte ?{' '}
-            <Link to="/login" className="text-primary-600 font-semibold">
+            <Link to="/login" className="text-primary-600 font-bold hover:text-primary-700 transition-colors">
               Se connecter
             </Link>
           </p>
