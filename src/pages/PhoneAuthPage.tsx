@@ -208,13 +208,7 @@ export default function PhoneAuthPage() {
               )}
             </button>
 
-            <p className="text-center text-sm text-gray-500 mt-8">
-              En continuant, vous acceptez nos{' '}
-              <a href="#" className="text-primary-600 font-semibold hover:text-primary-700 transition-colors">
-                Conditions d'utilisation
-              </a>
-            </p>
-
+            {/* Register Link - placed prominently after button */}
             <div className="text-center mt-6 pt-6 border-t border-gray-100">
               <p className="text-gray-600">
                 Pas encore de compte ?{' '}
@@ -223,6 +217,13 @@ export default function PhoneAuthPage() {
                 </Link>
               </p>
             </div>
+
+            <p className="text-center text-xs text-gray-400 mt-4">
+              En continuant, vous acceptez nos{' '}
+              <a href="#" className="text-primary-500 font-medium hover:text-primary-600 transition-colors">
+                Conditions d'utilisation
+              </a>
+            </p>
           </div>
         ) : (
           <div className="animate-fade-in-up">
