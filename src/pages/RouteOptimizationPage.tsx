@@ -112,121 +112,123 @@ export default function RouteOptimizationPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-orange-500 to-orange-600 text-white safe-top px-4 py-4">
-        <div className="flex items-center gap-3 mb-4">
+      {/* Header - Compact */}
+      <header className="bg-gradient-to-r from-orange-500 to-orange-600 text-white safe-top px-3 py-2 flex-shrink-0">
+        <div className="flex items-center gap-2 mb-2">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+            className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-xl font-bold">{t.routeOptimization}</h1>
+          <h1 className="text-lg font-bold">{t.routeOptimization}</h1>
         </div>
 
-        {/* Summary Stats */}
+        {/* Summary Stats - Compact */}
         {optimizedRoute && (
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white/10 rounded-xl p-3 text-center">
-              <MapPin className="w-5 h-5 mx-auto mb-1" />
-              <p className="text-2xl font-bold">{optimizedRoute.stops.length}</p>
-              <p className="text-xs text-white/70">{t.stops}</p>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-white/10 rounded-lg p-2 text-center">
+              <MapPin className="w-4 h-4 mx-auto" />
+              <p className="text-lg font-bold">{optimizedRoute.stops.length}</p>
+              <p className="text-[10px] text-white/70">{t.stops}</p>
             </div>
-            <div className="bg-white/10 rounded-xl p-3 text-center">
-              <Route className="w-5 h-5 mx-auto mb-1" />
-              <p className="text-2xl font-bold">
+            <div className="bg-white/10 rounded-lg p-2 text-center">
+              <Route className="w-4 h-4 mx-auto" />
+              <p className="text-lg font-bold">
                 {formatDistance(optimizedRoute.totalDistance)}
               </p>
-              <p className="text-xs text-white/70">{t.distance}</p>
+              <p className="text-[10px] text-white/70">{t.distance}</p>
             </div>
-            <div className="bg-white/10 rounded-xl p-3 text-center">
-              <Clock className="w-5 h-5 mx-auto mb-1" />
-              <p className="text-2xl font-bold">
+            <div className="bg-white/10 rounded-lg p-2 text-center">
+              <Clock className="w-4 h-4 mx-auto" />
+              <p className="text-lg font-bold">
                 {formatDuration(optimizedRoute.totalDuration)}
               </p>
-              <p className="text-xs text-white/70">{t.totalDuration}</p>
+              <p className="text-[10px] text-white/70">{t.totalDuration}</p>
             </div>
           </div>
         )}
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-3 pb-20">
         {loading ? (
-          <div className="h-64 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
+          <div className="h-40 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
           </div>
         ) : deliveries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64">
-            <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 text-center">
-              Aucune livraison en attente à optimiser
+          <div className="flex flex-col items-center justify-center h-40">
+            <Package className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-2" />
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+              Aucune livraison en attente
             </p>
-            <Button
+            <button
               onClick={() => navigate('/')}
-              variant="outline"
-              className="mt-4"
+              className="mt-3 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg"
             >
-              Retour au tableau de bord
-            </Button>
+              Retour
+            </button>
           </div>
         ) : (
           <>
-            {/* Savings Card */}
+            {/* Savings Card - Compact */}
             {optimizedRoute && optimizedRoute.savings.percentage > 0 && (
-              <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center">
-                    <TrendingDown className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2.5 mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center flex-shrink-0">
+                    <TrendingDown className="w-4 h-4 text-green-600 dark:text-green-400" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-green-800 dark:text-green-300">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-green-800 dark:text-green-300">
                       {t.savingsEstimate}
                     </p>
-                    <p className="text-sm text-green-600 dark:text-green-400">
+                    <p className="text-xs text-green-600 dark:text-green-400">
                       {formatDistance(optimizedRoute.savings.distance)} • {formatDuration(optimizedRoute.savings.time)}
                     </p>
                   </div>
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
                     -{optimizedRoute.savings.percentage}%
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Optimize Button */}
+            {/* Optimize Button - Compact */}
             {!optimizedRoute && (
-              <div className="mb-4">
-                <Button
+              <div className="mb-3">
+                <button
                   onClick={handleOptimize}
-                  loading={optimizing}
-                  fullWidth
-                  className="bg-orange-500 hover:bg-orange-600"
+                  disabled={optimizing}
+                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <Shuffle className="w-5 h-5 mr-2" />
-                  {t.optimizeRoute}
-                </Button>
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
-                  {deliveries.length} livraisons à optimiser
+                  {optimizing ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Shuffle className="w-4 h-4" />
+                  )}
+                  <span className="text-sm">{t.optimizeRoute}</span>
+                </button>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400 text-center mt-1">
+                  {deliveries.length} livraisons
                 </p>
               </div>
             )}
 
-            {/* Route List */}
-            <div className="space-y-1">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+            {/* Route List - Compact */}
+            <div>
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-2">
                 {optimizedRoute ? t.suggestedOrder : t.currentOrder}
               </h3>
 
               {(optimizedRoute ? optimizedRoute.stops : deliveries).map(
                 (stop, index) => (
-                  <div key={stop.id}>
-                    {/* Stop Card */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
-                      <div className="flex items-start gap-3">
+                  <div key={stop.id} className="mb-1">
+                    {/* Stop Card - Compact */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5">
+                      <div className="flex items-start gap-2">
                         {/* Index Circle */}
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                          className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${
                             index === 0
                               ? 'bg-green-500 text-white'
                               : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
@@ -236,43 +238,35 @@ export default function RouteOptimizationPage() {
                         </div>
 
                         {/* Stop Details */}
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium text-gray-900 dark:text-white">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1">
+                            <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
                               {stop.name}
                             </p>
-                            {stop.priority && (
+                            {stop.priority && stop.priority !== 'normal' && (
                               <span
-                                className={`text-xs px-2 py-0.5 rounded-full ${
+                                className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
                                   priorityColors[stop.priority]
                                 }`}
                               >
-                                {stop.priority === 'high'
-                                  ? 'Urgent'
-                                  : stop.priority === 'low'
-                                  ? 'Normal'
-                                  : ''}
+                                {stop.priority === 'high' ? '!' : ''}
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {stop.address}
                           </p>
 
                           {/* Segment info */}
                           {optimizedRoute && index < optimizedRoute.segments.length && (
-                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                              <span className="flex items-center gap-1">
+                            <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+                              <span className="flex items-center gap-0.5">
                                 <Route className="w-3 h-3" />
-                                {formatDistance(
-                                  optimizedRoute.segments[index].distance
-                                )}
+                                {formatDistance(optimizedRoute.segments[index].distance)}
                               </span>
-                              <span className="flex items-center gap-1">
+                              <span className="flex items-center gap-0.5">
                                 <Clock className="w-3 h-3" />
-                                {formatDuration(
-                                  optimizedRoute.segments[index].duration
-                                )}
+                                {formatDuration(optimizedRoute.segments[index].duration)}
                               </span>
                             </div>
                           )}
@@ -280,12 +274,10 @@ export default function RouteOptimizationPage() {
                       </div>
                     </div>
 
-                    {/* Arrow between stops */}
+                    {/* Arrow between stops - smaller */}
                     {index < (optimizedRoute ? optimizedRoute.stops : deliveries).length - 1 && (
-                      <div className="flex justify-center py-1">
-                        <div className="w-8 h-8 flex items-center justify-center">
-                          <ArrowRight className="w-4 h-4 text-gray-400 rotate-90" />
-                        </div>
+                      <div className="flex justify-center py-0.5">
+                        <ArrowRight className="w-3 h-3 text-gray-300 rotate-90" />
                       </div>
                     )}
                   </div>
@@ -293,43 +285,37 @@ export default function RouteOptimizationPage() {
               )}
             </div>
 
-            {/* Location Warning */}
+            {/* Location Warning - Compact */}
             {!position && (
-              <div className="mt-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-amber-800 dark:text-amber-300">
-                    Position non disponible
-                  </p>
-                  <p className="text-sm text-amber-600 dark:text-amber-400">
-                    Activez la localisation pour un itinéraire plus précis
-                  </p>
-                </div>
+              <div className="mt-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2.5 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Activez la localisation pour un itinéraire plus précis
+                </p>
               </div>
             )}
           </>
         )}
       </div>
 
-      {/* Bottom Actions */}
+      {/* Bottom Actions - Compact */}
       {optimizedRoute && optimizedRoute.stops.length > 0 && (
-        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 safe-bottom">
-          <div className="flex gap-3">
-            <Button
+        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 safe-bottom flex-shrink-0">
+          <div className="flex gap-2">
+            <button
               onClick={handleStartNavigation}
-              variant="outline"
-              className="flex-1"
+              className="flex-1 py-2 border border-gray-300 dark:border-gray-600 rounded-lg flex items-center justify-center gap-1 text-sm"
             >
-              <Navigation className="w-5 h-5 mr-2" />
+              <Navigation className="w-4 h-4" />
               {t.navigate}
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={handleApplyRoute}
-              className="flex-1 bg-green-500 hover:bg-green-600"
+              className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-1 text-sm"
             >
-              <Check className="w-5 h-5 mr-2" />
+              <Check className="w-4 h-4" />
               {t.applyOptimization}
-            </Button>
+            </button>
           </div>
         </div>
       )}

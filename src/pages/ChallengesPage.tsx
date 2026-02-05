@@ -94,37 +94,30 @@ export default function ChallengesPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-primary-500 to-primary-600 text-white safe-top px-4 py-4">
-        <div className="flex items-center gap-3 mb-4">
+      {/* Header - Compact */}
+      <header className="bg-gradient-to-r from-primary-500 to-primary-600 text-white safe-top px-3 py-2 flex-shrink-0">
+        <div className="flex items-center gap-2 mb-2">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+            className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-xl font-bold">{t.challengesAndRewards}</h1>
+          <h1 className="text-lg font-bold">{t.challengesAndRewards}</h1>
         </div>
 
-        {/* Level Progress */}
+        {/* Level Progress - Compact */}
         {stats && (
-          <div className="bg-white/10 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-2">
+          <div className="bg-white/10 rounded-lg p-2">
+            <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <Crown className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-bold text-lg">{t.level} {stats.level}</p>
-                  <p className="text-xs text-white/70">{stats.xp.toLocaleString()} {t.xp}</p>
-                </div>
+                <Crown className="w-4 h-4" />
+                <span className="font-bold text-sm">{t.level} {stats.level}</span>
+                <span className="text-xs text-white/70">• {stats.xp.toLocaleString()} {t.xp}</span>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-white/70">{t.nextLevel}</p>
-                <p className="font-medium">{stats.xpToNextLevel.toLocaleString()} {t.xp}</p>
-              </div>
+              <span className="text-xs text-white/70">{stats.xpToNextLevel.toLocaleString()} {t.xp} →</span>
             </div>
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
               <div
                 className="h-full bg-white rounded-full transition-all"
                 style={{ width: `${Math.min(100, (stats.xp / (stats.xp + stats.xpToNextLevel)) * 100)}%` }}
@@ -134,9 +127,9 @@ export default function ChallengesPage() {
         )}
       </header>
 
-      {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4">
-        <div className="flex gap-6">
+      {/* Tabs - Compact */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-2 flex-shrink-0">
+        <div className="flex">
           {[
             { id: 'challenges', label: t.challenges, icon: Target },
             { id: 'badges', label: t.badges, icon: Medal },
@@ -148,13 +141,13 @@ export default function ChallengesPage() {
                 hapticLight();
                 setActiveTab(tab.id as TabType);
               }}
-              className={`flex items-center gap-2 py-3 border-b-2 transition-colors ${
+              className={`flex-1 flex items-center justify-center gap-1 py-2 border-b-2 transition-colors text-xs ${
                 activeTab === tab.id
                   ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                   : 'border-transparent text-gray-500 dark:text-gray-400'
               }`}
             >
-              <tab.icon className="w-4 h-4" />
+              <tab.icon className="w-3.5 h-3.5" />
               <span className="font-medium">{tab.label}</span>
             </button>
           ))}
@@ -162,7 +155,7 @@ export default function ChallengesPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-3 pb-20">
         {loading ? (
           <div className="h-64 flex items-center justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
@@ -171,16 +164,16 @@ export default function ChallengesPage() {
           <>
             {/* Challenges Tab */}
             {activeTab === 'challenges' && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Daily Challenges */}
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Flame className="w-5 h-5 text-orange-500" />
-                    <h2 className="font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Flame className="w-4 h-4 text-orange-500" />
+                    <h2 className="font-semibold text-sm text-gray-900 dark:text-white">
                       {t.dailyChallenges}
                     </h2>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {dailyChallenges.map((challenge) => (
                       <ChallengeCard
                         key={challenge.id}
@@ -194,13 +187,13 @@ export default function ChallengesPage() {
 
                 {/* Weekly Challenges */}
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Star className="w-5 h-5 text-yellow-500" />
-                    <h2 className="font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <h2 className="font-semibold text-sm text-gray-900 dark:text-white">
                       {t.weeklyChallenges}
                     </h2>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {weeklyChallenges.map((challenge) => (
                       <ChallengeCard
                         key={challenge.id}
@@ -216,7 +209,7 @@ export default function ChallengesPage() {
 
             {/* Badges Tab */}
             {activeTab === 'badges' && (
-              <div className="space-y-6">
+              <div className="space-y-3">
                 {['deliveries', 'earnings', 'rating', 'streak', 'distance'].map((category) => {
                   const categoryBadges = badges.filter(b => b.category === category);
                   const categoryLabels: Record<string, string> = {
@@ -229,35 +222,35 @@ export default function ChallengesPage() {
 
                   return (
                     <div key={category}>
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
+                      <h3 className="font-semibold text-xs text-gray-900 dark:text-white mb-2">
                         {categoryLabels[category]}
                       </h3>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-2">
                         {categoryBadges.map((badge) => {
                           const isUnlocked = unlockedBadges.some(b => b.id === badge.id);
                           return (
                             <div
                               key={badge.id}
-                              className={`rounded-xl p-4 ${
+                              className={`rounded-lg p-2.5 ${
                                 isUnlocked
                                   ? tierBg[badge.tier]
                                   : 'bg-gray-100 dark:bg-gray-800 opacity-50'
                               }`}
                             >
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-2xl">{badge.icon}</span>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-lg">{badge.icon}</span>
                                 {isUnlocked ? (
-                                  <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${tierColors[badge.tier]} flex items-center justify-center`}>
-                                    <Check className="w-4 h-4 text-white" />
+                                  <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${tierColors[badge.tier]} flex items-center justify-center`}>
+                                    <Check className="w-3 h-3 text-white" />
                                   </div>
                                 ) : (
-                                  <Lock className="w-5 h-5 text-gray-400" />
+                                  <Lock className="w-4 h-4 text-gray-400" />
                                 )}
                               </div>
-                              <p className={`font-medium ${isUnlocked ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
+                              <p className={`font-medium text-xs ${isUnlocked ? 'text-gray-900 dark:text-white' : 'text-gray-500'}`}>
                                 {badge.name}
                               </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400 line-clamp-2">
                                 {badge.description}
                               </p>
                             </div>
@@ -272,13 +265,13 @@ export default function ChallengesPage() {
 
             {/* Leaderboard Tab */}
             {activeTab === 'leaderboard' && (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Period Selector */}
-                <div className="flex gap-2">
+                <div className="flex gap-1">
                   {[t.day, t.week, t.month].map((period) => (
                     <button
                       key={period}
-                      className="flex-1 py-2 px-4 bg-white dark:bg-gray-800 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+                      className="flex-1 py-1.5 px-2 bg-white dark:bg-gray-800 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
                     >
                       {period}
                     </button>
@@ -286,18 +279,18 @@ export default function ChallengesPage() {
                 </div>
 
                 {/* Leaderboard List */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden">
+                <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
                   {leaderboard.map((entry, index) => (
                     <div
                       key={entry.driverId}
-                      className={`flex items-center gap-4 p-4 ${
+                      className={`flex items-center gap-2 p-2.5 ${
                         index < leaderboard.length - 1
                           ? 'border-b border-gray-100 dark:border-gray-700'
                           : ''
                       }`}
                     >
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
                           index === 0
                             ? 'bg-yellow-100 text-yellow-600'
                             : index === 1
@@ -309,39 +302,39 @@ export default function ChallengesPage() {
                       >
                         {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : entry.rank}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
                           {entry.name}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {entry.deliveries} {t.deliveries.toLowerCase()}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-primary-600 dark:text-primary-400">
+                        <p className="font-bold text-sm text-primary-600 dark:text-primary-400">
                           {entry.earnings.toLocaleString()}
                         </p>
-                        <p className="text-xs text-gray-500">FCFA</p>
+                        <p className="text-[10px] text-gray-500">FCFA</p>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Your Position */}
-                <div className="bg-primary-50 dark:bg-primary-900/20 rounded-xl p-4">
-                  <p className="text-sm text-primary-700 dark:text-primary-300 mb-1">
+                <div className="bg-primary-50 dark:bg-primary-900/20 rounded-lg p-2.5">
+                  <p className="text-xs text-primary-700 dark:text-primary-300 mb-1">
                     {t.yourPosition}
                   </p>
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-bold text-primary-600">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-bold text-primary-600">
                         #{stats ? Math.min(stats.level + 5, 50) : '-'}
                       </span>
-                      <span className="text-gray-600 dark:text-gray-300">
+                      <span className="text-sm text-gray-600 dark:text-gray-300 truncate">
                         {driver?.full_name}
                       </span>
                     </div>
-                    <span className="font-medium text-primary-600">
+                    <span className="font-medium text-sm text-primary-600">
                       {stats?.totalEarnings.toLocaleString()} FCFA
                     </span>
                   </div>
@@ -355,7 +348,7 @@ export default function ChallengesPage() {
   );
 }
 
-// Challenge Card Component
+// Challenge Card Component - Compact
 function ChallengeCard({
   challenge,
   onClaim,
@@ -369,36 +362,36 @@ function ChallengeCard({
   const progressPercent = Math.min(100, (progress / challenge.target) * 100);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
-      <div className="flex items-start gap-3">
-        <div className="text-2xl">{challenge.icon}</div>
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900 dark:text-white">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5">
+      <div className="flex items-start gap-2">
+        <div className="text-lg flex-shrink-0">{challenge.icon}</div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="font-medium text-sm text-gray-900 dark:text-white truncate">
               {challenge.title}
             </h3>
-            <div className="flex items-center gap-1 text-primary-600 dark:text-primary-400">
-              <Gift className="w-4 h-4" />
-              <span className="font-medium text-sm">
-                {challenge.reward.toLocaleString()} FCFA
+            <div className="flex items-center gap-0.5 text-primary-600 dark:text-primary-400 flex-shrink-0">
+              <Gift className="w-3 h-3" />
+              <span className="font-medium text-xs">
+                {challenge.reward.toLocaleString()}
               </span>
             </div>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
             {challenge.description}
           </p>
 
           {/* Progress Bar */}
-          <div className="mt-3">
-            <div className="flex items-center justify-between text-xs mb-1">
+          <div className="mt-1.5">
+            <div className="flex items-center justify-between text-[10px] mb-0.5">
               <span className="text-gray-500 dark:text-gray-400">
-                {progress.toLocaleString()} / {challenge.target.toLocaleString()}
+                {progress}/{challenge.target}
               </span>
               <span className="font-medium text-gray-700 dark:text-gray-300">
                 {Math.round(progressPercent)}%
               </span>
             </div>
-            <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
                   challenge.completed
@@ -412,14 +405,12 @@ function ChallengeCard({
 
           {/* Claim Button */}
           {challenge.completed && (
-            <Button
+            <button
               onClick={onClaim}
-              size="sm"
-              className="mt-3 bg-green-500 hover:bg-green-600"
-              fullWidth
+              className="mt-2 w-full py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg"
             >
               {claimLabel}
-            </Button>
+            </button>
           )}
         </div>
       </div>

@@ -61,33 +61,33 @@ export default function SettingsPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-4 py-3 flex items-center gap-3">
+      {/* Header - Compact */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-3 py-2 flex items-center gap-2 flex-shrink-0">
         <button
           onClick={() => navigate('/')}
-          className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
+          className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
         </button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t.settings}</h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t.settings}</h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {/* Delivery Settings */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{t.deliverySettings}</h2>
+      <div className="flex-1 overflow-y-auto p-3 pb-20 space-y-3">
+        {/* Delivery Settings - Compact */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-semibold text-sm text-gray-900 dark:text-white">{t.deliverySettings}</h2>
           </div>
 
           {/* Auto Accept */}
-          <div className="p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                <Zap className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <div className="px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                <Zap className="w-4 h-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">{t.autoAccept}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.autoAcceptDescription}</p>
+                <p className="font-medium text-sm text-gray-900 dark:text-white">{t.autoAccept}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">{t.autoAcceptDescription}</p>
               </div>
             </div>
             <button
@@ -95,29 +95,26 @@ export default function SettingsPage() {
                 setAutoAccept(!autoAccept);
                 setTimeout(updateSettings, 100);
               }}
-              className={`relative w-12 h-7 rounded-full transition-colors ${
+              className={`relative w-10 h-6 rounded-full transition-colors ${
                 autoAccept ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
               }`}
             >
               <span
-                className={`absolute top-0.5 w-6 h-6 bg-white rounded-full transition-transform shadow ${
-                  autoAccept ? 'left-5' : 'left-0.5'
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${
+                  autoAccept ? 'left-4' : 'left-0.5'
                 }`}
               />
             </button>
           </div>
 
           {/* Max Distance */}
-          <div className="p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div className="px-3 py-2">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">{t.maxDistance}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {t.receiveDeliveriesWithinRadius} {maxDistance} km
-                </p>
+                <p className="font-medium text-sm text-gray-900 dark:text-white">{t.maxDistance}: {maxDistance} km</p>
               </div>
             </div>
             <input
@@ -130,200 +127,102 @@ export default function SettingsPage() {
               }}
               onMouseUp={updateSettings}
               onTouchEnd={updateSettings}
-              className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
+              className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
             />
-            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1">
               <span>{DRIVER_CONFIG.minMaxDistanceKm} km</span>
-              <span className="font-medium text-primary-600 dark:text-primary-400">{maxDistance} km</span>
               <span>{DRIVER_CONFIG.maxMaxDistanceKm} km</span>
             </div>
           </div>
         </div>
 
-        {/* Appearance */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{t.appearance}</h2>
+        {/* Appearance & Language - Combined Compact */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-semibold text-sm text-gray-900 dark:text-white">{t.appearance} & {t.language}</h2>
           </div>
-          <div className="p-4">
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
             <ThemeToggle variant="selector" />
           </div>
-        </div>
-
-        {/* Language */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{t.language}</h2>
-          </div>
-          <div className="p-4">
+          <div className="px-3 py-2">
             <LanguageSelector variant="list" showLabel={false} />
           </div>
         </div>
 
-        {/* Tools */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{t.tools}</h2>
+        {/* Tools - Compact */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-semibold text-sm text-gray-900 dark:text-white">{t.tools}</h2>
           </div>
 
-          <button
-            onClick={() => setShowScanner(true)}
-            className="w-full p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                <QrCode className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+          {[
+            { onClick: () => setShowScanner(true), icon: QrCode, color: 'indigo', label: t.qrScanner },
+            { onClick: () => navigate('/reports'), icon: BarChart3, color: 'cyan', label: t.reports },
+            { onClick: () => navigate('/analytics'), icon: BarChart3, color: 'emerald', label: t.analytics },
+            { onClick: () => navigate('/route-optimization'), icon: Route, color: 'orange', label: t.routeOptimization },
+            { onClick: () => navigate('/challenges'), icon: Trophy, color: 'yellow', label: t.challengesAndRewards },
+          ].map((item, idx, arr) => (
+            <button
+              key={item.label}
+              onClick={item.onClick}
+              className={`w-full px-3 py-2 flex items-center justify-between ${idx < arr.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''}`}
+            >
+              <div className="flex items-center gap-2">
+                <div className={`w-7 h-7 bg-${item.color}-100 dark:bg-${item.color}-900 rounded-full flex items-center justify-center`}>
+                  <item.icon className={`w-3.5 h-3.5 text-${item.color}-600 dark:text-${item.color}-400`} />
+                </div>
+                <p className="font-medium text-sm text-gray-900 dark:text-white">{item.label}</p>
               </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{t.qrScanner}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.scanPackageCode}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </button>
+          ))}
+        </div>
 
-          <button
-            onClick={() => navigate('/reports')}
-            className="w-full p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-cyan-100 dark:bg-cyan-900 rounded-full flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+        {/* Notifications - Compact */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          <button className="w-full px-3 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                <Bell className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
               </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{t.reports}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.weeklyStats}</p>
-              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.pushNotifications}</p>
             </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-
-          <button
-            onClick={() => navigate('/analytics')}
-            className="w-full p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{t.analytics}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.detailedDashboard}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-
-          <button
-            onClick={() => navigate('/route-optimization')}
-            className="w-full p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
-                <Route className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{t.routeOptimization}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.optimizeRoute}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-
-          <button
-            onClick={() => navigate('/challenges')}
-            className="w-full p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{t.challengesAndRewards}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.earnBonuses}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
+            <ChevronRight className="w-4 h-4 text-gray-400" />
           </button>
         </div>
 
-        {/* Notifications */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{t.notifications}</h2>
+        {/* Support - Compact */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg">
+          <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+            <h2 className="font-semibold text-sm text-gray-900 dark:text-white">{t.support}</h2>
           </div>
 
-          <button className="w-full p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
-                <Bell className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          {[
+            { onClick: () => setShowChat(true), icon: MessageCircle, color: 'primary', label: t.chatWithSupport },
+            { onClick: () => {}, icon: HelpCircle, color: 'teal', label: t.helpFAQ },
+            { onClick: () => {}, icon: FileText, color: 'gray', label: t.termsOfService },
+            { onClick: () => {}, icon: Shield, color: 'gray', label: t.privacyPolicy },
+          ].map((item, idx, arr) => (
+            <button
+              key={item.label}
+              onClick={item.onClick}
+              className={`w-full px-3 py-2 flex items-center justify-between ${idx < arr.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''}`}
+            >
+              <div className="flex items-center gap-2">
+                <div className={`w-7 h-7 bg-${item.color}-100 dark:bg-${item.color}-900 rounded-full flex items-center justify-center`}>
+                  <item.icon className={`w-3.5 h-3.5 text-${item.color}-600 dark:text-${item.color}-400`} />
+                </div>
+                <p className="font-medium text-sm text-gray-900 dark:text-white">{item.label}</p>
               </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{t.pushNotifications}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.newDeliveriesMessages}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </button>
+          ))}
         </div>
 
-        {/* Support */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl">
-          <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-            <h2 className="font-semibold text-gray-900 dark:text-white">{t.support}</h2>
-          </div>
-
-          <button
-            onClick={() => setShowChat(true)}
-            className="w-full p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium text-gray-900 dark:text-white">{t.chatWithSupport}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t.realtimeAssistance}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-
-          <button className="w-full p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-teal-100 dark:bg-teal-900 rounded-full flex items-center justify-center">
-                <HelpCircle className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-              </div>
-              <p className="font-medium text-gray-900 dark:text-white">{t.helpFAQ}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-
-          <button className="w-full p-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </div>
-              <p className="font-medium text-gray-900 dark:text-white">{t.termsOfService}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-
-          <button className="w-full p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              </div>
-              <p className="font-medium text-gray-900 dark:text-white">{t.privacyPolicy}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
-
-        {/* Version */}
-        <div className="text-center py-4">
-          <p className="text-xs text-gray-400 dark:text-gray-500">{APP_CONFIG.name} v{APP_CONFIG.version}</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500">© {APP_CONFIG.year} {APP_CONFIG.company}</p>
+        {/* Version - Compact */}
+        <div className="text-center py-2">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">{APP_CONFIG.name} v{APP_CONFIG.version}</p>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">© {APP_CONFIG.year} {APP_CONFIG.company}</p>
         </div>
       </div>
 
