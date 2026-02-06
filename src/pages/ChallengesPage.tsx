@@ -43,6 +43,7 @@ export default function ChallengesPage() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [unlockedBadges, setUnlockedBadges] = useState<Badge[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
 
   useEffect(() => {
     if (!driver) return;
@@ -55,7 +56,7 @@ export default function ChallengesPage() {
       const [challengesData, statsData, leaderboardData] = await Promise.all([
         getActiveChallenges(driverId),
         getDriverStats(driverId),
-        getLeaderboard('weekly'),
+        getLeaderboard(leaderboardPeriod),
       ]);
 
       setChallenges(challengesData);
@@ -69,6 +70,20 @@ export default function ChallengesPage() {
 
     loadData();
   }, [driver]);
+
+  // Reload leaderboard when period changes
+  useEffect(() => {
+    if (!driver) return;
+    let cancelled = false;
+
+    async function reloadLeaderboard() {
+      const data = await getLeaderboard(leaderboardPeriod);
+      if (!cancelled) setLeaderboard(data);
+    }
+
+    reloadLeaderboard();
+    return () => { cancelled = true; };
+  }, [leaderboardPeriod, driver]);
 
   const handleClaimReward = (challenge: Challenge) => {
     hapticSuccess();
@@ -268,12 +283,24 @@ export default function ChallengesPage() {
               <div className="space-y-3">
                 {/* Period Selector */}
                 <div className="flex gap-1">
-                  {[t.day, t.week, t.month].map((period) => (
+                  {([
+                    { label: t.day, value: 'daily' as const },
+                    { label: t.week, value: 'weekly' as const },
+                    { label: t.month, value: 'monthly' as const },
+                  ]).map((period) => (
                     <button
-                      key={period}
-                      className="flex-1 py-1.5 px-2 bg-white dark:bg-gray-800 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700"
+                      key={period.value}
+                      onClick={() => {
+                        hapticLight();
+                        setLeaderboardPeriod(period.value);
+                      }}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors ${
+                        leaderboardPeriod === period.value
+                          ? 'bg-primary-500 text-white border-primary-500'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                      }`}
                     >
-                      {period}
+                      {period.label}
                     </button>
                   ))}
                 </div>

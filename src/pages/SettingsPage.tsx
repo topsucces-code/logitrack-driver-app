@@ -15,6 +15,7 @@ import {
   QrCode,
   Trophy,
   Route,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useT } from '../contexts/LanguageContext';
@@ -35,6 +36,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   async function updateSettings() {
     if (!driver) return;
@@ -199,9 +203,9 @@ export default function SettingsPage() {
 
           {[
             { onClick: () => setShowChat(true), icon: MessageCircle, color: 'primary', label: t.chatWithSupport },
-            { onClick: () => {}, icon: HelpCircle, color: 'teal', label: t.helpFAQ },
-            { onClick: () => {}, icon: FileText, color: 'gray', label: t.termsOfService },
-            { onClick: () => {}, icon: Shield, color: 'gray', label: t.privacyPolicy },
+            { onClick: () => setShowHelp(true), icon: HelpCircle, color: 'teal', label: t.helpFAQ },
+            { onClick: () => setShowTerms(true), icon: FileText, color: 'gray', label: t.termsOfService },
+            { onClick: () => setShowPrivacy(true), icon: Shield, color: 'gray', label: t.privacyPolicy },
           ].map((item, idx, arr) => (
             <button
               key={item.label}
@@ -240,8 +244,7 @@ export default function SettingsPage() {
       {/* QR Scanner Modal */}
       {showScanner && (
         <QRScanner
-          onScan={(data, parsed) => {
-            console.log('Scanned:', data, parsed);
+          onScan={(_data, parsed) => {
             setShowScanner(false);
             // Navigate to delivery if found
             if (parsed.deliveryId) {
@@ -251,6 +254,85 @@ export default function SettingsPage() {
           onClose={() => setShowScanner(false)}
         />
       )}
+
+      {/* Info Modals */}
+      {showHelp && (
+        <InfoModal title={t.helpFAQ} onClose={() => setShowHelp(false)}>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Comment accepter une livraison ?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Lorsqu'une nouvelle livraison est disponible, une notification apparaît sur votre écran. Appuyez sur "Accepter" pour prendre en charge la livraison.</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Comment recevoir mes paiements ?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Vos gains sont automatiquement crédités sur votre portefeuille. Vous pouvez les retirer via Mobile Money depuis la page Portefeuille.</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Comment modifier ma zone de livraison ?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Contactez le support via le chat pour modifier vos zones de livraison. Un conseiller vous assistera rapidement.</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Que faire en cas de problème avec un client ?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Utilisez le bouton SOS disponible sur la page de livraison en cours, ou contactez le support via le chat en direct.</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">Comment optimiser mes itinéraires ?</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Allez dans Outils → Optimisation d'itinéraire pour réorganiser automatiquement vos livraisons et réduire vos temps de trajet.</p>
+            </div>
+          </div>
+        </InfoModal>
+      )}
+
+      {showTerms && (
+        <InfoModal title={t.termsOfService} onClose={() => setShowTerms(false)}>
+          <div className="space-y-3 text-xs text-gray-600 dark:text-gray-400">
+            <p className="font-semibold text-sm text-gray-900 dark:text-white">Conditions Générales d'Utilisation — LogiTrack Africa</p>
+            <p><strong>1. Objet</strong><br/>Les présentes conditions régissent l'utilisation de l'application LogiTrack par les livreurs partenaires en Côte d'Ivoire.</p>
+            <p><strong>2. Inscription</strong><br/>L'inscription nécessite la fourniture d'informations exactes (identité, véhicule, coordonnées Mobile Money). Tout document frauduleux entraîne la suspension immédiate du compte.</p>
+            <p><strong>3. Obligations du livreur</strong><br/>Le livreur s'engage à : livrer les colis en bon état, respecter les délais, maintenir une communication courtoise avec les clients, et respecter le code de la route.</p>
+            <p><strong>4. Rémunération</strong><br/>La rémunération est calculée par livraison effectuée. Les paiements sont versés via Mobile Money. LogiTrack prélève une commission sur chaque livraison.</p>
+            <p><strong>5. Résiliation</strong><br/>LogiTrack se réserve le droit de suspendre ou résilier un compte en cas de non-respect des présentes conditions, de plaintes répétées ou de comportement inapproprié.</p>
+            <p><strong>6. Responsabilité</strong><br/>Le livreur est responsable des colis qui lui sont confiés. En cas de perte ou dommage par négligence, des retenues pourront être appliquées.</p>
+          </div>
+        </InfoModal>
+      )}
+
+      {showPrivacy && (
+        <InfoModal title={t.privacyPolicy} onClose={() => setShowPrivacy(false)}>
+          <div className="space-y-3 text-xs text-gray-600 dark:text-gray-400">
+            <p className="font-semibold text-sm text-gray-900 dark:text-white">Politique de Confidentialité — LogiTrack Africa</p>
+            <p><strong>1. Données collectées</strong><br/>Nous collectons : nom, téléphone, photo de profil, documents d'identité, position GPS (pendant les livraisons), données de véhicule et informations Mobile Money.</p>
+            <p><strong>2. Utilisation des données</strong><br/>Vos données servent à : gérer votre compte, attribuer les livraisons, calculer les itinéraires, traiter les paiements et améliorer nos services.</p>
+            <p><strong>3. Géolocalisation</strong><br/>La position GPS est utilisée uniquement pendant les livraisons actives pour le suivi en temps réel. Vous pouvez désactiver le suivi en passant hors ligne.</p>
+            <p><strong>4. Partage des données</strong><br/>Vos données ne sont jamais vendues. Le nom et la photo peuvent être partagés avec le client lors d'une livraison. Les données de paiement sont transmises à votre opérateur Mobile Money.</p>
+            <p><strong>5. Sécurité</strong><br/>Les données sont stockées de manière sécurisée avec chiffrement. L'accès est limité au personnel autorisé.</p>
+            <p><strong>6. Vos droits</strong><br/>Vous pouvez demander l'accès, la modification ou la suppression de vos données en contactant le support.</p>
+          </div>
+        </InfoModal>
+      )}
+    </div>
+  );
+}
+
+// Bottom sheet modal for info content
+function InfoModal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-t-2xl max-h-[85vh] flex flex-col animate-slide-up safe-bottom">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <h2 className="font-bold text-base text-gray-900 dark:text-white">{title}</h2>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
+          >
+            <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-3">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }

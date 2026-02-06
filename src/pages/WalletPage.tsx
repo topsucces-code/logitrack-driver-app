@@ -1,17 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   Wallet,
   History,
-  Settings,
   Bell,
-  ChevronRight,
   TrendingUp,
   Calendar,
   Download,
-  Filter,
   CreditCard,
+  Loader2,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { MobileMoneyDashboard } from '../components/MobileMoneyWallet';
@@ -22,6 +21,7 @@ import {
   formatCurrency,
 } from '../services/mobileMoneyService';
 import { MobileMoneyTransaction } from '../types/mobileMoney';
+import jsPDF from 'jspdf';
 
 type TabType = 'overview' | 'history' | 'analytics';
 
@@ -30,6 +30,30 @@ export default function WalletPage() {
   const { driver } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState<MobileMoneyTransaction[]>([]);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Load recent transactions for notifications
+  useEffect(() => {
+    async function loadNotifs() {
+      const txs = await getTransactions(undefined, 5);
+      setNotifications(txs);
+    }
+    loadNotifs();
+  }, []);
+
+  // Close notifications on outside click
+  useEffect(() => {
+    if (!showNotifications) return;
+    function handleClick(e: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showNotifications]);
 
   if (!driver) return null;
 
@@ -55,10 +79,51 @@ export default function WalletPage() {
                 </p>
               </div>
             </div>
-            <button className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center relative">
-              <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </button>
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center relative"
+              >
+                <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                {notifications.length > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                )}
+              </button>
+
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 top-12 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+                  <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                    <p className="font-semibold text-sm text-gray-900 dark:text-white">Notifications</p>
+                    <button onClick={() => setShowNotifications(false)}>
+                      <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                  </div>
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-gray-500">Aucune notification</div>
+                  ) : (
+                    <div className="max-h-64 overflow-y-auto">
+                      {notifications.map((tx) => (
+                        <div key={tx.id} className="px-3 py-2.5 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${tx.type === 'earnings' ? 'bg-green-500' : 'bg-red-500'}`} />
+                            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{tx.description}</p>
+                          </div>
+                          <div className="flex items-center justify-between mt-0.5 ml-4">
+                            <p className="text-[10px] text-gray-500">
+                              {new Date(tx.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            <p className={`text-xs font-bold ${tx.type === 'earnings' ? 'text-green-600' : 'text-red-600'}`}>
+                              {tx.type === 'earnings' ? '+' : '-'}{formatCurrency(tx.amount)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -140,6 +205,7 @@ function TabButton({
 function TransactionHistory() {
   const [transactions, setTransactions] = useState<MobileMoneyTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [filter, setFilter] = useState<'all' | 'earnings' | 'withdrawal'>('all');
 
   useEffect(() => {
@@ -150,6 +216,83 @@ function TransactionHistory() {
     const data = await getTransactions(undefined, 50);
     setTransactions(data);
     setLoading(false);
+  };
+
+  const handleExportPDF = async () => {
+    if (transactions.length === 0) return;
+    setExporting(true);
+
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 14;
+      let y = 20;
+
+      // Header
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.text('LogiTrack Africa', margin, y);
+      y += 8;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100);
+      doc.text(`Relevé de transactions — ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, y);
+      y += 12;
+
+      // Table header
+      doc.setFillColor(245, 245, 245);
+      doc.rect(margin, y - 4, pageWidth - margin * 2, 8, 'F');
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(60);
+      doc.text('Date', margin + 2, y);
+      doc.text('Description', margin + 35, y);
+      doc.text('Montant', margin + 110, y);
+      doc.text('Statut', margin + 145, y);
+      y += 8;
+
+      // Table rows
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+
+      for (const tx of transactions) {
+        if (y > 275) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.setTextColor(40);
+        const date = new Date(tx.createdAt).toLocaleDateString('fr-FR', {
+          day: '2-digit', month: '2-digit', year: '2-digit',
+        });
+        doc.text(date, margin + 2, y);
+        doc.text(tx.description.substring(0, 40), margin + 35, y);
+
+        const prefix = tx.type === 'earnings' ? '+' : '-';
+        doc.setTextColor(tx.type === 'earnings' ? 34 : 220, tx.type === 'earnings' ? 139 : 38, tx.type === 'earnings' ? 34 : 38);
+        doc.text(`${prefix}${formatCurrency(tx.amount)} FCFA`, margin + 110, y);
+
+        const statusLabels: Record<string, string> = { completed: 'Complété', pending: 'En attente', failed: 'Échoué' };
+        doc.setTextColor(100);
+        doc.text(statusLabels[tx.status] || tx.status, margin + 145, y);
+        y += 6;
+      }
+
+      // Footer
+      y += 8;
+      doc.setDrawColor(200);
+      doc.line(margin, y, pageWidth - margin, y);
+      y += 6;
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text('Document généré automatiquement par LogiTrack Africa', margin, y);
+
+      doc.save(`logitrack-releve-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (err) {
+      console.error('PDF export error:', err);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const filteredTransactions = useMemo(() => transactions.filter((tx) => {
@@ -205,9 +348,13 @@ function TransactionHistory() {
       </div>
 
       {/* Export Button */}
-      <button className="w-full mb-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 font-medium">
-        <Download className="w-5 h-5" />
-        Exporter en PDF
+      <button
+        onClick={handleExportPDF}
+        disabled={exporting || transactions.length === 0}
+        className="w-full mb-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 font-medium disabled:opacity-50"
+      >
+        {exporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+        {exporting ? 'Génération...' : 'Exporter en PDF'}
       </button>
 
       {/* Transactions List */}

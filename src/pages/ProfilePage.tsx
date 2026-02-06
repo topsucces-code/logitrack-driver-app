@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -15,14 +16,84 @@ import {
   Settings,
   HelpCircle,
   Building2,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { calculateRating } from '../lib/supabase';
+import { supabase, calculateRating } from '../lib/supabase';
 import { SUPPORT_CONFIG } from '../config/app.config';
+import { Capacitor } from '@capacitor/core';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { driver, signOut, isVerified } = useAuth();
+  const { driver, signOut, isVerified, refreshDriver } = useAuth();
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handlePhotoCapture() {
+    try {
+      let base64: string | null = null;
+
+      if (Capacitor.isNativePlatform()) {
+        const photo = await CapCamera.getPhoto({
+          quality: 80,
+          allowEditing: false,
+          resultType: CameraResultType.Base64,
+          source: CameraSource.Prompt,
+        });
+        if (photo.base64String) {
+          base64 = `data:image/jpeg;base64,${photo.base64String}`;
+        }
+      } else {
+        fileInputRef.current?.click();
+        return;
+      }
+
+      if (base64) await uploadPhoto(base64);
+    } catch (err) {
+      console.error('Photo capture error:', err);
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => uploadPhoto(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }
+
+  async function uploadPhoto(base64: string) {
+    if (!driver) return;
+    setUploadingPhoto(true);
+    try {
+      const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
+      const bytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const path = `${driver.user_id}/profile.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('driver-photos')
+        .upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('driver-photos').getPublicUrl(path);
+
+      const { error: updateError } = await supabase
+        .from('logitrack_drivers')
+        .update({ photo_url: urlData.publicUrl + '?t=' + Date.now(), updated_at: new Date().toISOString() })
+        .eq('id', driver.id);
+
+      if (updateError) throw updateError;
+
+      await refreshDriver();
+    } catch (err) {
+      console.error('Upload error:', err);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
 
   if (!driver) return null;
 
@@ -42,6 +113,16 @@ export default function ProfilePage() {
         <h1 className="text-base font-bold text-gray-900">Mon profil</h1>
       </header>
 
+      {/* Hidden file input for web */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       <div className="flex-1 overflow-y-auto">
         {/* Profile Header */}
         <div className="bg-white p-4 text-center">
@@ -57,8 +138,16 @@ export default function ProfilePage() {
                 <User className="w-10 h-10 text-primary-600" />
               </div>
             )}
-            <button className="absolute bottom-0 right-0 w-7 h-7 bg-primary-500 rounded-full flex items-center justify-center text-white">
-              <Camera className="w-3.5 h-3.5" />
+            <button
+              onClick={handlePhotoCapture}
+              disabled={uploadingPhoto}
+              className="absolute bottom-0 right-0 w-7 h-7 bg-primary-500 rounded-full flex items-center justify-center text-white disabled:opacity-50"
+            >
+              {uploadingPhoto ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Camera className="w-3.5 h-3.5" />
+              )}
             </button>
           </div>
           <h2 className="text-base font-bold text-gray-900">{driver.full_name}</h2>

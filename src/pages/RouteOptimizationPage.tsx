@@ -29,6 +29,7 @@ import { useLocation } from '../contexts/LocationContext';
 import { useToast } from '../contexts/ToastContext';
 import { useT } from '../contexts/LanguageContext';
 import { hapticSuccess, hapticLight } from '../hooks/useHapticFeedback';
+import { supabase } from '../lib/supabase';
 
 export default function RouteOptimizationPage() {
   const navigate = useNavigate();
@@ -89,11 +90,35 @@ export default function RouteOptimizationPage() {
     }
   };
 
-  const handleApplyRoute = () => {
-    hapticSuccess();
-    showSuccess('Itinéraire appliqué avec succès !');
-    // In production, this would update the delivery order in the backend
-    navigate('/');
+  const [applying, setApplying] = useState(false);
+
+  const handleApplyRoute = async () => {
+    if (!optimizedRoute) return;
+    setApplying(true);
+
+    try {
+      const updates = optimizedRoute.stops.map((stop, index) =>
+        supabase
+          .from('logitrack_deliveries')
+          .update({ route_position: index + 1 })
+          .eq('id', stop.id)
+      );
+
+      const results = await Promise.all(updates);
+      const failed = results.filter(r => r.error);
+
+      if (failed.length > 0) {
+        showError(`Erreur: ${failed.length} livraison(s) non mises à jour`);
+      } else {
+        hapticSuccess();
+        showSuccess('Itinéraire appliqué avec succès !');
+        navigate('/');
+      }
+    } catch (err) {
+      showError('Erreur lors de la sauvegarde de l\'itinéraire');
+    } finally {
+      setApplying(false);
+    }
   };
 
   const handleStartNavigation = () => {
@@ -311,9 +336,10 @@ export default function RouteOptimizationPage() {
             </button>
             <button
               onClick={handleApplyRoute}
-              className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-1 text-sm"
+              disabled={applying}
+              className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-1 text-sm disabled:opacity-50"
             >
-              <Check className="w-4 h-4" />
+              {applying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               {t.applyOptimization}
             </button>
           </div>

@@ -13,9 +13,26 @@ import {
   AlertCircle,
   ShieldCheck,
 } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 import { getTrackingByCode } from '../services/trustService';
 import { SharedTracking, TrackingUpdate } from '../types/trust';
 import { TRUST_LEVELS } from '../types/trust';
+
+// Marker icons for the public tracking map
+const driverMarkerIcon = new L.Icon({
+  iconUrl: '/markers/marker-icon-2x-blue.png',
+  shadowUrl: '/markers/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+const destinationMarkerIcon = new L.Icon({
+  iconUrl: '/markers/marker-icon-2x-red.png',
+  shadowUrl: '/markers/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
 
 export default function PublicTrackingPage() {
   const { code } = useParams<{ code: string }>();
@@ -273,20 +290,37 @@ export default function PublicTrackingPage() {
           </div>
         </div>
 
-        {/* Live Map placeholder */}
+        {/* Live Map */}
         {delivery?.status === 'in_transit' && latestUpdate && (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-4">
-            <div className="h-48 bg-gray-200 flex items-center justify-center">
-              <div className="text-center">
-                <Navigation className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500 text-sm">
-                  Position en temps réel
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Lat: {latestUpdate.latitude.toFixed(4)}, Lng: {latestUpdate.longitude.toFixed(4)}
-                </p>
-              </div>
-            </div>
+            <MapContainer
+              center={[latestUpdate.latitude, latestUpdate.longitude]}
+              zoom={14}
+              style={{ height: '12rem', width: '100%' }}
+              scrollWheelZoom={false}
+              zoomControl={false}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; OpenStreetMap'
+              />
+              {/* Driver position */}
+              <Marker
+                position={[latestUpdate.latitude, latestUpdate.longitude]}
+                icon={driverMarkerIcon}
+              >
+                <Popup>Position du livreur</Popup>
+              </Marker>
+              {/* Destination */}
+              {delivery.delivery_lat && delivery.delivery_lng && (
+                <Marker
+                  position={[delivery.delivery_lat, delivery.delivery_lng]}
+                  icon={destinationMarkerIcon}
+                >
+                  <Popup>Destination</Popup>
+                </Marker>
+              )}
+            </MapContainer>
           </div>
         )}
 

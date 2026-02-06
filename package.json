@@ -28,6 +28,7 @@
     "@capacitor/status-bar": "^6.0.0",
     "@supabase/supabase-js": "^2.57.0",
     "date-fns": "^3.6.0",
+    "jspdf": "^4.1.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.400.0",
     "react": "^18.3.1",
