@@ -19,6 +19,7 @@ import {
   getActiveChallenges,
   getDriverStats,
   getLeaderboard,
+  claimChallengeReward,
   Challenge,
   Badge,
   DriverStats,
@@ -33,7 +34,7 @@ type TabType = 'challenges' | 'badges' | 'leaderboard';
 export default function ChallengesPage() {
   const navigate = useNavigate();
   const { driver } = useAuth();
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
   const t = useT();
 
   const [activeTab, setActiveTab] = useState<TabType>('challenges');
@@ -85,9 +86,17 @@ export default function ChallengesPage() {
     return () => { cancelled = true; };
   }, [leaderboardPeriod, driver]);
 
-  const handleClaimReward = (challenge: Challenge) => {
-    hapticSuccess();
-    showSuccess(`+${challenge.reward.toLocaleString()} FCFA bonus réclamé !`);
+  const handleClaimReward = async (challenge: Challenge) => {
+    if (!driver) return;
+    const result = await claimChallengeReward(driver.id, challenge.id, challenge.reward);
+    if (result.success) {
+      hapticSuccess();
+      showSuccess(`+${challenge.reward.toLocaleString()} FCFA bonus réclamé !`);
+      // Update local state to remove claimed challenge
+      setChallenges(prev => prev.filter(c => c.id !== challenge.id));
+    } else {
+      showError(result.error || 'Erreur lors de la réclamation');
+    }
   };
 
   const dailyChallenges = challenges.filter(c => c.type === 'daily');
