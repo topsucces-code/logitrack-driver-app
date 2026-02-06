@@ -1,27 +1,43 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // LogiTrack Supabase configuration
 // IMPORTANT: Ces valeurs doivent être définies dans les variables d'environnement
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
+// Track if Supabase is properly configured
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
+if (!isSupabaseConfigured) {
   console.error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-    flowType: 'implicit',
-  },
-  global: {
-    headers: {
-      'x-client-info': 'logitrack-driver-app',
-    },
-  },
-});
+// Create Supabase client with error handling
+function createSupabaseClient(): SupabaseClient {
+  try {
+    return createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder', {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+        flowType: 'implicit',
+      },
+      global: {
+        headers: {
+          'x-client-info': 'logitrack-driver-app',
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error);
+    // Return a minimal client that won't crash the app
+    return createClient('https://placeholder.supabase.co', 'placeholder', {
+      auth: { persistSession: false },
+    });
+  }
+}
+
+export const supabase = createSupabaseClient();
 
 // ============================================
 // TYPES - Tables logitrack_*
