@@ -332,7 +332,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Hidden file input for web */}
       <input
         ref={fileInputRef}
@@ -709,8 +709,8 @@ export default function OnboardingPage() {
         )}
       </div>
 
-      {/* Footer - sticky at bottom */}
-      <div className="sticky bottom-0 bg-white border-t border-gray-200 p-3 flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+      {/* Footer */}
+      <div className="bg-white border-t border-gray-200 p-3 flex-shrink-0 safe-bottom">
         {/* Step validation errors */}
         {Object.keys(stepErrors).length > 0 && (
           <div className="mb-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
