@@ -98,7 +98,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 flex flex-col relative">
+    <div className="h-screen bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 flex flex-col relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -left-20 w-64 h-64 bg-white/10 blob" />
@@ -106,217 +106,219 @@ export default function RegisterPage() {
         <div className="absolute bottom-1/3 left-0 w-32 h-32 bg-primary-300/20 rounded-full blur-xl" />
       </div>
 
-      {/* Header */}
-      <div className="safe-top px-6 pt-6 pb-6 relative z-10">
-        <div className="flex items-center gap-4">
+      {/* Header - Compact */}
+      <div className="safe-top px-4 pt-3 pb-3 relative z-10 flex-shrink-0">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => (step === 1 ? navigate('/login') : setStep(1))}
-            className="w-11 h-11 glass rounded-2xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
+            className="w-9 h-9 glass rounded-xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="text-white flex-1">
-            <h1 className="text-xl font-bold">Inscription</h1>
-            <p className="text-white/80 text-sm font-medium">Étape {step} sur 2</p>
+            <h1 className="text-lg font-bold">Inscription</h1>
+            <p className="text-white/80 text-xs font-medium">Étape {step} sur 2</p>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-5 flex gap-3">
-          <div className="h-1.5 flex-1 rounded-full bg-white shadow-lg" />
-          <div className={`h-1.5 flex-1 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-white shadow-lg' : 'bg-white/30'}`} />
+        <div className="mt-3 flex gap-2">
+          <div className="h-1 flex-1 rounded-full bg-white shadow-lg" />
+          <div className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-white shadow-lg' : 'bg-white/30'}`} />
         </div>
       </div>
 
       {/* Form Container */}
-      <div className="flex-1 bg-white rounded-t-[32px] px-6 pt-8 pb-6 overflow-y-auto shadow-[0_-10px_40px_rgba(0,0,0,0.1)] relative z-10 animate-slide-up">
+      <div className="flex-1 bg-white dark:bg-gray-900 rounded-t-[24px] px-4 pt-5 pb-6 overflow-y-auto shadow-[0_-10px_40px_rgba(0,0,0,0.1)] relative z-10 animate-slide-up">
         {step === 1 ? (
           <div className="animate-fade-in-up">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Vos informations</h2>
-            <p className="text-gray-500 mb-8 leading-relaxed">Entrez vos informations personnelles</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Vos informations</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Entrez vos informations personnelles</p>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Full Name */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Nom complet
                 </label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-                    <User className="w-5 h-5 text-primary-500" />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary-50 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary-500" />
                   </div>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Kouamé Jean"
-                    className="w-full pl-16 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
+                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Numéro de téléphone
                 </label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-                    <Phone className="w-5 h-5 text-primary-500" />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary-50 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                    <Phone className="w-4 h-4 text-primary-500" />
                   </div>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="07 00 00 00 00"
-                    className="w-full pl-16 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
+                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                 </div>
               </div>
 
               {/* Vehicle Type */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Type de véhicule
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-4 gap-2">
                   {vehicleOptions.map((option) => (
                     <button
                       key={option.value}
                       type="button"
                       onClick={() => setVehicleType(option.value)}
-                      className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 relative ${
+                      className={`p-2.5 rounded-xl border-2 transition-all flex flex-col items-center gap-1 relative ${
                         vehicleType === option.value
-                          ? 'border-primary-500 bg-primary-50 text-primary-600 shadow-lg shadow-primary-500/10'
-                          : 'border-gray-100 bg-gray-50 text-gray-600 hover:border-gray-200 hover:bg-gray-100'
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                          : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                       }`}
                     >
                       {vehicleType === option.value && (
-                        <div className="absolute top-2 right-2">
-                          <CheckCircle2 className="w-5 h-5 text-primary-500" />
+                        <div className="absolute -top-1 -right-1">
+                          <CheckCircle2 className="w-4 h-4 text-primary-500" />
                         </div>
                       )}
-                      <span className="text-3xl">{option.emoji}</span>
-                      <span className="text-sm font-semibold">{option.label}</span>
+                      <span className="text-xl">{option.emoji}</span>
+                      <span className="text-[10px] font-semibold">{option.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
-                  <p className="text-red-600 text-sm font-medium">{error}</p>
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg animate-scale-in">
+                  <p className="text-red-600 dark:text-red-400 text-xs font-medium">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
-                className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-primary-500/30"
+                className="w-full py-3 btn-gradient text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary-500/30 text-sm"
               >
                 Continuer
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           </div>
         ) : (
           <div className="animate-fade-in-up">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Créer un mot de passe</h2>
-            <p className="text-gray-500 mb-8 leading-relaxed">Sécurisez votre compte</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Créer un mot de passe</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Sécurisez votre compte</p>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Mot de passe
                 </label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-                    <Lock className="w-5 h-5 text-primary-500" />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary-50 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                    <Lock className="w-4 h-4 text-primary-500" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min. 6 caractères"
-                    className="w-full pl-16 pr-14 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
+                    className="w-full pl-14 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Confirmer le mot de passe
                 </label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary-50 rounded-xl flex items-center justify-center">
-                    <Lock className="w-5 h-5 text-primary-500" />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-primary-50 dark:bg-primary-900/30 rounded-lg flex items-center justify-center">
+                    <Lock className="w-4 h-4 text-primary-500" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Répétez le mot de passe"
-                    className="w-full pl-16 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-500/10 transition-all duration-300"
+                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                 </div>
               </div>
 
               {/* Password Strength Indicator */}
-              <div className="p-4 bg-gray-50 rounded-2xl">
-                <p className="text-xs font-semibold text-gray-600 mb-2">Sécurité du mot de passe</p>
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] font-semibold text-gray-600 dark:text-gray-400">Sécurité</p>
+                  <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                    {password.length === 0
+                      ? 'Entrez un mot de passe'
+                      : password.length < 6
+                      ? 'Trop court'
+                      : password.length < 8
+                      ? 'Acceptable'
+                      : 'Fort'}
+                  </p>
+                </div>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4].map((level) => (
                     <div
                       key={level}
-                      className={`h-1.5 flex-1 rounded-full transition-all ${
+                      className={`h-1 flex-1 rounded-full transition-all ${
                         password.length >= level * 2
                           ? password.length >= 8
                             ? 'bg-green-500'
                             : 'bg-yellow-500'
-                          : 'bg-gray-200'
+                          : 'bg-gray-200 dark:bg-gray-700'
                       }`}
                     />
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  {password.length === 0
-                    ? 'Entrez un mot de passe'
-                    : password.length < 6
-                    ? 'Trop court'
-                    : password.length < 8
-                    ? 'Acceptable'
-                    : 'Fort'}
-                </p>
               </div>
 
               {error && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
-                  <p className="text-red-600 text-sm font-medium">{error}</p>
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg animate-scale-in">
+                  <p className="text-red-600 dark:text-red-400 text-xs font-medium">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
+                className="w-full py-3 btn-gradient text-white font-bold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 text-sm"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Création du compte...
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Création...
                   </>
                 ) : (
                   <>
                     Créer mon compte
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
@@ -325,10 +327,10 @@ export default function RegisterPage() {
         )}
 
         {/* Login Link */}
-        <div className="mt-8 text-center pt-6 border-t border-gray-100">
-          <p className="text-gray-600">
+        <div className="mt-5 text-center pt-4 border-t border-gray-100 dark:border-gray-800">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
             Déjà un compte ?{' '}
-            <Link to="/login" className="text-primary-600 font-bold hover:text-primary-700 transition-colors">
+            <Link to="/login" className="text-primary-600 dark:text-primary-400 font-bold hover:text-primary-700 transition-colors">
               Se connecter
             </Link>
           </p>

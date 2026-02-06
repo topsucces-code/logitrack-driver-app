@@ -344,28 +344,28 @@ export default function OnboardingPage() {
       />
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 safe-top px-4 py-4 flex-shrink-0">
+      <header className="bg-white border-b border-gray-200 safe-top px-4 py-3 flex-shrink-0">
         <div className="flex items-center gap-3">
           {step > 1 && (
             <button
               onClick={() => setStep(step - 1)}
-              className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+              className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <ArrowLeft className="w-4 h-4 text-gray-600" />
             </button>
           )}
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-gray-900">Inscription Livreur</h1>
-            <p className="text-sm text-gray-500">Étape {step} sur {totalSteps}</p>
+            <h1 className="text-base font-bold text-gray-900">Inscription Livreur</h1>
+            <p className="text-xs text-gray-500">Étape {step} sur {totalSteps}</p>
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="flex gap-1 mt-4">
+        <div className="flex gap-1 mt-3">
           {Array.from({ length: totalSteps }).map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-1.5 rounded-full transition-colors ${
+              className={`flex-1 h-1 rounded-full transition-colors ${
                 i < step ? 'bg-primary-500' : 'bg-gray-200'
               }`}
             />
@@ -374,16 +374,16 @@ export default function OnboardingPage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 pb-6">
+      <div className="flex-1 overflow-y-auto p-4 pb-4">
         {/* Step 1: Profile Info */}
         {step === 1 && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <User className="w-8 h-8 text-primary-600" />
+          <div className="space-y-4">
+            <div className="text-center mb-3">
+              <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <User className="w-6 h-6 text-primary-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Vos informations</h2>
-              <p className="text-gray-500 text-sm">Commençons par votre profil</p>
+              <h2 className="text-lg font-bold text-gray-900">Vos informations</h2>
+              <p className="text-gray-500 text-xs">Commençons par votre profil</p>
             </div>
 
             {/* Profile Photo */}
@@ -396,23 +396,23 @@ export default function OnboardingPage() {
                   <img
                     src={data.profilePhoto}
                     alt="Profile"
-                    className="w-32 h-32 rounded-full object-cover border-4 border-primary-500"
+                    className="w-24 h-24 rounded-full object-cover border-3 border-primary-500"
                   />
                 ) : (
-                  <div className="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center border-4 border-dashed border-gray-300">
-                    <Camera className="w-10 h-10 text-gray-400" />
+                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center border-3 border-dashed border-gray-300">
+                    <Camera className="w-8 h-8 text-gray-400" />
                   </div>
                 )}
-                <div className="absolute bottom-0 right-0 w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white shadow-lg">
-                  <Camera className="w-5 h-5" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                  <Camera className="w-4 h-4" />
                 </div>
               </button>
             </div>
-            <p className="text-center text-sm text-gray-500">Prenez une photo de profil claire</p>
+            <p className="text-center text-xs text-gray-500">Prenez une photo de profil claire</p>
 
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Nom complet
               </label>
               <input
@@ -420,7 +420,7 @@ export default function OnboardingPage() {
                 value={data.fullName}
                 onChange={(e) => setData(prev => ({ ...prev, fullName: e.target.value }))}
                 placeholder="Ex: Kouamé Jean-Baptiste"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
           </div>
@@ -428,18 +428,18 @@ export default function OnboardingPage() {
 
         {/* Step 2: ID Documents */}
         {step === 2 && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <CreditCard className="w-8 h-8 text-blue-600" />
+          <div className="space-y-4">
+            <div className="text-center mb-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <CreditCard className="w-6 h-6 text-blue-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Pièce d'identité</h2>
-              <p className="text-gray-500 text-sm">Pour vérifier votre identité</p>
+              <h2 className="text-lg font-bold text-gray-900">Pièce d'identité</h2>
+              <p className="text-gray-500 text-xs">Pour vérifier votre identité</p>
             </div>
 
             {/* CNI Number */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Numéro CNI
               </label>
               <input
@@ -447,14 +447,14 @@ export default function OnboardingPage() {
                 value={data.cniNumber}
                 onChange={(e) => setData(prev => ({ ...prev, cniNumber: e.target.value }))}
                 placeholder="Ex: CI-1234567890"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             {/* CNI Photos */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Recto CNI</p>
+                <p className="text-xs font-medium text-gray-700 mb-1.5">Recto CNI</p>
                 <button
                   onClick={() => handlePhotoCapture('cniFront')}
                   className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
@@ -470,7 +470,7 @@ export default function OnboardingPage() {
                 </button>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Verso CNI</p>
+                <p className="text-xs font-medium text-gray-700 mb-1.5">Verso CNI</p>
                 <button
                   onClick={() => handlePhotoCapture('cniBack')}
                   className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
@@ -491,19 +491,19 @@ export default function OnboardingPage() {
 
         {/* Step 3: Vehicle */}
         {step === 3 && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Truck className="w-8 h-8 text-orange-600" />
+          <div className="space-y-4">
+            <div className="text-center mb-3">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Truck className="w-6 h-6 text-orange-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Votre véhicule</h2>
-              <p className="text-gray-500 text-sm">Informations sur votre moyen de transport</p>
+              <h2 className="text-lg font-bold text-gray-900">Votre véhicule</h2>
+              <p className="text-gray-500 text-xs">Informations sur votre moyen de transport</p>
             </div>
 
             {/* Vehicle Type */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-3">Type de véhicule</p>
-              <div className="grid grid-cols-2 gap-3">
+              <p className="text-xs font-medium text-gray-700 mb-2">Type de véhicule</p>
+              <div className="grid grid-cols-4 gap-2">
                 {[
                   { type: 'moto', label: 'Moto', icon: '🏍️' },
                   { type: 'tricycle', label: 'Tricycle', icon: '🛺' },
@@ -513,14 +513,14 @@ export default function OnboardingPage() {
                   <button
                     key={v.type}
                     onClick={() => setData(prev => ({ ...prev, vehicleType: v.type as any }))}
-                    className={`p-4 rounded-xl border-2 text-center transition-colors ${
+                    className={`p-2.5 rounded-xl border-2 text-center transition-colors ${
                       data.vehicleType === v.type
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <span className="text-3xl">{v.icon}</span>
-                    <p className="font-medium text-gray-900 mt-2">{v.label}</p>
+                    <span className="text-xl">{v.icon}</span>
+                    <p className="font-medium text-gray-900 mt-1 text-[10px]">{v.label}</p>
                   </button>
                 ))}
               </div>
@@ -528,17 +528,17 @@ export default function OnboardingPage() {
 
             {/* Vehicle Photo */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Photo du véhicule</p>
+              <p className="text-xs font-medium text-gray-700 mb-1.5">Photo du véhicule</p>
               <button
                 onClick={() => handlePhotoCapture('vehiclePhoto')}
-                className="w-full aspect-video bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
+                className="w-full aspect-[2/1] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
               >
                 {data.vehiclePhoto ? (
                   <img src={data.vehiclePhoto} alt="Vehicle" className="w-full h-full object-cover" />
                 ) : (
                   <>
-                    <Camera className="w-10 h-10 text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-500">Prenez une photo de votre véhicule</span>
+                    <Camera className="w-8 h-8 text-gray-400 mb-1" />
+                    <span className="text-xs text-gray-500">Prenez une photo de votre véhicule</span>
                   </>
                 )}
               </button>
@@ -546,7 +546,7 @@ export default function OnboardingPage() {
 
             {/* Vehicle Plate (optional) */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Plaque d'immatriculation (si applicable)
               </label>
               <input
@@ -554,14 +554,14 @@ export default function OnboardingPage() {
                 value={data.vehiclePlate}
                 onChange={(e) => setData(prev => ({ ...prev, vehiclePlate: e.target.value }))}
                 placeholder="Ex: 1234 AB 01"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             {/* License (if not vélo) */}
             {data.vehicleType && data.vehicleType !== 'velo' && (
               <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">Permis de conduire</p>
+                <p className="text-xs font-medium text-gray-700 mb-1.5">Permis de conduire</p>
                 <button
                   onClick={() => handlePhotoCapture('licensePhoto')}
                   className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
@@ -582,16 +582,16 @@ export default function OnboardingPage() {
 
         {/* Step 4: Zones */}
         {step === 4 && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <MapPin className="w-8 h-8 text-green-600" />
+          <div className="space-y-4">
+            <div className="text-center mb-3">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <MapPin className="w-6 h-6 text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Zones de livraison</h2>
-              <p className="text-gray-500 text-sm">Sélectionnez vos quartiers de livraison</p>
+              <h2 className="text-lg font-bold text-gray-900">Zones de livraison</h2>
+              <p className="text-gray-500 text-xs">Sélectionnez vos quartiers de livraison</p>
             </div>
 
-            <div className="bg-primary-50 rounded-xl p-3 text-sm text-primary-700">
+            <div className="bg-primary-50 rounded-lg p-2.5 text-xs text-primary-700">
               <p>Sélectionnez au moins 1 zone. Vous recevrez uniquement les courses dans ces zones.</p>
             </div>
 
@@ -629,31 +629,31 @@ export default function OnboardingPage() {
 
         {/* Step 5: Mobile Money */}
         {step === 5 && (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Smartphone className="w-8 h-8 text-purple-600" />
+          <div className="space-y-4">
+            <div className="text-center mb-3">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Smartphone className="w-6 h-6 text-purple-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Paiement Mobile Money</h2>
-              <p className="text-gray-500 text-sm">Pour recevoir vos gains</p>
+              <h2 className="text-lg font-bold text-gray-900">Paiement Mobile Money</h2>
+              <p className="text-gray-500 text-xs">Pour recevoir vos gains</p>
             </div>
 
             {/* Provider Selection */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-3">Opérateur</p>
-              <div className="grid grid-cols-2 gap-3">
+              <p className="text-xs font-medium text-gray-700 mb-2">Opérateur</p>
+              <div className="grid grid-cols-2 gap-2">
                 {MOBILE_MONEY_PROVIDERS.map((provider) => (
                   <button
                     key={provider.id}
                     onClick={() => setData(prev => ({ ...prev, mobileMoneyProvider: provider.id }))}
-                    className={`p-4 rounded-xl border-2 text-center transition-colors ${
+                    className={`p-3 rounded-lg border-2 text-center transition-colors ${
                       data.mobileMoneyProvider === provider.id
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className={`w-10 h-10 ${provider.color} rounded-full mx-auto mb-2`} />
-                    <p className="font-medium text-gray-900 text-sm">{provider.name}</p>
+                    <div className={`w-8 h-8 ${provider.color} rounded-full mx-auto mb-1.5`} />
+                    <p className="font-medium text-gray-900 text-xs">{provider.name}</p>
                   </button>
                 ))}
               </div>
@@ -661,11 +661,11 @@ export default function OnboardingPage() {
 
             {/* Mobile Money Number */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Numéro Mobile Money
               </label>
               <div className="flex">
-                <span className="inline-flex items-center px-4 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-gray-600 font-medium">
+                <span className="inline-flex items-center px-3 py-2.5 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-gray-600 text-sm font-medium">
                   +225
                 </span>
                 <input
@@ -673,15 +673,15 @@ export default function OnboardingPage() {
                   value={data.mobileMoneyNumber}
                   onChange={(e) => setData(prev => ({ ...prev, mobileMoneyNumber: e.target.value.replace(/\D/g, '') }))}
                   placeholder="07 XX XX XX XX"
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-r-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="flex-1 px-3 py-2.5 border border-gray-300 rounded-r-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   maxLength={10}
                 />
               </div>
             </div>
 
             {/* Summary */}
-            <div className="bg-gray-50 rounded-xl p-4 mt-8">
-              <h3 className="font-medium text-gray-900 mb-3">Récapitulatif</h3>
+            <div className="bg-gray-50 rounded-lg p-3 mt-4">
+              <h3 className="font-medium text-gray-900 text-sm mb-2">Récapitulatif</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Nom</span>
@@ -700,9 +700,9 @@ export default function OnboardingPage() {
 
             {/* Error display */}
             {submitError && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
-                <p className="text-red-600 text-sm font-medium">Erreur</p>
-                <p className="text-red-600 text-sm mt-1">{submitError}</p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                <p className="text-red-600 text-xs font-medium">Erreur</p>
+                <p className="text-red-600 text-xs mt-1">{submitError}</p>
               </div>
             )}
           </div>
@@ -710,11 +710,11 @@ export default function OnboardingPage() {
       </div>
 
       {/* Footer */}
-      <div className="bg-white border-t border-gray-200 p-4 safe-bottom flex-shrink-0">
+      <div className="bg-white border-t border-gray-200 p-3 safe-bottom flex-shrink-0">
         {/* Step validation errors */}
         {Object.keys(stepErrors).length > 0 && (
-          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-            <ul className="text-sm text-red-600 space-y-1">
+          <div className="mb-2 p-2.5 bg-red-50 border border-red-200 rounded-lg">
+            <ul className="text-xs text-red-600 space-y-1">
               {Object.values(stepErrors).map((error, idx) => (
                 <li key={idx}>• {error}</li>
               ))}

@@ -25,7 +25,7 @@ async function initApp() {
 
   // Register service worker with auto-update
   if ('serviceWorker' in navigator) {
-    registerSW({
+    const updateSW = registerSW({
       immediate: true,
       onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
         console.log('SW registered:', swUrl);
@@ -40,9 +40,9 @@ async function initApp() {
         console.log('App ready to work offline');
       },
       onNeedRefresh() {
-        // Auto-refresh when new version available
-        console.log('New version available, refreshing...');
-        window.location.reload();
+        // Auto-update SW and reload cleanly
+        console.log('New version available, updating...');
+        updateSW(true);
       },
     });
   }

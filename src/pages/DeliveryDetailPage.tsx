@@ -28,6 +28,8 @@ import { SOSButton } from '../components/SOSButton';
 import { NavigationButton } from '../components/NavigationButton';
 import { Button } from '../components/ui/Button';
 import { CustomerRating } from '../components/CustomerRating';
+import { CommunicationButton } from '../components/DeliveryCommunication';
+import { ShareTrackingButton } from '../components/ShareTracking';
 
 // Fix Leaflet marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -236,16 +238,16 @@ export default function DeliveryDetailPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 safe-top px-4 py-3 flex items-center gap-3">
+      <header className="bg-white border-b border-gray-200 safe-top px-3 py-2.5 flex items-center gap-2.5">
         <button
           onClick={() => navigate('/')}
-          className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+          className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
+          <ArrowLeft className="w-4 h-4 text-gray-600" />
         </button>
         <div className="flex-1">
-          <h1 className="font-semibold text-gray-900">Course #{delivery.id.slice(0, 8)}</h1>
-          <p className="text-sm text-gray-500 capitalize">
+          <h1 className="font-semibold text-gray-900 text-sm">Course #{delivery.id.slice(0, 8)}</h1>
+          <p className="text-xs text-gray-500 capitalize">
             {delivery.status === 'accepted' && 'Assignée - En route vers pickup'}
             {delivery.status === 'picking_up' && 'En route vers le point de collecte'}
             {delivery.status === 'picked_up' && 'Colis récupéré'}
@@ -264,7 +266,7 @@ export default function DeliveryDetailPage() {
       </header>
 
       {/* Map */}
-      <div className="h-48 relative">
+      <div className="h-36 relative">
         <MapContainer
           center={[
             pickupCoords?.lat || MAP_CONFIG.defaultCenter.lat,
@@ -297,25 +299,25 @@ export default function DeliveryDetailPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {/* Pickup */}
-        <div className={`bg-white rounded-xl p-4 ${
+        <div className={`bg-white rounded-lg p-3 ${
           ['accepted', 'picking_up'].includes(delivery.status)
             ? 'border-2 border-green-500'
             : ''
         }`}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-green-600" />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
+              <MapPin className="w-3.5 h-3.5 text-green-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Point de collecte</p>
-              <p className="font-semibold text-gray-900">{delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}</p>
+              <p className="text-[10px] text-gray-500">Point de collecte</p>
+              <p className="font-semibold text-gray-900 text-sm">{delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}</p>
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-2">{delivery.pickup_address}</p>
+          <p className="text-xs text-gray-600 mb-1.5">{delivery.pickup_address}</p>
           {delivery.pickup_instructions && (
-            <p className="text-sm text-gray-500 italic mb-3">
+            <p className="text-xs text-gray-500 italic mb-2">
               Instructions: {delivery.pickup_instructions}
             </p>
           )}
@@ -341,23 +343,23 @@ export default function DeliveryDetailPage() {
         </div>
 
         {/* Delivery */}
-        <div className={`bg-white rounded-xl p-4 ${
+        <div className={`bg-white rounded-lg p-3 ${
           ['picked_up', 'delivering'].includes(delivery.status)
             ? 'border-2 border-red-500'
             : ''
         }`}>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-red-600" />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center">
+              <MapPin className="w-3.5 h-3.5 text-red-600" />
             </div>
             <div>
-              <p className="text-xs text-gray-500">Point de livraison</p>
-              <p className="font-semibold text-gray-900">{delivery.delivery_contact_name || 'Destination'}</p>
+              <p className="text-[10px] text-gray-500">Point de livraison</p>
+              <p className="font-semibold text-gray-900 text-sm">{delivery.delivery_contact_name || 'Destination'}</p>
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-2">{delivery.delivery_address}</p>
+          <p className="text-xs text-gray-600 mb-1.5">{delivery.delivery_address}</p>
           {delivery.delivery_instructions && (
-            <p className="text-sm text-gray-500 italic mb-3">
+            <p className="text-xs text-gray-500 italic mb-2">
               Instructions: {delivery.delivery_instructions}
             </p>
           )}
@@ -380,14 +382,27 @@ export default function DeliveryDetailPage() {
               />
             )}
           </div>
+          {/* Communication & Share */}
+          <div className="flex gap-2 mt-2">
+            <CommunicationButton
+              deliveryId={delivery.id}
+              recipientName={delivery.delivery_contact_name || 'Client'}
+              recipientPhone={delivery.delivery_contact_phone || ''}
+            />
+            <ShareTrackingButton
+              deliveryId={delivery.id}
+              recipientPhone={delivery.delivery_contact_phone}
+              recipientName={delivery.delivery_contact_name}
+            />
+          </div>
         </div>
 
         {/* Package Info */}
         {delivery.package_description && (
-          <div className="bg-white rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Package className="w-5 h-5 text-gray-400" />
-              <p className="font-medium text-gray-900">Description du colis</p>
+          <div className="bg-white rounded-lg p-3">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Package className="w-4 h-4 text-gray-400" />
+              <p className="font-medium text-gray-900 text-sm">Description du colis</p>
             </div>
             <p className="text-sm text-gray-600">{delivery.package_description}</p>
             {delivery.package_size && (
@@ -399,11 +414,11 @@ export default function DeliveryDetailPage() {
         )}
 
         {/* Earnings */}
-        <div className="bg-primary-50 rounded-xl p-4">
+        <div className="bg-primary-50 rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-primary-700">Votre gain</p>
-              <p className="text-2xl font-bold text-primary-600">
+              <p className="text-xs text-primary-700">Votre gain</p>
+              <p className="text-xl font-bold text-primary-600">
                 {delivery.driver_earnings?.toLocaleString()} FCFA
               </p>
             </div>
@@ -416,7 +431,7 @@ export default function DeliveryDetailPage() {
       </div>
 
       {/* Action Button */}
-      <div className="bg-white border-t border-gray-200 p-4 safe-bottom">
+      <div className="bg-white border-t border-gray-200 p-3 safe-bottom">
         {delivery.status === 'accepted' && (
           <Button
             onClick={() => updateStatus('picking_up')}
@@ -496,17 +511,17 @@ export default function DeliveryDetailPage() {
       {/* Proof Modal */}
       {showProofModal && !deliveryCompleted && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-          <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Preuve de livraison</h2>
+          <div className="bg-white w-full rounded-t-2xl p-4 safe-bottom">
+            <h2 className="text-base font-bold text-gray-900 mb-3">Preuve de livraison</h2>
 
             {/* Photo */}
-            <div className="mb-4">
+            <div className="mb-3">
               {proofPhoto ? (
                 <div className="relative">
                   <img
                     src={proofPhoto}
                     alt="Proof"
-                    className="w-full h-48 object-cover rounded-xl"
+                    className="w-full h-40 object-cover rounded-lg"
                   />
                   <button
                     onClick={() => setProofPhoto(null)}
@@ -518,17 +533,17 @@ export default function DeliveryDetailPage() {
               ) : (
                 <button
                   onClick={takePhoto}
-                  className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:border-primary-500 hover:text-primary-500"
+                  className="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:border-primary-500 hover:text-primary-500"
                 >
-                  <Camera className="w-10 h-10" />
-                  <span>Prendre une photo</span>
+                  <Camera className="w-8 h-8" />
+                  <span className="text-sm">Prendre une photo</span>
                 </button>
               )}
             </div>
 
             {/* Recipient name */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Nom du destinataire (optionnel)
               </label>
               <input
@@ -536,7 +551,7 @@ export default function DeliveryDetailPage() {
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
                 placeholder="Qui a reçu le colis ?"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
