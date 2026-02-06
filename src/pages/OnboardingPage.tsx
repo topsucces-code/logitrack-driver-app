@@ -277,7 +277,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="h-full min-h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Hidden file input for web */}
       <input
         ref={fileInputRef}
@@ -319,7 +319,7 @@ export default function OnboardingPage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 pb-6">
+      <div className="flex-1 overflow-y-auto p-4">
         {/* Step 1: Profile Info */}
         {step === 1 && (
           <div className="space-y-6">
@@ -654,8 +654,8 @@ export default function OnboardingPage() {
         )}
       </div>
 
-      {/* Footer */}
-      <div className="bg-white border-t border-gray-200 p-4 safe-bottom flex-shrink-0">
+      {/* Footer - sticky at bottom */}
+      <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 pb-6 flex-shrink-0" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <button
           onClick={() => {
             if (step < totalSteps) {
@@ -665,7 +665,7 @@ export default function OnboardingPage() {
             }
           }}
           disabled={!canProceed() || loading}
-          className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-4 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
         >
           {loading ? (
             <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
