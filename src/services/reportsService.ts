@@ -66,28 +66,27 @@ export async function getWeeklyReport(
       .gte('delivered_at', weekStart.toISOString())
       .lte('delivered_at', weekEnd.toISOString());
 
-    if (error) {
-      // Generate mock data if table doesn't exist
-      return { report: generateMockWeeklyReport(weekStart, weekEnd), error: null };
+    if (error || !deliveries) {
+      return { report: null, error: error?.message || 'Erreur de chargement' };
     }
 
     // Calculate stats
-    const totalDeliveries = deliveries?.length || 0;
-    const totalEarnings = deliveries?.reduce((sum, d) => sum + (d.driver_earnings || 0), 0) || 0;
-    const totalDistance = deliveries?.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0) || 0;
+    const totalDeliveries = deliveries.length;
+    const totalEarnings = deliveries.reduce((sum, d) => sum + (d.driver_earnings || 0), 0);
+    const totalDistance = deliveries.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0);
 
     // Calculate average rating
-    const ratingsSum = deliveries?.reduce((sum, d) => sum + (d.rating || 0), 0) || 0;
-    const ratingsCount = deliveries?.filter((d) => d.rating).length || 0;
+    const ratingsSum = deliveries.reduce((sum, d) => sum + (d.customer_rating || 0), 0);
+    const ratingsCount = deliveries.filter((d) => d.customer_rating).length;
     const avgRating = ratingsCount > 0 ? ratingsSum / ratingsCount : 0;
 
     // Get daily breakdown
     const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
     const dailyStats: DailyStats[] = days.map((day) => {
-      const dayDeliveries = deliveries?.filter((d) => {
+      const dayDeliveries = deliveries.filter((d) => {
         const deliveredDate = new Date(d.delivered_at);
         return deliveredDate.toDateString() === day.toDateString();
-      }) || [];
+      });
 
       return {
         date: format(day, 'yyyy-MM-dd'),
@@ -105,6 +104,34 @@ export async function getWeeklyReport(
       0
     );
     const busyDay = format(days[busyDayIndex], 'EEEE', { locale: fr });
+
+    // Compute peak hour from delivered_at times
+    const hourCounts: Record<number, number> = {};
+    for (const d of deliveries) {
+      if (d.delivered_at) {
+        const hour = new Date(d.delivered_at).getHours();
+        hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+      }
+    }
+    const peakHourNum = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0];
+    const peakHour = peakHourNum ? `${peakHourNum[0]}h-${Number(peakHourNum[0]) + 2}h` : '-';
+
+    // Compute top zone from delivery_zone_id
+    const zoneCounts: Record<string, number> = {};
+    for (const d of deliveries) {
+      const zone = d.delivery_zone_id || 'unknown';
+      zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
+    }
+    const topZoneId = Object.entries(zoneCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    let topZone = '-';
+    if (topZoneId && topZoneId !== 'unknown') {
+      const { data: zoneData } = await supabase
+        .from('logitrack_zones')
+        .select('name')
+        .eq('id', topZoneId)
+        .maybeSingle();
+      topZone = zoneData?.name || topZoneId;
+    }
 
     // Get previous week for comparison
     const prevWeekStart = subWeeks(weekStart, 1);
@@ -130,9 +157,9 @@ export async function getWeeklyReport(
       totalDistance: Math.round(totalDistance * 10) / 10,
       avgEarningsPerDelivery: totalDeliveries > 0 ? Math.round(totalEarnings / totalDeliveries) : 0,
       avgRating: Math.round(avgRating * 10) / 10,
-      topZone: 'Douala Centre', // Would need zone tracking
+      topZone,
       busyDay,
-      peakHour: '12h-14h', // Would need time tracking
+      peakHour,
       dailyStats,
       comparison: {
         deliveriesChange: prevTotalDeliveries > 0
@@ -170,35 +197,54 @@ export async function getMonthlyReport(
       .gte('delivered_at', monthStart.toISOString())
       .lte('delivered_at', monthEnd.toISOString());
 
-    if (error) {
-      return { report: generateMockMonthlyReport(targetDate), error: null };
+    if (error || !deliveries) {
+      return { report: null, error: error?.message || 'Erreur de chargement' };
     }
 
-    const totalDeliveries = deliveries?.length || 0;
-    const totalEarnings = deliveries?.reduce((sum, d) => sum + (d.driver_earnings || 0), 0) || 0;
-    const totalDistance = deliveries?.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0) || 0;
+    const totalDeliveries = deliveries.length;
+    const totalEarnings = deliveries.reduce((sum, d) => sum + (d.driver_earnings || 0), 0);
+    const totalDistance = deliveries.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0);
 
     const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd }).length;
     const avgEarningsPerDay = daysInMonth > 0 ? Math.round(totalEarnings / daysInMonth) : 0;
 
-    const ratingsSum = deliveries?.reduce((sum, d) => sum + (d.rating || 0), 0) || 0;
-    const ratingsCount = deliveries?.filter((d) => d.rating).length || 0;
+    const ratingsSum = deliveries.reduce((sum, d) => sum + (d.customer_rating || 0), 0);
+    const ratingsCount = deliveries.filter((d) => d.customer_rating).length;
     const avgRating = ratingsCount > 0 ? ratingsSum / ratingsCount : 0;
 
     // Weekly breakdown
     const weeklyBreakdown = [];
     for (let week = 1; week <= 5; week++) {
       const weekStartDay = (week - 1) * 7 + 1;
-      const weekDeliveries = deliveries?.filter((d) => {
+      const weekDeliveries = deliveries.filter((d) => {
         const day = new Date(d.delivered_at).getDate();
         return day >= weekStartDay && day < weekStartDay + 7;
-      }) || [];
+      });
 
       weeklyBreakdown.push({
         week,
         deliveries: weekDeliveries.length,
         earnings: weekDeliveries.reduce((sum, d) => sum + (d.driver_earnings || 0), 0),
       });
+    }
+
+    // Compute top zones from delivery_zone_id
+    const zoneCounts: Record<string, number> = {};
+    for (const d of deliveries) {
+      const zone = d.delivery_zone_id || 'unknown';
+      if (zone !== 'unknown') {
+        zoneCounts[zone] = (zoneCounts[zone] || 0) + 1;
+      }
+    }
+    const sortedZones = Object.entries(zoneCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    const topZones: { zone: string; count: number }[] = [];
+    for (const [zoneId, count] of sortedZones) {
+      const { data: zoneData } = await supabase
+        .from('logitrack_zones')
+        .select('name')
+        .eq('id', zoneId)
+        .maybeSingle();
+      topZones.push({ zone: zoneData?.name || zoneId, count });
     }
 
     const report: MonthlyReport = {
@@ -210,80 +256,13 @@ export async function getMonthlyReport(
       avgEarningsPerDay,
       avgRating: Math.round(avgRating * 10) / 10,
       weeklyBreakdown: weeklyBreakdown.filter((w) => w.deliveries > 0),
-      topZones: [
-        { zone: 'Douala Centre', count: Math.floor(totalDeliveries * 0.3) },
-        { zone: 'Akwa', count: Math.floor(totalDeliveries * 0.25) },
-        { zone: 'Bonapriso', count: Math.floor(totalDeliveries * 0.2) },
-      ],
+      topZones,
     };
 
     return { report, error: null };
   } catch (err: any) {
     return { report: null, error: err.message };
   }
-}
-
-/**
- * Generate mock weekly report for demo/fallback
- */
-function generateMockWeeklyReport(weekStart: Date, weekEnd: Date): WeeklyReport {
-  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  const dailyStats: DailyStats[] = days.map((day) => ({
-    date: format(day, 'yyyy-MM-dd'),
-    deliveries: Math.floor(Math.random() * 8) + 2,
-    earnings: Math.floor(Math.random() * 15000) + 5000,
-    distance: Math.round((Math.random() * 30 + 10) * 10) / 10,
-    avgRating: Math.round((Math.random() * 1.5 + 3.5) * 10) / 10,
-  }));
-
-  const totalDeliveries = dailyStats.reduce((sum, d) => sum + d.deliveries, 0);
-  const totalEarnings = dailyStats.reduce((sum, d) => sum + d.earnings, 0);
-  const totalDistance = dailyStats.reduce((sum, d) => sum + d.distance, 0);
-
-  return {
-    weekNumber: Math.ceil((weekStart.getDate() - weekStart.getDay() + 1) / 7),
-    startDate: format(weekStart, 'dd MMM', { locale: fr }),
-    endDate: format(weekEnd, 'dd MMM yyyy', { locale: fr }),
-    totalDeliveries,
-    totalEarnings,
-    totalDistance: Math.round(totalDistance * 10) / 10,
-    avgEarningsPerDelivery: Math.round(totalEarnings / totalDeliveries),
-    avgRating: 4.5,
-    topZone: 'Douala Centre',
-    busyDay: 'Samedi',
-    peakHour: '12h-14h',
-    dailyStats,
-    comparison: {
-      deliveriesChange: Math.floor(Math.random() * 30) - 10,
-      earningsChange: Math.floor(Math.random() * 25) - 5,
-    },
-  };
-}
-
-/**
- * Generate mock monthly report for demo/fallback
- */
-function generateMockMonthlyReport(targetDate: Date): MonthlyReport {
-  return {
-    month: format(targetDate, 'MMMM', { locale: fr }),
-    year: targetDate.getFullYear(),
-    totalDeliveries: Math.floor(Math.random() * 100) + 50,
-    totalEarnings: Math.floor(Math.random() * 200000) + 100000,
-    totalDistance: Math.round((Math.random() * 500 + 200) * 10) / 10,
-    avgEarningsPerDay: Math.floor(Math.random() * 10000) + 5000,
-    avgRating: 4.5,
-    weeklyBreakdown: [
-      { week: 1, deliveries: 15, earnings: 45000 },
-      { week: 2, deliveries: 18, earnings: 54000 },
-      { week: 3, deliveries: 12, earnings: 36000 },
-      { week: 4, deliveries: 20, earnings: 60000 },
-    ],
-    topZones: [
-      { zone: 'Douala Centre', count: 25 },
-      { zone: 'Akwa', count: 18 },
-      { zone: 'Bonapriso', count: 12 },
-    ],
-  };
 }
 
 /**

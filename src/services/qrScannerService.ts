@@ -1,4 +1,7 @@
-import { Capacitor } from '@capacitor/core';
+/**
+ * QR Scanner Service
+ * Uses html5-qrcode for camera-based scanning (web + Capacitor WebView)
+ */
 
 export interface ScanResult {
   success: boolean;
@@ -9,42 +12,43 @@ export interface ScanResult {
 
 /**
  * Check if barcode scanning is supported
- * Note: Native scanning requires @capacitor-mlkit/barcode-scanning package
+ * html5-qrcode uses getUserMedia which works in modern browsers and Capacitor WebView
  */
 export async function isScanningSupported(): Promise<boolean> {
-  // For now, return false - manual entry is always available
-  // Native scanning can be enabled by installing the barcode-scanning package
-  return false;
+  try {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Request camera permission for scanning
  */
 export async function requestScanPermission(): Promise<boolean> {
-  // Native scanning not implemented - use manual entry
-  return false;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    // Stop the stream immediately — we just needed to request permission
+    stream.getTracks().forEach(track => track.stop());
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Check camera permission status
  */
 export async function checkScanPermission(): Promise<boolean> {
-  // Native scanning not implemented - use manual entry
-  return false;
-}
-
-/**
- * Start scanning for barcodes/QR codes
- */
-export async function startScan(): Promise<ScanResult> {
-  // For web/PWA, scanning is not available through this service
-  // The QRScanner component provides manual entry as fallback
-  return {
-    success: false,
-    error: Capacitor.isNativePlatform()
-      ? 'Scanner non disponible. Utilisez la saisie manuelle.'
-      : 'Le scanner n\'est disponible que sur l\'application mobile',
-  };
+  try {
+    if (navigator.permissions) {
+      const result = await navigator.permissions.query({ name: 'camera' as PermissionName });
+      return result.state === 'granted';
+    }
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 /**

@@ -4,6 +4,8 @@
  * and distance matrix calculations
  */
 
+import { supabase } from '../lib/supabase';
+
 export interface DeliveryStop {
   id: string;
   name: string;
@@ -321,70 +323,32 @@ export function optimizeRoute(
   };
 }
 
-// Get mock deliveries for testing (in production, this would come from API)
-export function getMockDeliveries(driverId: string): DeliveryStop[] {
-  // Generate mock deliveries in Abidjan area
-  return [
-    {
-      id: '1',
-      name: 'Colis #2341',
-      address: 'Cocody Riviera 3, Abidjan',
-      lat: 5.3602,
-      lng: -3.9934,
-      type: 'delivery',
-      priority: 'normal',
-      estimatedDuration: 5,
-    },
-    {
-      id: '2',
-      name: 'Colis #2342',
-      address: 'Plateau, Rue du Commerce',
-      lat: 5.3207,
-      lng: -4.0167,
-      type: 'delivery',
-      priority: 'high',
-      estimatedDuration: 10,
-    },
-    {
-      id: '3',
-      name: 'Colis #2343',
-      address: 'Marcory Zone 4, Abidjan',
-      lat: 5.3012,
-      lng: -3.9858,
-      type: 'delivery',
-      priority: 'normal',
-      estimatedDuration: 5,
-    },
-    {
-      id: '4',
-      name: 'Colis #2344',
-      address: 'Yopougon Sicogi',
-      lat: 5.3516,
-      lng: -4.0897,
-      type: 'delivery',
-      priority: 'low',
-      estimatedDuration: 5,
-    },
-    {
-      id: '5',
-      name: 'Colis #2345',
-      address: 'Treichville Avenue 12',
-      lat: 5.2984,
-      lng: -4.0078,
-      type: 'delivery',
-      priority: 'normal',
-      estimatedDuration: 7,
-    },
-  ];
-}
-
-// Get pending deliveries for the driver
+// Get pending deliveries for the driver from Supabase
 export async function getPendingDeliveries(
   driverId: string
 ): Promise<DeliveryStop[]> {
-  // In production, this would fetch from Supabase
-  // For now, return mock data
-  return getMockDeliveries(driverId);
+  const { data, error } = await supabase
+    .from('logitrack_deliveries')
+    .select('id, delivery_contact_name, delivery_address, delivery_latitude, delivery_longitude, is_express, is_fragile, route_position, created_at')
+    .eq('driver_id', driverId)
+    .in('status', ['accepted', 'picked_up'])
+    .not('delivery_latitude', 'is', null)
+    .not('delivery_longitude', 'is', null)
+    .order('route_position', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map(row => ({
+    id: row.id,
+    name: row.delivery_contact_name || 'Livraison',
+    address: row.delivery_address || '',
+    lat: parseFloat(row.delivery_latitude),
+    lng: parseFloat(row.delivery_longitude),
+    type: 'delivery' as const,
+    priority: row.is_express ? 'high' as const : 'normal' as const,
+    estimatedDuration: 5,
+  }));
 }
 
 // Format duration for display

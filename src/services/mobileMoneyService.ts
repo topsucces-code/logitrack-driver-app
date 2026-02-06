@@ -1,13 +1,13 @@
 // Service Mobile Money pour Côte d'Ivoire
-// Version mock pour développement - prêt pour intégration API réelle
+// Connected to Supabase backend
 
+import { supabase } from '../lib/supabase';
 import {
   MobileMoneyProvider,
   MobileMoneyProviderInfo,
   MobileMoneyWallet,
   MobileMoneyTransaction,
   TransactionType,
-  TransactionStatus,
   PaymentRequest,
   WithdrawalRequest,
   PaymentResult,
@@ -72,7 +72,7 @@ export const MOBILE_MONEY_PROVIDERS: Record<MobileMoneyProvider, MobileMoneyProv
     icon: '🌊',
     ussdCode: '*860#',
     fees: {
-      percentage: 0, // Wave est gratuit pour les envois
+      percentage: 0,
       fixedFee: 0,
       minFee: 0,
       maxFee: 0,
@@ -110,139 +110,6 @@ export const MOBILE_MONEY_PROVIDERS: Record<MobileMoneyProvider, MobileMoneyProv
   },
 };
 
-// Mock data pour les wallets
-const mockWallets: MobileMoneyWallet[] = [
-  {
-    id: 'wallet-1',
-    userId: 'current-user',
-    provider: 'orange_money',
-    phoneNumber: '+225 07 07 12 34 56',
-    accountName: 'Konan Yao',
-    balance: 45000,
-    isDefault: true,
-    isVerified: true,
-    createdAt: '2024-01-15T10:00:00Z',
-    lastUsed: '2024-02-05T14:30:00Z',
-  },
-  {
-    id: 'wallet-2',
-    userId: 'current-user',
-    provider: 'wave',
-    phoneNumber: '+225 05 05 98 76 54',
-    accountName: 'Konan Yao',
-    balance: 28500,
-    isDefault: false,
-    isVerified: true,
-    createdAt: '2024-02-01T08:00:00Z',
-    lastUsed: '2024-02-04T09:15:00Z',
-  },
-];
-
-// Mock transactions
-const mockTransactions: MobileMoneyTransaction[] = [
-  {
-    id: 'txn-001',
-    walletId: 'wallet-1',
-    type: 'earnings',
-    status: 'completed',
-    amount: 2500,
-    fees: 0,
-    totalAmount: 2500,
-    currency: 'XOF',
-    provider: 'orange_money',
-    phoneNumber: '+225 07 07 12 34 56',
-    reference: 'EARN-2024020501',
-    description: 'Livraison #LT-2024-0523',
-    metadata: { deliveryId: 'del-523' },
-    createdAt: '2024-02-05T10:30:00Z',
-    updatedAt: '2024-02-05T10:30:00Z',
-    completedAt: '2024-02-05T10:30:00Z',
-  },
-  {
-    id: 'txn-002',
-    walletId: 'wallet-1',
-    type: 'earnings',
-    status: 'completed',
-    amount: 3500,
-    fees: 0,
-    totalAmount: 3500,
-    currency: 'XOF',
-    provider: 'orange_money',
-    phoneNumber: '+225 07 07 12 34 56',
-    reference: 'EARN-2024020502',
-    description: 'Livraison #LT-2024-0524',
-    metadata: { deliveryId: 'del-524' },
-    createdAt: '2024-02-05T12:45:00Z',
-    updatedAt: '2024-02-05T12:45:00Z',
-    completedAt: '2024-02-05T12:45:00Z',
-  },
-  {
-    id: 'txn-003',
-    walletId: 'wallet-1',
-    type: 'withdrawal',
-    status: 'completed',
-    amount: 20000,
-    fees: 200,
-    totalAmount: 20200,
-    currency: 'XOF',
-    provider: 'orange_money',
-    phoneNumber: '+225 07 07 12 34 56',
-    reference: 'WD-2024020401',
-    description: 'Retrait vers Orange Money',
-    createdAt: '2024-02-04T18:00:00Z',
-    updatedAt: '2024-02-04T18:05:00Z',
-    completedAt: '2024-02-04T18:05:00Z',
-  },
-  {
-    id: 'txn-004',
-    walletId: 'wallet-1',
-    type: 'earnings',
-    status: 'pending',
-    amount: 1800,
-    fees: 0,
-    totalAmount: 1800,
-    currency: 'XOF',
-    provider: 'orange_money',
-    phoneNumber: '+225 07 07 12 34 56',
-    reference: 'EARN-2024020503',
-    description: 'Livraison #LT-2024-0525 (en attente)',
-    metadata: { deliveryId: 'del-525' },
-    createdAt: '2024-02-05T14:15:00Z',
-    updatedAt: '2024-02-05T14:15:00Z',
-  },
-  {
-    id: 'txn-005',
-    walletId: 'wallet-2',
-    type: 'withdrawal',
-    status: 'completed',
-    amount: 15000,
-    fees: 0,
-    totalAmount: 15000,
-    currency: 'XOF',
-    provider: 'wave',
-    phoneNumber: '+225 05 05 98 76 54',
-    reference: 'WD-2024020301',
-    description: 'Retrait vers Wave',
-    createdAt: '2024-02-03T16:30:00Z',
-    updatedAt: '2024-02-03T16:32:00Z',
-    completedAt: '2024-02-03T16:32:00Z',
-  },
-];
-
-// Simuler un délai réseau
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Générer un ID unique
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-// Générer une référence de transaction
-const generateReference = (type: TransactionType) => {
-  const prefix = type === 'withdrawal' ? 'WD' : type === 'earnings' ? 'EARN' : 'TXN';
-  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const random = Math.random().toString(36).substr(2, 6).toUpperCase();
-  return `${prefix}-${date}-${random}`;
-};
-
 // Calculer les frais
 export function calculateFees(amount: number, provider: MobileMoneyProvider): number {
   const providerInfo = MOBILE_MONEY_PROVIDERS[provider];
@@ -252,30 +119,26 @@ export function calculateFees(amount: number, provider: MobileMoneyProvider): nu
   let fees = (amount * percentage) / 100 + fixedFee;
 
   if (fees < minFee) fees = minFee;
-  if (fees > maxFee) fees = maxFee;
+  if (maxFee > 0 && fees > maxFee) fees = maxFee;
 
   return Math.ceil(fees);
 }
 
 // Valider un numéro de téléphone ivoirien
 export function validatePhoneNumber(phone: string): { valid: boolean; formatted: string; provider?: MobileMoneyProvider } {
-  // Nettoyer le numéro
   let cleaned = phone.replace(/[\s\-\(\)]/g, '');
 
-  // Ajouter le préfixe si nécessaire
   if (cleaned.startsWith('0')) {
     cleaned = '+225' + cleaned.substring(1);
   } else if (!cleaned.startsWith('+225')) {
     cleaned = '+225' + cleaned;
   }
 
-  // Vérifier la longueur (10 chiffres après +225)
   const digits = cleaned.replace('+225', '');
   if (digits.length !== 10) {
     return { valid: false, formatted: phone };
   }
 
-  // Détecter l'opérateur par le préfixe
   const prefix = digits.substring(0, 2);
   let provider: MobileMoneyProvider | undefined;
 
@@ -286,9 +149,7 @@ export function validatePhoneNumber(phone: string): { valid: boolean; formatted:
   } else if (['01', '02', '03'].includes(prefix)) {
     provider = 'moov_money';
   }
-  // Wave peut être utilisé avec n'importe quel numéro
 
-  // Formater pour l'affichage
   const formatted = `+225 ${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
 
   return { valid: true, formatted, provider };
@@ -303,317 +164,391 @@ export function formatCurrency(amount: number): string {
   }).format(amount) + ' FCFA';
 }
 
-// ========== API Mock ==========
+// ========== Real Supabase API ==========
 
-// Récupérer les wallets de l'utilisateur
-export async function getWallets(): Promise<MobileMoneyWallet[]> {
-  await delay(500);
-  return [...mockWallets];
+// Récupérer les wallets de l'utilisateur (from driver profile)
+export async function getWallets(driverId?: string): Promise<MobileMoneyWallet[]> {
+  let query = supabase
+    .from('logitrack_drivers')
+    .select('id, user_id, momo_provider, momo_number, momo_name, wallet_balance');
+
+  if (driverId) {
+    query = query.eq('id', driverId);
+  } else {
+    // Fallback: get current user's driver
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    query = query.eq('user_id', user.id);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error || !data) return [];
+
+  // Build wallet from driver's momo fields
+  if (!data.momo_provider || !data.momo_number) {
+    // Driver has no mobile money configured, return wallet with balance only
+    return [{
+      id: data.id,
+      userId: data.user_id,
+      provider: 'orange_money' as MobileMoneyProvider,
+      phoneNumber: '',
+      accountName: data.momo_name || '',
+      balance: data.wallet_balance || 0,
+      isDefault: true,
+      isVerified: false,
+      createdAt: '',
+      lastUsed: null,
+    }];
+  }
+
+  return [{
+    id: data.id,
+    userId: data.user_id,
+    provider: data.momo_provider as MobileMoneyProvider,
+    phoneNumber: data.momo_number,
+    accountName: data.momo_name || '',
+    balance: data.wallet_balance || 0,
+    isDefault: true,
+    isVerified: true,
+    createdAt: '',
+    lastUsed: null,
+  }];
 }
 
-// Récupérer un wallet par ID
+// Récupérer un wallet par ID (same as getWallets for single driver)
 export async function getWallet(walletId: string): Promise<MobileMoneyWallet | null> {
-  await delay(300);
-  return mockWallets.find(w => w.id === walletId) || null;
+  const wallets = await getWallets(walletId);
+  return wallets[0] || null;
 }
 
-// Ajouter un nouveau wallet
+// Ajouter/mettre à jour le wallet du driver
 export async function addWallet(
   provider: MobileMoneyProvider,
   phoneNumber: string,
-  accountName: string
+  accountName: string,
+  driverId?: string
 ): Promise<{ success: boolean; wallet?: MobileMoneyWallet; error?: string }> {
-  await delay(1000);
-
   const validation = validatePhoneNumber(phoneNumber);
   if (!validation.valid) {
     return { success: false, error: 'Numéro de téléphone invalide' };
   }
 
-  // Vérifier si le wallet existe déjà
-  const existing = mockWallets.find(
-    w => w.provider === provider && w.phoneNumber === validation.formatted
-  );
-  if (existing) {
-    return { success: false, error: 'Ce compte est déjà enregistré' };
+  let id = driverId;
+  if (!id) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Non connecté' };
+    const { data: driver } = await supabase
+      .from('logitrack_drivers')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!driver) return { success: false, error: 'Profil non trouvé' };
+    id = driver.id;
   }
 
-  const newWallet: MobileMoneyWallet = {
-    id: `wallet-${generateId()}`,
-    userId: 'current-user',
-    provider,
-    phoneNumber: validation.formatted,
-    accountName,
-    balance: 0,
-    isDefault: mockWallets.length === 0,
-    isVerified: false,
-    createdAt: new Date().toISOString(),
-    lastUsed: null,
-  };
+  const { error } = await supabase
+    .from('logitrack_drivers')
+    .update({
+      momo_provider: provider,
+      momo_number: validation.formatted,
+      momo_name: accountName,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id);
 
-  mockWallets.push(newWallet);
+  if (error) {
+    return { success: false, error: error.message };
+  }
 
-  return { success: true, wallet: newWallet };
+  const wallets = await getWallets(id);
+  return { success: true, wallet: wallets[0] };
 }
 
-// Définir le wallet par défaut
-export async function setDefaultWallet(walletId: string): Promise<boolean> {
-  await delay(300);
-
-  mockWallets.forEach(w => {
-    w.isDefault = w.id === walletId;
-  });
-
+// Définir le wallet par défaut (no-op since driver has single wallet)
+export async function setDefaultWallet(_walletId: string): Promise<boolean> {
   return true;
 }
 
-// Supprimer un wallet
-export async function removeWallet(walletId: string): Promise<boolean> {
-  await delay(500);
+// Supprimer un wallet (clear momo fields on driver)
+export async function removeWallet(driverId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('logitrack_drivers')
+    .update({
+      momo_provider: null,
+      momo_number: null,
+      momo_name: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', driverId);
 
-  const index = mockWallets.findIndex(w => w.id === walletId);
-  if (index > -1) {
-    mockWallets.splice(index, 1);
-    return true;
-  }
-  return false;
+  return !error;
 }
 
 // Récupérer les transactions
 export async function getTransactions(
-  walletId?: string,
+  driverId?: string,
   limit = 20,
   offset = 0
 ): Promise<MobileMoneyTransaction[]> {
-  await delay(400);
-
-  let transactions = [...mockTransactions];
-
-  if (walletId) {
-    transactions = transactions.filter(t => t.walletId === walletId);
+  let dId = driverId;
+  if (!dId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data: driver } = await supabase
+      .from('logitrack_drivers')
+      .select('id, momo_provider, momo_number')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!driver) return [];
+    dId = driver.id;
   }
 
-  // Trier par date décroissante
-  transactions.sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const { data, error } = await supabase
+    .from('logitrack_driver_transactions')
+    .select('*')
+    .eq('driver_id', dId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
 
-  return transactions.slice(offset, offset + limit);
+  if (error || !data) return [];
+
+  // Map DB rows to MobileMoneyTransaction type
+  return data.map(row => ({
+    id: row.id,
+    walletId: dId!,
+    type: mapTransactionType(row.type),
+    status: row.status as MobileMoneyTransaction['status'],
+    amount: Math.abs(row.amount),
+    fees: 0,
+    totalAmount: Math.abs(row.amount),
+    currency: 'XOF' as const,
+    provider: 'orange_money' as MobileMoneyProvider,
+    phoneNumber: '',
+    reference: row.id.slice(0, 12).toUpperCase(),
+    description: row.description || mapTransactionDescription(row.type, Math.abs(row.amount)),
+    createdAt: row.created_at,
+    updatedAt: row.created_at,
+    completedAt: row.status === 'completed' ? row.created_at : undefined,
+  }));
+}
+
+function mapTransactionType(dbType: string): TransactionType {
+  const map: Record<string, TransactionType> = {
+    earning: 'earnings',
+    earnings: 'earnings',
+    withdrawal: 'withdrawal',
+    bonus: 'deposit',
+    penalty: 'payment',
+  };
+  return map[dbType] || 'earnings';
+}
+
+function mapTransactionDescription(type: string, amount: number): string {
+  switch (type) {
+    case 'earning':
+    case 'earnings':
+      return `Gains livraison - ${formatCurrency(amount)}`;
+    case 'withdrawal':
+      return `Retrait - ${formatCurrency(amount)}`;
+    case 'bonus':
+      return `Bonus - ${formatCurrency(amount)}`;
+    default:
+      return `Transaction - ${formatCurrency(amount)}`;
+  }
 }
 
 // Récupérer le résumé des gains
-export async function getEarningsSummary(): Promise<EarningsSummary> {
-  await delay(400);
+export async function getEarningsSummary(driverId?: string): Promise<EarningsSummary> {
+  const empty: EarningsSummary = { today: 0, thisWeek: 0, thisMonth: 0, pending: 0, available: 0, totalWithdrawn: 0 };
+
+  let dId = driverId;
+  if (!dId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return empty;
+    const { data: driver } = await supabase
+      .from('logitrack_drivers')
+      .select('id, wallet_balance')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!driver) return empty;
+    dId = driver.id;
+  }
+
+  // Get driver wallet balance
+  const { data: driverData } = await supabase
+    .from('logitrack_drivers')
+    .select('wallet_balance')
+    .eq('id', dId)
+    .maybeSingle();
+
+  const available = driverData?.wallet_balance || 0;
+
+  // Get all transactions for this driver
+  const { data: txns } = await supabase
+    .from('logitrack_driver_transactions')
+    .select('type, amount, status, created_at')
+    .eq('driver_id', dId);
+
+  if (!txns) return { ...empty, available };
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const weekStart = new Date(todayStart);
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+  if (weekStart > todayStart) weekStart.setDate(weekStart.getDate() - 7);
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const earnings = mockTransactions.filter(t => t.type === 'earnings');
+  let today = 0, thisWeek = 0, thisMonth = 0, pending = 0, totalWithdrawn = 0;
 
-  const today = earnings
-    .filter(t => new Date(t.createdAt) >= todayStart && t.status === 'completed')
-    .reduce((sum, t) => sum + t.amount, 0);
+  for (const t of txns) {
+    const created = new Date(t.created_at);
+    const isEarning = t.type === 'earning' || t.type === 'earnings' || t.type === 'bonus';
+    const isWithdrawal = t.type === 'withdrawal';
+    const amt = Math.abs(t.amount);
 
-  const thisWeek = earnings
-    .filter(t => new Date(t.createdAt) >= weekStart && t.status === 'completed')
-    .reduce((sum, t) => sum + t.amount, 0);
+    if (isEarning && t.status === 'completed') {
+      if (created >= todayStart) today += amt;
+      if (created >= weekStart) thisWeek += amt;
+      if (created >= monthStart) thisMonth += amt;
+    }
 
-  const thisMonth = earnings
-    .filter(t => new Date(t.createdAt) >= monthStart && t.status === 'completed')
-    .reduce((sum, t) => sum + t.amount, 0);
+    if (isEarning && t.status === 'pending') {
+      pending += amt;
+    }
 
-  const pending = earnings
-    .filter(t => t.status === 'pending')
-    .reduce((sum, t) => sum + t.amount, 0);
+    if (isWithdrawal && t.status === 'completed') {
+      totalWithdrawn += amt;
+    }
+  }
 
-  const available = mockWallets.reduce((sum, w) => sum + w.balance, 0);
-
-  const totalWithdrawn = mockTransactions
-    .filter(t => t.type === 'withdrawal' && t.status === 'completed')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  return {
-    today,
-    thisWeek,
-    thisMonth,
-    pending,
-    available,
-    totalWithdrawn,
-  };
+  return { today, thisWeek, thisMonth, pending, available, totalWithdrawn };
 }
 
-// Initier un paiement (simulation)
-export async function initiatePayment(request: PaymentRequest): Promise<PaymentResult> {
-  await delay(1500);
+// Obtenir l'historique des gains par jour
+export async function getEarningsHistory(days = 7, driverId?: string): Promise<{ date: string; amount: number }[]> {
+  let dId = driverId;
+  if (!dId) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+    const { data: driver } = await supabase
+      .from('logitrack_drivers')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (!driver) return [];
+    dId = driver.id;
+  }
 
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  const { data: txns } = await supabase
+    .from('logitrack_driver_transactions')
+    .select('amount, created_at')
+    .eq('driver_id', dId)
+    .eq('status', 'completed')
+    .in('type', ['earning', 'earnings', 'bonus'])
+    .gte('created_at', startDate.toISOString())
+    .order('created_at', { ascending: true });
+
+  // Build day-by-day map
+  const dayMap: Record<string, number> = {};
+  const now = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    dayMap[date.toISOString().slice(0, 10)] = 0;
+  }
+
+  if (txns) {
+    for (const t of txns) {
+      const dateKey = t.created_at.slice(0, 10);
+      if (dayMap[dateKey] !== undefined) {
+        dayMap[dateKey] += Math.abs(t.amount);
+      }
+    }
+  }
+
+  return Object.entries(dayMap).map(([date, amount]) => ({ date, amount }));
+}
+
+// Initier un retrait via RPC
+export async function initiateWithdrawal(request: WithdrawalRequest): Promise<PaymentResult> {
   const provider = MOBILE_MONEY_PROVIDERS[request.provider];
   if (!provider || !provider.isActive) {
     return { success: false, error: 'Opérateur non disponible' };
   }
 
-  // Vérifier les limites
-  if (request.amount < provider.limits.minAmount) {
-    return { success: false, error: `Montant minimum: ${formatCurrency(provider.limits.minAmount)}` };
-  }
-  if (request.amount > provider.limits.maxPerTransaction) {
-    return { success: false, error: `Montant maximum: ${formatCurrency(provider.limits.maxPerTransaction)}` };
-  }
-
-  const fees = calculateFees(request.amount, request.provider);
-
-  const transaction: MobileMoneyTransaction = {
-    id: `txn-${generateId()}`,
-    walletId: mockWallets.find(w => w.provider === request.provider)?.id || 'wallet-1',
-    type: 'payment',
-    status: 'pending',
-    amount: request.amount,
-    fees,
-    totalAmount: request.amount + fees,
-    currency: 'XOF',
-    provider: request.provider,
-    phoneNumber: request.phoneNumber,
-    reference: generateReference('payment'),
-    description: request.description,
-    metadata: {
-      deliveryId: request.deliveryId,
-      orderId: request.orderId,
-    },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  mockTransactions.unshift(transaction);
-
-  // Simuler qu'on attend l'OTP ou la validation
-  return {
-    success: true,
-    transaction,
-    requiresOtp: true,
-    otpMessage: `Un code de confirmation a été envoyé au ${request.phoneNumber}. Composez ${provider.ussdCode} pour valider.`,
-  };
-}
-
-// Confirmer un paiement (après OTP)
-export async function confirmPayment(
-  transactionId: string,
-  otp?: string
-): Promise<PaymentResult> {
-  await delay(2000);
-
-  const transaction = mockTransactions.find(t => t.id === transactionId);
-  if (!transaction) {
-    return { success: false, error: 'Transaction non trouvée' };
-  }
-
-  // Simuler 90% de succès
-  const isSuccess = Math.random() > 0.1;
-
-  if (isSuccess) {
-    transaction.status = 'completed';
-    transaction.completedAt = new Date().toISOString();
-    transaction.externalReference = `EXT-${generateId().toUpperCase()}`;
-
-    return { success: true, transaction };
-  } else {
-    transaction.status = 'failed';
-    transaction.failureReason = 'Solde insuffisant ou timeout';
-
-    return { success: false, error: 'Paiement échoué. Veuillez réessayer.', transaction };
-  }
-}
-
-// Initier un retrait
-export async function initiateWithdrawal(request: WithdrawalRequest): Promise<PaymentResult> {
-  await delay(1500);
-
-  const wallet = mockWallets.find(
-    w => w.provider === request.provider && w.phoneNumber.includes(request.phoneNumber.slice(-8))
-  );
-
-  if (!wallet) {
-    return { success: false, error: 'Compte non trouvé' };
-  }
-
-  const fees = calculateFees(request.amount, request.provider);
-  const totalAmount = request.amount + fees;
-
-  if (wallet.balance < totalAmount) {
-    return { success: false, error: `Solde insuffisant. Disponible: ${formatCurrency(wallet.balance)}` };
-  }
-
-  const provider = MOBILE_MONEY_PROVIDERS[request.provider];
-
-  // Vérifier les limites
   if (request.amount < provider.limits.minAmount) {
     return { success: false, error: `Montant minimum: ${formatCurrency(provider.limits.minAmount)}` };
   }
 
-  const transaction: MobileMoneyTransaction = {
-    id: `txn-${generateId()}`,
-    walletId: wallet.id,
-    type: 'withdrawal',
-    status: 'processing',
-    amount: request.amount,
-    fees,
-    totalAmount,
-    currency: 'XOF',
-    provider: request.provider,
-    phoneNumber: wallet.phoneNumber,
-    reference: generateReference('withdrawal'),
-    description: `Retrait vers ${provider.name}`,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  const { data, error } = await supabase.rpc('request_logitrack_withdrawal', {
+    p_amount: request.amount,
+    p_method: provider.name,
+    p_account: request.phoneNumber,
+  });
 
-  mockTransactions.unshift(transaction);
+  if (error) {
+    return { success: false, error: error.message };
+  }
 
-  // Simuler le traitement automatique après 2 secondes
-  setTimeout(() => {
-    transaction.status = 'completed';
-    transaction.completedAt = new Date().toISOString();
-    transaction.externalReference = `EXT-${generateId().toUpperCase()}`;
-    wallet.balance -= totalAmount;
-    wallet.lastUsed = new Date().toISOString();
-  }, 2000);
+  if (data && !data.success) {
+    return { success: false, error: data.error || 'Erreur lors du retrait' };
+  }
 
   return {
     success: true,
-    transaction,
     otpMessage: `Votre retrait de ${formatCurrency(request.amount)} est en cours de traitement.`,
+  };
+}
+
+// Initier un paiement (stub - no real payment gateway)
+export async function initiatePayment(request: PaymentRequest): Promise<PaymentResult> {
+  // Payment gateway integration not yet available
+  // This would connect to Orange Money / MTN MoMo / Wave API
+  return {
+    success: false,
+    error: 'Le paiement mobile n\'est pas encore disponible. Utilisez le paiement en espèces.',
+  };
+}
+
+// Confirmer un paiement (stub)
+export async function confirmPayment(
+  _transactionId: string,
+  _otp?: string
+): Promise<PaymentResult> {
+  return {
+    success: false,
+    error: 'Le paiement mobile n\'est pas encore disponible.',
   };
 }
 
 // Vérifier le statut d'une transaction
 export async function checkTransactionStatus(transactionId: string): Promise<MobileMoneyTransaction | null> {
-  await delay(500);
-  return mockTransactions.find(t => t.id === transactionId) || null;
-}
+  const { data } = await supabase
+    .from('logitrack_driver_transactions')
+    .select('*')
+    .eq('id', transactionId)
+    .maybeSingle();
 
-// Obtenir l'historique des gains par jour (pour les graphiques)
-export async function getEarningsHistory(days = 7): Promise<{ date: string; amount: number }[]> {
-  await delay(400);
+  if (!data) return null;
 
-  const history: { date: string; amount: number }[] = [];
-  const now = new Date();
-
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().slice(0, 10);
-
-    // Mock data avec variation
-    const baseAmount = 15000 + Math.random() * 20000;
-    const dayOfWeek = date.getDay();
-    const multiplier = dayOfWeek === 0 ? 0.5 : dayOfWeek === 6 ? 0.7 : 1;
-
-    history.push({
-      date: dateStr,
-      amount: Math.round(baseAmount * multiplier),
-    });
-  }
-
-  return history;
+  return {
+    id: data.id,
+    walletId: data.driver_id,
+    type: mapTransactionType(data.type),
+    status: data.status,
+    amount: Math.abs(data.amount),
+    fees: 0,
+    totalAmount: Math.abs(data.amount),
+    currency: 'XOF',
+    provider: 'orange_money' as MobileMoneyProvider,
+    phoneNumber: '',
+    reference: data.id.slice(0, 12).toUpperCase(),
+    description: data.description || '',
+    createdAt: data.created_at,
+    updatedAt: data.created_at,
+  };
 }

@@ -404,13 +404,41 @@ export async function getLeaderboard(
       break;
   }
 
-  // This would need a more complex query in production
-  // For now, return mock data
-  return [
-    { rank: 1, driverId: '1', name: 'Jean D.', deliveries: 45, earnings: 135000 },
-    { rank: 2, driverId: '2', name: 'Marie K.', deliveries: 42, earnings: 126000 },
-    { rank: 3, driverId: '3', name: 'Paul M.', deliveries: 38, earnings: 114000 },
-    { rank: 4, driverId: '4', name: 'Sophie L.', deliveries: 35, earnings: 105000 },
-    { rank: 5, driverId: '5', name: 'Pierre N.', deliveries: 32, earnings: 96000 },
-  ];
+  // Query real leaderboard from delivered deliveries
+  const { data, error } = await supabase
+    .from('logitrack_deliveries')
+    .select('driver_id, driver_earnings, logitrack_drivers!inner(full_name)')
+    .eq('status', 'delivered')
+    .gte('delivered_at', startDate.toISOString());
+
+  if (error || !data || data.length === 0) return [];
+
+  // Aggregate by driver
+  const driverMap: Record<string, { name: string; deliveries: number; earnings: number }> = {};
+  for (const row of data) {
+    const dId = row.driver_id;
+    if (!dId) continue;
+    if (!driverMap[dId]) {
+      const driverData = row.logitrack_drivers as any;
+      driverMap[dId] = {
+        name: driverData?.full_name || 'Chauffeur',
+        deliveries: 0,
+        earnings: 0,
+      };
+    }
+    driverMap[dId].deliveries += 1;
+    driverMap[dId].earnings += row.driver_earnings || 0;
+  }
+
+  // Sort by deliveries DESC and add ranks
+  return Object.entries(driverMap)
+    .sort((a, b) => b[1].deliveries - a[1].deliveries)
+    .slice(0, limit)
+    .map(([driverId, stats], index) => ({
+      rank: index + 1,
+      driverId,
+      name: stats.name,
+      deliveries: stats.deliveries,
+      earnings: stats.earnings,
+    }));
 }
