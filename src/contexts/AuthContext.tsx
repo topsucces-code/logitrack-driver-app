@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, Driver, VehicleType, isDriverVerified, getRegistrationStep, isSupabaseConfigured } from '../lib/supabase';
-import { initPushNotifications, removePushToken } from '../services/pushNotificationService';
+import { removePushToken } from '../services/pushNotificationService';
 
 interface AuthContextType {
   user: User | null;
@@ -35,25 +35,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const registrationStep = driver ? getRegistrationStep(driver) : 0;
 
   // Initialize push notifications when driver is verified
-  useEffect(() => {
-    if (driver && isVerified) {
-      initPushNotifications(
-        // On notification received in foreground
-        (notification) => {
-          console.log('Push notification received:', notification);
-        },
-        // On notification action (user tapped)
-        (action) => {
-          console.log('Push notification action:', action);
-          // Handle navigation based on notification data
-          const data = action.notification.data;
-          if (data?.deliveryId) {
-            window.location.href = `/delivery/${data.deliveryId}`;
-          }
-        }
-      );
-    }
-  }, [driver, isVerified]);
+  // NOTE: Disabled until google-services.json / Firebase is configured
+  // Calling PushNotifications.register() without Firebase crashes the native app
+  // useEffect(() => {
+  //   if (driver && isVerified) {
+  //     initPushNotifications(
+  //       (notification) => {
+  //         console.log('Push notification received:', notification);
+  //       },
+  //       (action) => {
+  //         console.log('Push notification action:', action);
+  //         const data = action.notification.data;
+  //         if (data?.deliveryId) {
+  //           window.location.href = `/delivery/${data.deliveryId}`;
+  //         }
+  //       }
+  //     );
+  //   }
+  // }, [driver, isVerified]);
 
   const fetchDriver = useCallback(async (userId: string) => {
     try {

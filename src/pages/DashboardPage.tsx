@@ -191,7 +191,7 @@ export default function DashboardPage() {
       fetchDeliveries();
       refreshDriver();
     } else {
-      showError(data?.error || 'Erreur lors de l\'acceptation');
+      showError(error?.message || data?.error || 'Erreur lors de l\'acceptation');
     }
   }, [fetchDeliveries, refreshDriver, showError]);
 
