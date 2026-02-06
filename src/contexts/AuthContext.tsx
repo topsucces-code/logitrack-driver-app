@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, Driver, VehicleType, isDriverVerified, getRegistrationStep } from '../lib/supabase';
+import { supabase, Driver, VehicleType, isDriverVerified, getRegistrationStep, isSupabaseConfigured } from '../lib/supabase';
 import { initPushNotifications, removePushToken } from '../services/pushNotificationService';
 
 interface AuthContextType {
@@ -69,42 +69,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    // Set loading to false after a short delay regardless of auth state
-    const timeout = setTimeout(() => {
+    // Safety timeout - always stop loading after 3 seconds max
+    const safetyTimeout = setTimeout(() => {
       setLoading(false);
-    }, 1500);
+    }, 3000);
 
-    // Listen for auth changes only
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
+    // If Supabase is not configured, stop loading immediately
+    if (!isSupabaseConfigured) {
+      console.warn('Supabase not configured - skipping auth initialization');
+      setLoading(false);
+      return () => clearTimeout(safetyTimeout);
+    }
 
-        if (newSession?.user) {
-          await fetchDriver(newSession.user.id);
-        } else {
-          setDriver(null);
+    let subscription: { unsubscribe: () => void } | null = null;
+
+    try {
+      // Listen for auth changes only
+      const { data } = supabase.auth.onAuthStateChange(
+        async (_event, newSession) => {
+          try {
+            setSession(newSession);
+            setUser(newSession?.user ?? null);
+
+            if (newSession?.user) {
+              await fetchDriver(newSession.user.id);
+            } else {
+              setDriver(null);
+            }
+          } catch (error) {
+            console.error('Error in auth state change:', error);
+          } finally {
+            setLoading(false);
+          }
         }
+      );
+      subscription = data.subscription;
 
-        setLoading(false);
-      }
-    );
-
-    // Try to get initial session (non-blocking)
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setSession(data.session);
-        setUser(data.session.user);
-        fetchDriver(data.session.user.id);
-      }
+      // Try to get initial session (non-blocking)
+      supabase.auth.getSession()
+        .then(({ data }) => {
+          if (data.session) {
+            setSession(data.session);
+            setUser(data.session.user);
+            fetchDriver(data.session.user.id);
+          }
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error('Error getting session:', error);
+          setLoading(false);
+        });
+    } catch (error) {
+      console.error('Error initializing auth:', error);
       setLoading(false);
-    }).catch(() => {
-      setLoading(false);
-    });
+    }
 
     return () => {
-      clearTimeout(timeout);
-      subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+      subscription?.unsubscribe();
     };
   }, [fetchDriver]);
 
