@@ -55,7 +55,7 @@ export default function DashboardPage() {
         .select('*')
         .eq('driver_id', driver.id)
         .in('status', ['accepted', 'picking_up', 'picked_up', 'in_transit', 'delivering'])
-        .single();
+        .maybeSingle();
 
       setCurrentDelivery(current as Delivery | null);
 
