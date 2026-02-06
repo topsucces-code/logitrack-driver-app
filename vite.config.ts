@@ -119,6 +119,11 @@ export default defineConfig({
         ],
         // Precache app shell
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Clean up old caches from previous versions
+        cleanupOutdatedCaches: true,
+        // Navigate fallback for SPA
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/track\//],
         // Skip waiting for faster updates
         skipWaiting: true,
         clientsClaim: true,

@@ -115,15 +115,15 @@ export default function HistoryPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 safe-top px-4 py-3">
-        <div className="flex items-center gap-3 mb-4">
+      <header className="bg-white border-b border-gray-200 safe-top px-3 py-2.5">
+        <div className="flex items-center gap-2.5 mb-3">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+            <ArrowLeft className="w-4 h-4 text-gray-600" />
           </button>
-          <h1 className="text-xl font-bold text-gray-900">Historique</h1>
+          <h1 className="text-base font-bold text-gray-900">Historique</h1>
         </div>
 
         {/* Filter */}
@@ -152,30 +152,30 @@ export default function HistoryPage() {
       </header>
 
       {/* Stats */}
-      <div className="px-4 py-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl p-4">
-            <p className="text-sm text-gray-500">Livraisons</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.delivered}</p>
+      <div className="px-3 py-3">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">Livraisons</p>
+            <p className="text-xl font-bold text-gray-900">{stats.delivered}</p>
             <p className="text-xs text-gray-400">
               {stats.cancelled > 0 && `+${stats.cancelled} annulées`}
             </p>
           </div>
-          <div className="bg-white rounded-xl p-4">
-            <p className="text-sm text-gray-500">Gains</p>
-            <p className="text-2xl font-bold text-primary-600">
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">Gains</p>
+            <p className="text-xl font-bold text-primary-600">
               {stats.totalEarnings.toLocaleString()} F
             </p>
           </div>
-          <div className="bg-white rounded-xl p-4">
-            <p className="text-sm text-gray-500">Distance</p>
-            <p className="text-2xl font-bold text-gray-900">
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">Distance</p>
+            <p className="text-xl font-bold text-gray-900">
               {stats.totalDistance.toFixed(1)} km
             </p>
           </div>
-          <div className="bg-white rounded-xl p-4">
-            <p className="text-sm text-gray-500">Taux réussite</p>
-            <p className="text-2xl font-bold text-green-600">
+          <div className="bg-white rounded-lg p-3">
+            <p className="text-xs text-gray-500">Taux réussite</p>
+            <p className="text-xl font-bold text-green-600">
               {stats.total > 0 ? ((stats.delivered / stats.total) * 100).toFixed(0) : 0}%
             </p>
           </div>
@@ -183,7 +183,7 @@ export default function HistoryPage() {
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -195,15 +195,15 @@ export default function HistoryPage() {
             ))}
           </div>
         ) : deliveries.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center">
-            <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Aucune livraison dans l'historique</p>
+          <div className="bg-white rounded-lg p-6 text-center">
+            <Package className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">Aucune livraison dans l'historique</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {deliveries.map((delivery) => (
-              <div key={delivery.id} className="bg-white rounded-xl p-4">
-                <div className="flex items-center justify-between mb-3">
+              <div key={delivery.id} className="bg-white rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Calendar className="w-4 h-4" />
                     {format(new Date(delivery.created_at), 'dd MMM yyyy, HH:mm', {
@@ -213,7 +213,7 @@ export default function HistoryPage() {
                   {getStatusBadge(delivery.status)}
                 </div>
 
-                <div className="space-y-2 mb-3">
+                <div className="space-y-1.5 mb-2">
                   <div className="flex items-start gap-2">
                     <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <MapPin className="w-2.5 h-2.5 text-green-600" />
@@ -232,7 +232,7 @@ export default function HistoryPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                   <div className="flex items-center gap-3 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
                       <Navigation className="w-3 h-3" />

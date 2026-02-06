@@ -154,23 +154,23 @@ export default function EarningsPage() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-primary-500 text-white safe-top px-4 pt-4 pb-8">
-        <div className="flex items-center gap-3 mb-6">
+      <header className="bg-primary-500 text-white safe-top px-3 pt-3 pb-6">
+        <div className="flex items-center gap-2.5 mb-4">
           <button
             onClick={() => navigate('/')}
-            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+            className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-xl font-bold">Mes gains</h1>
+          <h1 className="text-base font-bold">Mes gains</h1>
         </div>
 
         {/* Balance */}
         <div className="text-center">
-          <p className="text-white/80 text-sm mb-1">Solde disponible</p>
-          <p className="text-4xl font-bold">{driver.wallet_balance.toLocaleString()} F</p>
+          <p className="text-white/80 text-xs mb-0.5">Solde disponible</p>
+          <p className="text-3xl font-bold">{driver.wallet_balance.toLocaleString()} F</p>
           {stats.pending > 0 && (
-            <p className="text-white/70 text-sm mt-1">
+            <p className="text-white/70 text-xs mt-1">
               {stats.pending.toLocaleString()} F en attente de retrait
             </p>
           )}
@@ -178,30 +178,30 @@ export default function EarningsPage() {
       </header>
 
       {/* Stats Cards */}
-      <div className="px-4 -mt-4">
-        <div className="bg-white rounded-xl shadow-sm p-4 grid grid-cols-3 gap-4">
+      <div className="px-3 -mt-3">
+        <div className="bg-white rounded-lg shadow-sm p-3 grid grid-cols-3 gap-3">
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.today.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Aujourd'hui</p>
+            <p className="text-xl font-bold text-gray-900">{stats.today.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-500">Aujourd'hui</p>
           </div>
           <div className="text-center border-x border-gray-100">
-            <p className="text-2xl font-bold text-gray-900">{stats.week.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Cette semaine</p>
+            <p className="text-xl font-bold text-gray-900">{stats.week.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-500">Cette semaine</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{stats.month.toLocaleString()}</p>
-            <p className="text-xs text-gray-500">Ce mois</p>
+            <p className="text-xl font-bold text-gray-900">{stats.month.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-500">Ce mois</p>
           </div>
         </div>
       </div>
 
       {/* Withdraw Button */}
-      <div className="px-4 py-4">
+      <div className="px-3 py-3">
         <Button
           onClick={() => setShowWithdrawModal(true)}
           disabled={driver.wallet_balance < PAYMENT_CONFIG.minWithdrawalAmount}
           fullWidth
-          icon={<Wallet className="w-5 h-5" />}
+          icon={<Wallet className="w-4 h-4" />}
         >
           Retirer mes gains
         </Button>
@@ -213,8 +213,8 @@ export default function EarningsPage() {
       </div>
 
       {/* Transactions */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Historique</h2>
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <h2 className="text-sm font-semibold text-gray-900 mb-2">Historique</h2>
 
         {loading ? (
           <div className="space-y-3">
@@ -230,23 +230,23 @@ export default function EarningsPage() {
             ))}
           </div>
         ) : transactions.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center">
-            <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">Aucune transaction</p>
+          <div className="bg-white rounded-lg p-6 text-center">
+            <TrendingUp className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">Aucune transaction</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             {transactions.map((tx) => (
-              <div key={tx.id} className="bg-white rounded-xl p-4 flex items-center gap-3">
+              <div key={tx.id} className="bg-white rounded-lg p-3 flex items-center gap-2.5">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     tx.amount > 0 ? 'bg-green-100' : 'bg-red-100'
                   }`}
                 >
                   {tx.amount > 0 ? (
-                    <ArrowDownCircle className="w-5 h-5 text-green-600" />
+                    <ArrowDownCircle className="w-4 h-4 text-green-600" />
                   ) : (
-                    <ArrowUpCircle className="w-5 h-5 text-red-600" />
+                    <ArrowUpCircle className="w-4 h-4 text-red-600" />
                   )}
                 </div>
                 <div className="flex-1">
@@ -284,12 +284,12 @@ export default function EarningsPage() {
       {/* Withdraw Modal */}
       {showWithdrawModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-          <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Retirer mes gains</h2>
+          <div className="bg-white w-full rounded-t-2xl p-4 safe-bottom">
+            <h2 className="text-base font-bold text-gray-900 mb-3">Retirer mes gains</h2>
 
             {/* Amount */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Montant (FCFA)
               </label>
               <input
@@ -297,7 +297,7 @@ export default function EarningsPage() {
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
                 placeholder={`Min. ${PAYMENT_CONFIG.minWithdrawalAmount}`}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Disponible: {driver.wallet_balance.toLocaleString()} {PAYMENT_CONFIG.currency}
@@ -305,14 +305,14 @@ export default function EarningsPage() {
             </div>
 
             {/* Method */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Méthode de retrait
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setWithdrawMethod('mobile_money')}
-                  className={`p-3 rounded-xl border-2 text-sm font-medium ${
+                  className={`p-2.5 rounded-lg border-2 text-sm font-medium ${
                     withdrawMethod === 'mobile_money'
                       ? 'border-primary-500 bg-primary-50 text-primary-600'
                       : 'border-gray-200 text-gray-600'
@@ -322,7 +322,7 @@ export default function EarningsPage() {
                 </button>
                 <button
                   onClick={() => setWithdrawMethod('cash')}
-                  className={`p-3 rounded-xl border-2 text-sm font-medium ${
+                  className={`p-2.5 rounded-lg border-2 text-sm font-medium ${
                     withdrawMethod === 'cash'
                       ? 'border-primary-500 bg-primary-50 text-primary-600'
                       : 'border-gray-200 text-gray-600'
@@ -335,8 +335,8 @@ export default function EarningsPage() {
 
             {/* Account */}
             {withdrawMethod === 'mobile_money' && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
                   Numéro Mobile Money
                 </label>
                 <input
@@ -344,7 +344,7 @@ export default function EarningsPage() {
                   value={withdrawAccount}
                   onChange={(e) => setWithdrawAccount(e.target.value)}
                   placeholder="07 00 00 00 00"
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
             )}

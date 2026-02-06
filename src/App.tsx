@@ -28,6 +28,8 @@ import SplashPage from './pages/SplashPage';
 import PendingVerificationPage from './pages/PendingVerificationPage';
 import ReportIncidentPage from './pages/ReportIncidentPage';
 import ClientAbsentProtocolPage from './pages/ClientAbsentProtocolPage';
+import PublicTrackingPage from './pages/PublicTrackingPage';
+import WalletPage from './pages/WalletPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Protected Route Component
@@ -83,6 +85,9 @@ function AppRoutes() {
     <Routes>
       {/* Splash / Entry */}
       <Route path="/splash" element={<SplashPage />} />
+
+      {/* Public tracking (no auth required) */}
+      <Route path="/track/:code" element={<PublicTrackingPage />} />
 
       {/* Public routes */}
       <Route
@@ -172,6 +177,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <EarningsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wallet"
+        element={
+          <ProtectedRoute>
+            <WalletPage />
           </ProtectedRoute>
         }
       />
