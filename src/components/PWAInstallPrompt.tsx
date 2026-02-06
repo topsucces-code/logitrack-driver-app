@@ -26,7 +26,7 @@ export function PWAInstallPrompt() {
           {/* Close button */}
           <button
             onClick={dismiss}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className="p-2 text-gray-400 hover:text-gray-600"
             aria-label="Fermer"
           >
             <X className="w-5 h-5" />

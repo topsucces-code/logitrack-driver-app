@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -10,14 +10,17 @@ import {
   Navigation,
   Clock,
   Filter,
+  Loader2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Delivery } from '../lib/supabase';
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { format, startOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DELIVERY_CONFIG } from '../config/app.config';
 
 type FilterPeriod = 'week' | 'month' | 'all';
+
+const PAGE_SIZE = DELIVERY_CONFIG.historyPageSize;
 
 export default function HistoryPage() {
   const navigate = useNavigate();
@@ -25,6 +28,8 @@ export default function HistoryPage() {
 
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('month');
   const [stats, setStats] = useState({
     total: 0,
@@ -34,14 +39,8 @@ export default function HistoryPage() {
     totalDistance: 0,
   });
 
-  useEffect(() => {
-    if (!driver) return;
-    fetchHistory();
-  }, [driver, filterPeriod]);
-
-  async function fetchHistory() {
-    if (!driver) return;
-    setLoading(true);
+  const buildQuery = useCallback((cursor?: string) => {
+    if (!driver) return null;
 
     let query = supabase
       .from('logitrack_deliveries')
@@ -60,29 +59,96 @@ export default function HistoryPage() {
       query = query.gte('created_at', monthStart.toISOString());
     }
 
-    const { data, error } = await query.limit(DELIVERY_CONFIG.historyListLimit);
-
-    if (error) {
-      console.error('Error fetching history:', error);
-    } else {
-      const deliveryList = (data as Delivery[]) || [];
-      setDeliveries(deliveryList);
-
-      // Calculate stats
-      const delivered = deliveryList.filter(d => d.status === 'delivered' || d.status === 'completed');
-      const cancelled = deliveryList.filter(d => d.status === 'cancelled' || d.status === 'failed');
-
-      setStats({
-        total: deliveryList.length,
-        delivered: delivered.length,
-        cancelled: cancelled.length,
-        totalEarnings: delivered.reduce((sum, d) => sum + (d.driver_earnings || 0), 0),
-        totalDistance: delivered.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0),
-      });
+    // Cursor-based pagination
+    if (cursor) {
+      query = query.lt('created_at', cursor);
     }
 
-    setLoading(false);
-  }
+    return query.limit(PAGE_SIZE);
+  }, [driver, filterPeriod]);
+
+  // Initial fetch
+  useEffect(() => {
+    if (!driver) return;
+
+    async function fetchHistory() {
+      setLoading(true);
+      setDeliveries([]);
+      setHasMore(true);
+
+      const query = buildQuery();
+      if (!query) return;
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error fetching history:', error);
+      } else {
+        const deliveryList = (data as Delivery[]) || [];
+        setDeliveries(deliveryList);
+        setHasMore(deliveryList.length === PAGE_SIZE);
+
+        // Calculate stats
+        const delivered = deliveryList.filter(d => d.status === 'delivered' || d.status === 'completed');
+        const cancelled = deliveryList.filter(d => d.status === 'cancelled' || d.status === 'failed');
+
+        setStats({
+          total: deliveryList.length,
+          delivered: delivered.length,
+          cancelled: cancelled.length,
+          totalEarnings: delivered.reduce((sum, d) => sum + (d.driver_earnings || 0), 0),
+          totalDistance: delivered.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0),
+        });
+      }
+
+      setLoading(false);
+    }
+
+    fetchHistory();
+  }, [driver, filterPeriod, buildQuery]);
+
+  // Load more
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore || deliveries.length === 0) return;
+
+    setLoadingMore(true);
+
+    const lastItem = deliveries[deliveries.length - 1];
+    const cursor = lastItem.created_at;
+    const query = buildQuery(cursor);
+
+    if (!query) {
+      setLoadingMore(false);
+      return;
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error loading more:', error);
+    } else {
+      const newItems = (data as Delivery[]) || [];
+      setDeliveries(prev => [...prev, ...newItems]);
+      setHasMore(newItems.length === PAGE_SIZE);
+
+      // Update stats with new items
+      if (newItems.length > 0) {
+        setStats(prev => {
+          const delivered = newItems.filter(d => d.status === 'delivered' || d.status === 'completed');
+          const cancelled = newItems.filter(d => d.status === 'cancelled' || d.status === 'failed');
+          return {
+            total: prev.total + newItems.length,
+            delivered: prev.delivered + delivered.length,
+            cancelled: prev.cancelled + cancelled.length,
+            totalEarnings: prev.totalEarnings + delivered.reduce((sum, d) => sum + (d.driver_earnings || 0), 0),
+            totalDistance: prev.totalDistance + delivered.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0),
+          };
+        });
+      }
+    }
+
+    setLoadingMore(false);
+  }, [loadingMore, hasMore, deliveries, buildQuery]);
 
   function getStatusBadge(status: string) {
     switch (status) {
@@ -119,7 +185,7 @@ export default function HistoryPage() {
         <div className="flex items-center gap-2.5 mb-3">
           <button
             onClick={() => navigate(-1)}
-            className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+            className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
           >
             <ArrowLeft className="w-4 h-4 text-gray-600" />
           </button>
@@ -253,6 +319,24 @@ export default function HistoryPage() {
                 </div>
               </div>
             ))}
+
+            {/* Load more button */}
+            {hasMore && (
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="w-full py-3 bg-white rounded-lg text-primary-600 font-medium text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                {loadingMore ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Chargement...
+                  </>
+                ) : (
+                  'Charger plus'
+                )}
+              </button>
+            )}
           </div>
         )}
       </div>

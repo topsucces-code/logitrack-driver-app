@@ -29,11 +29,39 @@ async function initApp() {
       immediate: true,
       onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
         console.log('SW registered:', swUrl);
-        // Check for updates every hour
+        // Check for updates every hour, only when app is in foreground
         if (registration) {
-          setInterval(() => {
-            registration.update();
-          }, 60 * 60 * 1000);
+          let intervalId: ReturnType<typeof setInterval> | null = null;
+
+          const startUpdateCheck = () => {
+            if (!intervalId) {
+              intervalId = setInterval(() => {
+                registration.update();
+              }, 60 * 60 * 1000);
+            }
+          };
+
+          const stopUpdateCheck = () => {
+            if (intervalId) {
+              clearInterval(intervalId);
+              intervalId = null;
+            }
+          };
+
+          // Only check for updates when app is visible
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              registration.update(); // Check immediately on return
+              startUpdateCheck();
+            } else {
+              stopUpdateCheck();
+            }
+          });
+
+          // Start checking if currently visible
+          if (document.visibilityState === 'visible') {
+            startUpdateCheck();
+          }
         }
       },
       onOfflineReady() {

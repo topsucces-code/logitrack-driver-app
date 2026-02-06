@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -63,13 +63,32 @@ export default function PhoneAuthPage() {
     setLoading(false);
   }
 
+  // Countdown interval ref for proper cleanup
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Cleanup countdown on unmount
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+    };
+  }, []);
+
   // Start countdown for resend
   function startCountdown() {
+    // Clear any existing interval
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+    }
     setCountdown(60);
-    const interval = setInterval(() => {
+    countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(interval);
+          if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+            countdownRef.current = null;
+          }
           return 0;
         }
         return prev - 1;

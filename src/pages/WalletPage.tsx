@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -152,15 +152,15 @@ function TransactionHistory() {
     setLoading(false);
   };
 
-  const filteredTransactions = transactions.filter((tx) => {
+  const filteredTransactions = useMemo(() => transactions.filter((tx) => {
     if (filter === 'all') return true;
     if (filter === 'earnings') return tx.type === 'earnings';
     if (filter === 'withdrawal') return tx.type === 'withdrawal';
     return true;
-  });
+  }), [transactions, filter]);
 
   // Group by date
-  const groupedTransactions = filteredTransactions.reduce((groups, tx) => {
+  const groupedTransactions = useMemo(() => filteredTransactions.reduce((groups, tx) => {
     const date = new Date(tx.createdAt).toLocaleDateString('fr-FR', {
       weekday: 'long',
       day: 'numeric',
@@ -171,7 +171,7 @@ function TransactionHistory() {
     }
     groups[date].push(tx);
     return groups;
-  }, {} as Record<string, MobileMoneyTransaction[]>);
+  }, {} as Record<string, MobileMoneyTransaction[]>), [filteredTransactions]);
 
   if (loading) {
     return (
@@ -343,9 +343,9 @@ function EarningsAnalytics() {
     setLoading(false);
   };
 
-  const totalEarnings = history.reduce((sum, d) => sum + d.amount, 0);
-  const avgDaily = history.length > 0 ? totalEarnings / history.length : 0;
-  const maxEarning = Math.max(...history.map((d) => d.amount), 1);
+  const totalEarnings = useMemo(() => history.reduce((sum, d) => sum + d.amount, 0), [history]);
+  const avgDaily = useMemo(() => history.length > 0 ? totalEarnings / history.length : 0, [history, totalEarnings]);
+  const maxEarning = useMemo(() => Math.max(...history.map((d) => d.amount), 1), [history]);
 
   if (loading) {
     return (

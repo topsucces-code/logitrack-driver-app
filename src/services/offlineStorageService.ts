@@ -299,6 +299,14 @@ export async function storePendingPhoto(
   const database = await initOfflineDB();
   const photoId = `photo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+  // Compress photo before storing to reduce IndexedDB size
+  let compressedData = photoData;
+  try {
+    compressedData = await compressImage(photoData, 800, 0.7);
+  } catch {
+    // If compression fails, use original
+  }
+
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(['pendingPhotos'], 'readwrite');
     const store = transaction.objectStore('pendingPhotos');
@@ -307,7 +315,7 @@ export async function storePendingPhoto(
       id: photoId,
       deliveryId,
       photoType,
-      photoData,
+      photoData: compressedData,
       metadata,
       createdAt: Date.now(),
       synced: false,
@@ -449,6 +457,47 @@ export async function clearAllCache(): Promise<void> {
       request.onerror = () => reject(request.error);
     });
   }
+}
+
+/**
+ * Compresse une image base64 avant stockage
+ * Réduit les photos de 2-5MB à 50-200KB
+ */
+export function compressImage(
+  base64: string,
+  maxWidth = 800,
+  quality = 0.7
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let { width, height } = img;
+
+      // Scale down if needed
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(base64); // Fallback to original
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressed = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressed);
+    };
+    img.onerror = () => reject(new Error('Failed to load image for compression'));
+
+    // Handle both raw base64 and data URL formats
+    img.src = base64.startsWith('data:') ? base64 : `data:image/jpeg;base64,${base64}`;
+  });
 }
 
 function formatBytes(bytes: number): string {

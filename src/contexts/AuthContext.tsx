@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, Driver, VehicleType, isDriverVerified, getRegistrationStep, isSupabaseConfigured } from '../lib/supabase';
 import { initPushNotifications, removePushToken } from '../services/pushNotificationService';
@@ -214,21 +214,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setDriver(null);
   }
 
+  const value = useMemo(() => ({
+    user,
+    session,
+    driver,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+    refreshDriver,
+    isVerified,
+    registrationStep,
+  }), [user, session, driver, loading, isVerified, registrationStep]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        driver,
-        loading,
-        signIn,
-        signUp,
-        signOut,
-        refreshDriver,
-        isVerified,
-        registrationStep,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

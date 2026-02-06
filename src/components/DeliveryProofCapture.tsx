@@ -260,7 +260,7 @@ export function DeliveryProofCapture({
             <div className="flex-1 flex items-center justify-center">
               {packagePreview ? (
                 <div className="relative w-full max-w-sm">
-                  <img src={packagePreview} alt="Colis" className="w-full rounded-2xl" />
+                  <img src={packagePreview} alt="Colis" loading="lazy" className="w-full rounded-2xl" />
                   <button
                     onClick={() => {
                       setPackagePhoto(null);
@@ -319,7 +319,7 @@ export function DeliveryProofCapture({
             <div className="flex-1 flex items-center justify-center">
               {recipientPreview ? (
                 <div className="relative w-full max-w-sm">
-                  <img src={recipientPreview} alt="Destinataire" className="w-full rounded-2xl" />
+                  <img src={recipientPreview} alt="Destinataire" loading="lazy" className="w-full rounded-2xl" />
                   <button
                     onClick={() => {
                       setRecipientPhoto(null);
@@ -448,7 +448,7 @@ export function DeliveryProofCapture({
                 <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />
               </div>
               {packagePreview && (
-                <img src={packagePreview} alt="Colis" className="w-full h-32 object-cover rounded-lg" />
+                <img src={packagePreview} alt="Colis" loading="lazy" className="w-full h-32 object-cover rounded-lg" />
               )}
             </div>
 
@@ -459,7 +459,7 @@ export function DeliveryProofCapture({
                   <span className="text-white text-sm">Photo destinataire</span>
                   <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />
                 </div>
-                <img src={recipientPreview} alt="Destinataire" className="w-full h-32 object-cover rounded-lg" />
+                <img src={recipientPreview} alt="Destinataire" loading="lazy" className="w-full h-32 object-cover rounded-lg" />
               </div>
             )}
 

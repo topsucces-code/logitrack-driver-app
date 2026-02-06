@@ -21,7 +21,8 @@ export const PAYMENT_CONFIG = {
 // Configuration des livraisons
 export const DELIVERY_CONFIG = {
   defaultListLimit: 20,
-  historyListLimit: 100,
+  historyListLimit: 30,
+  historyPageSize: 20,
   expiryMinutes: 5,
 };
 

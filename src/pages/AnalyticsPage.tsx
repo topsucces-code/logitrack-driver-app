@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
 
   if (!driver) return null;
 
-  const maxDailyEarning = Math.max(...dailyStats.map((d) => d.earnings), 1);
+  const maxDailyEarning = useMemo(() => Math.max(...dailyStats.map((d) => d.earnings), 1), [dailyStats]);
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -210,7 +210,7 @@ export default function AnalyticsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/')}
-            className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
+            className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
           >
             <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
           </button>

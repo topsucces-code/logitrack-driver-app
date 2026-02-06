@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 import { hapticSuccess, hapticError, hapticLight } from '../hooks/useHapticFeedback';
 
@@ -87,8 +87,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const showWarning = useCallback((message: string) => showToast(message, 'warning'), [showToast]);
   const showInfo = useCallback((message: string) => showToast(message, 'info'), [showToast]);
 
+  const value = useMemo(() => ({
+    showToast, showSuccess, showError, showWarning, showInfo,
+  }), [showToast, showSuccess, showError, showWarning, showInfo]);
+
   return (
-    <ToastContext.Provider value={{ showToast, showSuccess, showError, showWarning, showInfo }}>
+    <ToastContext.Provider value={value}>
       {children}
 
       {/* Toast Container */}

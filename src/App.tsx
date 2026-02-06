@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LocationProvider } from './contexts/LocationContext';
@@ -8,29 +8,34 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { OfflineBanner } from './components/OfflineBanner';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { initOfflineQueue } from './services/offlineQueue';
+import PageLoadingFallback from './components/PageLoadingFallback';
 
-// Pages
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import PhoneAuthPage from './pages/PhoneAuthPage';
-import OnboardingPage from './pages/OnboardingPage';
-import DashboardPage from './pages/DashboardPage';
-import DeliveryDetailPage from './pages/DeliveryDetailPage';
-import EarningsPage from './pages/EarningsPage';
-import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
-import HistoryPage from './pages/HistoryPage';
-import AnalyticsPage from './pages/AnalyticsPage';
-import WeeklyReportPage from './pages/WeeklyReportPage';
-import ChallengesPage from './pages/ChallengesPage';
-import RouteOptimizationPage from './pages/RouteOptimizationPage';
+// Critical path pages - loaded immediately
 import SplashPage from './pages/SplashPage';
-import PendingVerificationPage from './pages/PendingVerificationPage';
-import ReportIncidentPage from './pages/ReportIncidentPage';
-import ClientAbsentProtocolPage from './pages/ClientAbsentProtocolPage';
-import PublicTrackingPage from './pages/PublicTrackingPage';
-import WalletPage from './pages/WalletPage';
-import NotFoundPage from './pages/NotFoundPage';
+import PhoneAuthPage from './pages/PhoneAuthPage';
+import DashboardPage from './pages/DashboardPage';
+
+// Lazy-loaded pages - common routes
+const DeliveryDetailPage = lazy(() => import('./pages/DeliveryDetailPage'));
+const EarningsPage = lazy(() => import('./pages/EarningsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+
+// Lazy-loaded pages - secondary routes
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const PendingVerificationPage = lazy(() => import('./pages/PendingVerificationPage'));
+const HistoryPage = lazy(() => import('./pages/HistoryPage'));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
+const WeeklyReportPage = lazy(() => import('./pages/WeeklyReportPage'));
+const ChallengesPage = lazy(() => import('./pages/ChallengesPage'));
+const RouteOptimizationPage = lazy(() => import('./pages/RouteOptimizationPage'));
+const ReportIncidentPage = lazy(() => import('./pages/ReportIncidentPage'));
+const ClientAbsentProtocolPage = lazy(() => import('./pages/ClientAbsentProtocolPage'));
+const PublicTrackingPage = lazy(() => import('./pages/PublicTrackingPage'));
+const WalletPage = lazy(() => import('./pages/WalletPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -82,172 +87,174 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
-    <Routes>
-      {/* Splash / Entry */}
-      <Route path="/splash" element={<SplashPage />} />
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Routes>
+        {/* Splash / Entry */}
+        <Route path="/splash" element={<SplashPage />} />
 
-      {/* Public tracking (no auth required) */}
-      <Route path="/track/:code" element={<PublicTrackingPage />} />
+        {/* Public tracking (no auth required) */}
+        <Route path="/track/:code" element={<PublicTrackingPage />} />
 
-      {/* Public routes */}
-      <Route
-        path="/auth"
-        element={
-          <PublicRoute>
-            <PhoneAuthPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <PublicRoute>
-            <LoginPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <PublicRoute>
-            <RegisterPage />
-          </PublicRoute>
-        }
-      />
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <OnboardingPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/pending-verification"
-        element={
-          <ProtectedRoute>
-            <PendingVerificationPage />
-          </ProtectedRoute>
-        }
-      />
+        {/* Public routes */}
+        <Route
+          path="/auth"
+          element={
+            <PublicRoute>
+              <PhoneAuthPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
+        />
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <OnboardingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/pending-verification"
+          element={
+            <ProtectedRoute>
+              <PendingVerificationPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Protected routes */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/delivery/:id"
-        element={
-          <ProtectedRoute>
-            <DeliveryDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/delivery/:id/report-incident"
-        element={
-          <ProtectedRoute>
-            <ReportIncidentPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/delivery/:id/client-absent"
-        element={
-          <ProtectedRoute>
-            <ClientAbsentProtocolPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/earnings"
-        element={
-          <ProtectedRoute>
-            <EarningsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/wallet"
-        element={
-          <ProtectedRoute>
-            <WalletPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <SettingsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history"
-        element={
-          <ProtectedRoute>
-            <HistoryPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/analytics"
-        element={
-          <ProtectedRoute>
-            <AnalyticsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reports"
-        element={
-          <ProtectedRoute>
-            <WeeklyReportPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/challenges"
-        element={
-          <ProtectedRoute>
-            <ChallengesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/route-optimization"
-        element={
-          <ProtectedRoute>
-            <RouteOptimizationPage />
-          </ProtectedRoute>
-        }
-      />
+        {/* Protected routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/delivery/:id"
+          element={
+            <ProtectedRoute>
+              <DeliveryDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/delivery/:id/report-incident"
+          element={
+            <ProtectedRoute>
+              <ReportIncidentPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/delivery/:id/client-absent"
+          element={
+            <ProtectedRoute>
+              <ClientAbsentProtocolPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/earnings"
+          element={
+            <ProtectedRoute>
+              <EarningsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/wallet"
+          element={
+            <ProtectedRoute>
+              <WalletPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <HistoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ProtectedRoute>
+              <WeeklyReportPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/challenges"
+          element={
+            <ProtectedRoute>
+              <ChallengesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/route-optimization"
+          element={
+            <ProtectedRoute>
+              <RouteOptimizationPage />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* 404 Page */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* 404 Page */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   );
 }
 

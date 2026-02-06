@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Package,
@@ -129,6 +129,15 @@ export default function DashboardPage() {
     fetchDeliveries();
   }, [fetchDeliveries]);
 
+  // Prefetch probable routes after 3 seconds on dashboard
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      import('./DeliveryDetailPage');
+      import('./EarningsPage');
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Subscribe to realtime updates with graceful cleanup
   useRealtimeSubscription({
     channelName: 'logitrack-deliveries-updates',
@@ -172,8 +181,8 @@ export default function DashboardPage() {
     }
   }
 
-  // Accept delivery
-  async function acceptDelivery(deliveryId: string) {
+  // Accept delivery - stabilized with useCallback
+  const acceptDelivery = useCallback(async (deliveryId: string) => {
     const { data, error } = await supabase.rpc('accept_logitrack_delivery', {
       p_delivery_id: deliveryId,
     });
@@ -184,7 +193,7 @@ export default function DashboardPage() {
     } else {
       showError(data?.error || 'Erreur lors de l\'acceptation');
     }
-  }
+  }, [fetchDeliveries, refreshDriver, showError]);
 
   // Refresh
   function handleRefresh() {
@@ -236,13 +245,13 @@ export default function DashboardPage() {
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleRefresh}
-              className={`p-1.5 bg-white/20 rounded-full ${refreshing ? 'animate-spin' : ''}`}
+              className={`p-2.5 bg-white/20 rounded-full ${refreshing ? 'animate-spin' : ''}`}
             >
               <RefreshCw className="w-4 h-4" />
             </button>
             <button
               onClick={() => navigate('/settings')}
-              className="p-1.5 bg-white/20 rounded-full"
+              className="p-2.5 bg-white/20 rounded-full"
             >
               <Settings className="w-4 h-4" />
             </button>
@@ -454,7 +463,7 @@ export default function DashboardPage() {
 }
 
 // Delivery Card Component
-function DeliveryCard({
+const DeliveryCard = memo(function DeliveryCard({
   delivery,
   onAccept,
   onViewDetails,
@@ -557,10 +566,10 @@ function DeliveryCard({
       </div>
     </div>
   );
-}
+});
 
 // Navigation Item
-function NavItem({
+const NavItem = memo(function NavItem({
   icon,
   label,
   active,
@@ -582,4 +591,4 @@ function NavItem({
       <span className="text-xs font-medium">{label}</span>
     </button>
   );
-}
+});

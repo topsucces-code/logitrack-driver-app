@@ -31,28 +31,31 @@ import { CustomerRating } from '../components/CustomerRating';
 import { CommunicationButton } from '../components/DeliveryCommunication';
 import { ShareTrackingButton } from '../components/ShareTracking';
 
-// Fix Leaflet marker icons
+// Fix Leaflet marker icons - use local files for offline support
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl: '/markers/marker-icon-2x.png',
+  iconUrl: '/markers/marker-icon.png',
+  shadowUrl: '/markers/marker-shadow.png',
 });
 
 const pickupIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  iconUrl: '/markers/marker-icon-2x-green.png',
+  shadowUrl: '/markers/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
 
 const deliveryIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  iconUrl: '/markers/marker-icon-2x-red.png',
+  shadowUrl: '/markers/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });
 
 const driverIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+  iconUrl: '/markers/marker-icon-2x-blue.png',
+  shadowUrl: '/markers/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });

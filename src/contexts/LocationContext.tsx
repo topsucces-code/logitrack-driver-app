@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, useMemo, ReactNode } from 'react';
 import { Geolocation, Position } from '@capacitor/geolocation';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '../lib/supabase';
@@ -18,6 +18,26 @@ interface LocationContextType {
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
+// Minimum distance in meters to consider a meaningful move (Haversine)
+const MIN_DISTANCE_METERS = 10;
+// Minimum interval between DB writes in ms
+const DB_WRITE_THROTTLE_MS = 10_000;
+
+function haversineDistance(
+  lat1: number, lng1: number,
+  lat2: number, lng2: number
+): number {
+  const R = 6371000; // Earth radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export function LocationProvider({ children }: { children: ReactNode }) {
   const { driver } = useAuth();
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
@@ -28,10 +48,31 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [watchId, setWatchId] = useState<string | null>(null);
 
-  // Update position in database
+  // Refs for throttling and distance filtering
+  const lastDbWriteRef = useRef<number>(0);
+  const lastDbPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+
+  // Update position in database - throttled
   const updatePositionInDB = useCallback(
     async (lat: number, lng: number, heading?: number, speed?: number, accuracy?: number) => {
       if (!driver?.id) return;
+
+      const now = Date.now();
+
+      // Throttle: max 1 DB write per 10 seconds
+      if (now - lastDbWriteRef.current < DB_WRITE_THROTTLE_MS) return;
+
+      // Distance filter: ignore if moved less than 10 meters
+      if (lastDbPositionRef.current) {
+        const dist = haversineDistance(
+          lastDbPositionRef.current.lat, lastDbPositionRef.current.lng,
+          lat, lng
+        );
+        if (dist < MIN_DISTANCE_METERS) return;
+      }
+
+      lastDbWriteRef.current = now;
+      lastDbPositionRef.current = { lat, lng };
 
       try {
         await supabase.rpc('update_logitrack_driver_location', {
@@ -59,11 +100,24 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       setAccuracy(a ?? null);
       setError(null);
 
-      // Update in database
+      // Update in database (throttled + distance-filtered)
       updatePositionInDB(latitude, longitude, h ?? undefined, s ? s * 3.6 : undefined, a ?? undefined);
     },
     [updatePositionInDB]
   );
+
+  // Determine GPS options based on current speed
+  const getGeoOptions = useCallback(() => {
+    // If we have speed data and driver is moving slowly or stationary
+    const currentSpeed = speed ?? 0;
+    const isMoving = currentSpeed > 1; // km/h
+
+    return {
+      enableHighAccuracy: isMoving, // High accuracy only when moving
+      timeout: 10000,
+      maximumAge: isMoving ? 5000 : 30000, // Cache longer when stationary
+    };
+  }, [speed]);
 
   // Start tracking
   const startTracking = useCallback(async () => {
@@ -84,7 +138,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
           {
             enableHighAccuracy: true,
             timeout: 10000,
-            maximumAge: 0,
+            maximumAge: 5000,
           },
           (pos, err) => {
             if (err) {
@@ -113,6 +167,8 @@ export function LocationProvider({ children }: { children: ReactNode }) {
           return;
         }
 
+        const geoOptions = getGeoOptions();
+
         const webWatchId = navigator.geolocation.watchPosition(
           (pos) => {
             handlePositionUpdate({
@@ -132,11 +188,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
             setError(err.message);
             console.error('Web geolocation error:', err);
           },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0,
-          }
+          geoOptions
         );
 
         setWatchId(String(webWatchId));
@@ -147,7 +199,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       setError('Erreur de géolocalisation');
       console.error('Geolocation error:', err);
     }
-  }, [isTracking, handlePositionUpdate]);
+  }, [isTracking, handlePositionUpdate, getGeoOptions]);
 
   // Stop tracking
   const stopTracking = useCallback(() => {
@@ -233,20 +285,21 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     }
   }, [driver?.is_online, startTracking, stopTracking]);
 
+  // Memoize context value (Phase 4A)
+  const value = useMemo(() => ({
+    position,
+    heading,
+    speed,
+    accuracy,
+    isTracking,
+    error,
+    startTracking,
+    stopTracking,
+    getCurrentPosition,
+  }), [position, heading, speed, accuracy, isTracking, error, startTracking, stopTracking, getCurrentPosition]);
+
   return (
-    <LocationContext.Provider
-      value={{
-        position,
-        heading,
-        speed,
-        accuracy,
-        isTracking,
-        error,
-        startTracking,
-        stopTracking,
-        getCurrentPosition,
-      }}
-    >
+    <LocationContext.Provider value={value}>
       {children}
     </LocationContext.Provider>
   );

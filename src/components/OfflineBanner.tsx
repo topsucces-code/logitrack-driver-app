@@ -16,10 +16,13 @@ export function OfflineBanner() {
     };
 
     updateCount();
-    const interval = setInterval(updateCount, 2000);
 
-    return () => clearInterval(interval);
-  }, []);
+    // Only poll when offline or there are pending actions
+    if (!isOnline || pendingCount > 0) {
+      const interval = setInterval(updateCount, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [isOnline, pendingCount]);
 
   useEffect(() => {
     // Show banner when offline or has pending actions

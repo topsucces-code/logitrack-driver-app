@@ -460,7 +460,7 @@ export default function OnboardingPage() {
                   className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.cniFront ? (
-                    <img src={data.cniFront} alt="CNI Front" className="w-full h-full object-cover" />
+                    <img src={data.cniFront} alt="CNI Front" loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <>
                       <Upload className="w-8 h-8 text-gray-400 mb-1" />
@@ -476,7 +476,7 @@ export default function OnboardingPage() {
                   className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.cniBack ? (
-                    <img src={data.cniBack} alt="CNI Back" className="w-full h-full object-cover" />
+                    <img src={data.cniBack} alt="CNI Back" loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <>
                       <Upload className="w-8 h-8 text-gray-400 mb-1" />
@@ -534,7 +534,7 @@ export default function OnboardingPage() {
                 className="w-full aspect-[2/1] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
               >
                 {data.vehiclePhoto ? (
-                  <img src={data.vehiclePhoto} alt="Vehicle" className="w-full h-full object-cover" />
+                  <img src={data.vehiclePhoto} alt="Vehicle" loading="lazy" className="w-full h-full object-cover" />
                 ) : (
                   <>
                     <Camera className="w-8 h-8 text-gray-400 mb-1" />
@@ -567,7 +567,7 @@ export default function OnboardingPage() {
                   className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.licensePhoto ? (
-                    <img src={data.licensePhoto} alt="License" className="w-full h-full object-cover" />
+                    <img src={data.licensePhoto} alt="License" loading="lazy" className="w-full h-full object-cover" />
                   ) : (
                     <>
                       <Upload className="w-8 h-8 text-gray-400 mb-1" />

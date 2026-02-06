@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -80,28 +80,37 @@ export default function ClientAbsentProtocolPage() {
     fetchDelivery();
   }, [id, navigate]);
 
-  // Timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
+  // Refs to avoid re-creating interval on every tick
+  const callAttemptsRef = useRef(callAttempts);
+  callAttemptsRef.current = callAttempts;
 
-    if (timerActive && timerSeconds < PROTOCOL_CONFIG.waitTimeSeconds) {
-      interval = setInterval(() => {
-        setTimerSeconds(prev => {
-          const newSeconds = prev + 1;
-          // Sauvegarder l'état
-          if (id) {
-            localStorage.setItem(`protocol_${id}`, JSON.stringify({
-              callAttempts,
-              timerSeconds: newSeconds,
-            }));
-          }
-          return newSeconds;
-        });
-      }, 1000);
-    }
+  const timerSecondsRef = useRef(timerSeconds);
+  timerSecondsRef.current = timerSeconds;
+
+  // Timer - uses refs to avoid deps on timerSeconds/callAttempts
+  useEffect(() => {
+    if (!timerActive) return;
+
+    const interval = setInterval(() => {
+      if (timerSecondsRef.current >= PROTOCOL_CONFIG.waitTimeSeconds) {
+        clearInterval(interval);
+        return;
+      }
+      setTimerSeconds(prev => {
+        const newSeconds = prev + 1;
+        // Sauvegarder l'état
+        if (id) {
+          localStorage.setItem(`protocol_${id}`, JSON.stringify({
+            callAttempts: callAttemptsRef.current,
+            timerSeconds: newSeconds,
+          }));
+        }
+        return newSeconds;
+      });
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [timerActive, timerSeconds, callAttempts, id]);
+  }, [timerActive, id]);
 
   // Mettre à jour l'étape en fonction des appels
   const updateStep = useCallback((callCount: number) => {
