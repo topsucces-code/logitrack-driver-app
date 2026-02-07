@@ -44,11 +44,10 @@ export async function getOrCreateConversation(
       .eq('driver_id', driverId)
       .in('status', ['active', 'waiting'])
       .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+      .limit(1);
 
-    if (existing) {
-      return { conversation: existing as ChatConversation, error: null };
+    if (existing && existing.length > 0) {
+      return { conversation: existing[0] as ChatConversation, error: null };
     }
 
     // Create new conversation

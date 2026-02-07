@@ -84,7 +84,21 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
     const conversationId = conversation.id;
 
     const channel = subscribeToMessages(conversationId, (message) => {
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => {
+        // Skip if message already exists (from optimistic update or duplicate event)
+        if (prev.some((m) => m.id === message.id)) return prev;
+        // Replace temp message from same sender with real one
+        const hasTempFromSender = prev.some(
+          (m) => m.id.startsWith('temp_') && m.sender_id === message.sender_id
+        );
+        if (hasTempFromSender) {
+          const filtered = prev.filter(
+            (m) => !(m.id.startsWith('temp_') && m.sender_id === message.sender_id)
+          );
+          return [...filtered, message];
+        }
+        return [...prev, message];
+      });
       markMessagesAsRead(conversationId, driverId);
     });
 
@@ -121,7 +135,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
     };
     setMessages((prev) => [...prev, tempMessage]);
 
-    const { error } = await sendMessage(
+    const { message: sentMessage, error } = await sendMessage(
       conversation.id,
       driver.id,
       driver.full_name,
@@ -133,6 +147,9 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
       // Remove temp message on error
       setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
       setNewMessage(messageText);
+    } else if (sentMessage) {
+      // Replace temp message with real one from server
+      setMessages((prev) => prev.map((m) => m.id === tempMessage.id ? sentMessage : m));
     }
 
     setSending(false);
