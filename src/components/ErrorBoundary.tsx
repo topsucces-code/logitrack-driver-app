@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { Sentry } from '../lib/sentry';
 
 interface Props {
   children: ReactNode;
@@ -32,10 +33,8 @@ export class ErrorBoundary extends Component<Props, State> {
     // Log error to console in development
     console.error('ErrorBoundary caught an error:', error, errorInfo);
 
-    // TODO: Send to error tracking service (Sentry, etc.)
-    // if (import.meta.env.PROD) {
-    //   Sentry.captureException(error, { extra: { errorInfo } });
-    // }
+    // Send to Sentry in production
+    Sentry.captureException(error, { extra: { componentStack: errorInfo.componentStack } });
   }
 
   handleReload = () => {

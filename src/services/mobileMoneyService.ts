@@ -504,25 +504,77 @@ export async function initiateWithdrawal(request: WithdrawalRequest): Promise<Pa
   };
 }
 
-// Initier un paiement (stub - no real payment gateway)
+// Initier un paiement via Edge Function
 export async function initiatePayment(request: PaymentRequest): Promise<PaymentResult> {
-  // Payment gateway integration not yet available
-  // This would connect to Orange Money / MTN MoMo / Wave API
-  return {
-    success: false,
-    error: 'Le paiement mobile n\'est pas encore disponible. Utilisez le paiement en espèces.',
-  };
+  try {
+    // Resolve driver_id from current auth user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Non authentifié.' };
+
+    const { data: driver } = await supabase
+      .from('logitrack_drivers')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!driver) return { success: false, error: 'Profil livreur introuvable.' };
+
+    const { data, error } = await supabase.functions.invoke('process-mobile-payment', {
+      body: {
+        driver_id: driver.id,
+        delivery_id: request.deliveryId || null,
+        amount: request.amount,
+        provider: request.provider,
+        phone_number: request.phoneNumber,
+      },
+    });
+
+    if (error) {
+      return { success: false, error: error.message || 'Erreur lors du paiement.' };
+    }
+
+    if (!data?.success) {
+      return { success: false, error: data?.error || 'Échec du paiement.' };
+    }
+
+    return {
+      success: true,
+      otpMessage: data.message,
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Erreur réseau.' };
+  }
 }
 
-// Confirmer un paiement (stub)
+// Confirmer un paiement (vérifier le statut)
 export async function confirmPayment(
-  _transactionId: string,
+  transactionId: string,
   _otp?: string
 ): Promise<PaymentResult> {
-  return {
-    success: false,
-    error: 'Le paiement mobile n\'est pas encore disponible.',
-  };
+  try {
+    const { data, error } = await supabase
+      .from('logitrack_payment_requests')
+      .select('id, status, external_ref, error_message')
+      .eq('id', transactionId)
+      .single();
+
+    if (error || !data) {
+      return { success: false, error: 'Transaction introuvable.' };
+    }
+
+    if (data.status === 'completed') {
+      return { success: true };
+    }
+
+    if (data.status === 'failed') {
+      return { success: false, error: data.error_message || 'Le paiement a échoué.' };
+    }
+
+    // Still processing
+    return { success: false, error: 'Le paiement est en cours de traitement...' };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Erreur réseau.' };
+  }
 }
 
 // Vérifier le statut d'une transaction

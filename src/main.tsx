@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { initSentry } from './lib/sentry';
 
 // Capacitor plugins initialization
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -10,6 +11,9 @@ import { Capacitor } from '@capacitor/core';
 
 // PWA service worker registration
 import { registerSW } from 'virtual:pwa-register';
+
+// Initialize Sentry before app
+initSentry();
 
 // Initialize app
 async function initApp() {

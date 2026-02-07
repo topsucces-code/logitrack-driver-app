@@ -96,6 +96,68 @@ export function calculateXP(stats: {
   return deliveryXP + earningsXP + ratingBonus;
 }
 
+/**
+ * Calculate delivery streak (consecutive days with at least 1 delivery)
+ */
+async function calculateStreak(driverId: string): Promise<{ current: number; best: number }> {
+  const { data } = await supabase
+    .from('logitrack_deliveries')
+    .select('delivered_at')
+    .eq('driver_id', driverId)
+    .eq('status', 'delivered')
+    .not('delivered_at', 'is', null)
+    .order('delivered_at', { ascending: false });
+
+  if (!data || data.length === 0) return { current: 0, best: 0 };
+
+  // Extract unique dates (YYYY-MM-DD)
+  const uniqueDates = [...new Set(data.map(d => d.delivered_at!.substring(0, 10)))].sort().reverse();
+
+  if (uniqueDates.length === 0) return { current: 0, best: 0 };
+
+  // Helper: get previous day string
+  const prevDay = (dateStr: string) => {
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().substring(0, 10);
+  };
+
+  // Calculate current streak (from today/yesterday backwards)
+  const today = new Date().toISOString().substring(0, 10);
+  const yesterday = prevDay(today);
+
+  let current = 0;
+  if (uniqueDates[0] === today || uniqueDates[0] === yesterday) {
+    let expected = uniqueDates[0];
+    for (const date of uniqueDates) {
+      if (date === expected) {
+        current++;
+        expected = prevDay(expected);
+      } else if (date < expected) {
+        break;
+      }
+    }
+  }
+
+  // Calculate best streak (iterate chronologically)
+  const sorted = [...uniqueDates].sort();
+  let best = 1;
+  let streak = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const nextDay = new Date(sorted[i - 1] + 'T00:00:00');
+    nextDay.setDate(nextDay.getDate() + 1);
+    if (nextDay.toISOString().substring(0, 10) === sorted[i]) {
+      streak++;
+    } else {
+      best = Math.max(best, streak);
+      streak = 1;
+    }
+  }
+  best = Math.max(best, streak, current);
+
+  return { current, best };
+}
+
 function getPeriodDates(type: string): { start: Date; end: Date; periodStart: string } {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -160,6 +222,9 @@ export async function getActiveChallenges(driverId: string): Promise<Challenge[]
   const weekEarnings = weekDeliveries?.reduce((s, d) => s + (d.driver_earnings || 0), 0) || 0;
   const weekDistance = weekDeliveries?.reduce((s, d) => s + (Number(d.distance_km) || 0), 0) || 0;
 
+  // Calculate streak for streak-based challenges
+  const streakData = await calculateStreak(driverId);
+
   // 3. Load existing progress records for this driver
   const challengeIds = dbChallenges.map(c => c.id);
   const { data: progressRows } = await supabase
@@ -194,7 +259,7 @@ export async function getActiveChallenges(driverId: string): Promise<Challenge[]
         case 'deliveries': currentValue = weekCount; break;
         case 'earnings': currentValue = weekEarnings; break;
         case 'distance': currentValue = weekDistance; break;
-        case 'streak': currentValue = 0; break; // TODO: calculate streak
+        case 'streak': currentValue = streakData.current; break;
       }
     }
 
@@ -305,8 +370,7 @@ export async function getDriverStats(driverId: string): Promise<{
   const xp = calculateXP({ totalDeliveries, totalEarnings, avgRating });
   const { level, xpToNextLevel } = calculateLevel(xp);
 
-  const currentStreak = 1;
-  const bestStreak = 1;
+  const { current: currentStreak, best: bestStreak } = await calculateStreak(driverId);
 
   const stats: DriverStats = {
     totalDeliveries,
