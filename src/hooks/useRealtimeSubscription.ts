@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 interface SubscriptionConfig {
@@ -57,7 +58,7 @@ export function useRealtimeSubscription({
       if (err) {
         // Only log if component is still mounted
         if (isMountedRef.current) {
-          console.debug(`Realtime subscription error for ${channelName}:`, err.message);
+          logger.debug(`Realtime subscription error for ${channelName}`, { error: err.message });
         }
       }
     });
