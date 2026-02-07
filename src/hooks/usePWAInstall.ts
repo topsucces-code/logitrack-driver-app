@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -71,7 +72,7 @@ export function usePWAInstall(): PWAInstallState {
         return true;
       }
     } catch (error) {
-      console.error('PWA install error:', error);
+      logger.error('PWA install error', { error });
     }
 
     return false;

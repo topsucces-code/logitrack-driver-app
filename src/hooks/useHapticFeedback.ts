@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { logger } from '../utils/logger';
 
 /**
  * Haptic feedback hook for providing tactile feedback on native platforms
@@ -15,7 +16,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.impact({ style: ImpactStyle.Light });
     } catch (error) {
-      console.warn('Haptic light impact failed:', error);
+      logger.warn('Haptic light impact failed', { error });
     }
   }
 
@@ -27,7 +28,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.impact({ style: ImpactStyle.Medium });
     } catch (error) {
-      console.warn('Haptic medium impact failed:', error);
+      logger.warn('Haptic medium impact failed', { error });
     }
   }
 
@@ -39,7 +40,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.impact({ style: ImpactStyle.Heavy });
     } catch (error) {
-      console.warn('Haptic heavy impact failed:', error);
+      logger.warn('Haptic heavy impact failed', { error });
     }
   }
 
@@ -51,7 +52,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.notification({ type: NotificationType.Success });
     } catch (error) {
-      console.warn('Haptic success notification failed:', error);
+      logger.warn('Haptic success notification failed', { error });
     }
   }
 
@@ -63,7 +64,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.notification({ type: NotificationType.Warning });
     } catch (error) {
-      console.warn('Haptic warning notification failed:', error);
+      logger.warn('Haptic warning notification failed', { error });
     }
   }
 
@@ -75,7 +76,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.notification({ type: NotificationType.Error });
     } catch (error) {
-      console.warn('Haptic error notification failed:', error);
+      logger.warn('Haptic error notification failed', { error });
     }
   }
 
@@ -87,7 +88,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.selectionChanged();
     } catch (error) {
-      console.warn('Haptic selection changed failed:', error);
+      logger.warn('Haptic selection changed failed', { error });
     }
   }
 
@@ -99,7 +100,7 @@ export function useHapticFeedback() {
     try {
       await Haptics.vibrate({ duration });
     } catch (error) {
-      console.warn('Haptic vibrate failed:', error);
+      logger.warn('Haptic vibrate failed', { error });
     }
   }
 

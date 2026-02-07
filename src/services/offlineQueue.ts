@@ -3,6 +3,8 @@
  * Stores failed API requests and retries them when back online
  */
 
+import { offlineLogger } from '../utils/logger';
+
 const QUEUE_STORAGE_KEY = 'logitrack_offline_queue';
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 5000; // 5 seconds
@@ -79,7 +81,7 @@ export function queueAction(
   state.queue.push(action);
   saveQueueToStorage();
 
-  console.log(`Action queued: ${type}`, action.id);
+  offlineLogger.info(`Action queued: ${type}`, { actionId: action.id });
 
   // Try to process immediately if online
   if (state.isOnline && !state.isProcessing) {
@@ -152,7 +154,7 @@ export function removeFromQueue(actionId: string): void {
 // Private functions
 
 function handleOnline(): void {
-  console.log('Network online');
+  offlineLogger.info('Network online');
   state.isOnline = true;
 
   // Process pending queue
@@ -162,7 +164,7 @@ function handleOnline(): void {
 }
 
 function handleOffline(): void {
-  console.log('Network offline');
+  offlineLogger.info('Network offline');
   state.isOnline = false;
 }
 
@@ -170,21 +172,21 @@ async function processQueue(): Promise<void> {
   if (state.isProcessing || state.queue.length === 0) return;
 
   state.isProcessing = true;
-  console.log(`Processing ${state.queue.length} queued actions`);
+  offlineLogger.info(`Processing ${state.queue.length} queued actions`);
 
   // Process actions one by one
   const actionsToProcess = [...state.queue];
 
   for (const action of actionsToProcess) {
     if (!state.isOnline) {
-      console.log('Went offline during processing, stopping');
+      offlineLogger.info('Went offline during processing, stopping');
       break;
     }
 
     const handler = actionHandlers.get(action.type);
 
     if (!handler) {
-      console.warn(`No handler for action type: ${action.type}`);
+      offlineLogger.warn(`No handler for action type: ${action.type}`);
       removeFromQueue(action.id);
       continue;
     }
@@ -193,22 +195,22 @@ async function processQueue(): Promise<void> {
       const result = await handler(action.payload);
 
       if (result.success) {
-        console.log(`Action ${action.id} processed successfully`);
+        offlineLogger.info(`Action ${action.id} processed successfully`);
         removeFromQueue(action.id);
       } else {
         // Increment retry count
         action.retries++;
 
         if (action.retries >= MAX_RETRIES) {
-          console.log(`Action ${action.id} failed after ${MAX_RETRIES} retries, removing`);
+          offlineLogger.warn(`Action ${action.id} failed after ${MAX_RETRIES} retries, removing`);
           removeFromQueue(action.id);
         } else {
-          console.log(`Action ${action.id} failed, will retry (${action.retries}/${MAX_RETRIES})`);
+          offlineLogger.info(`Action ${action.id} failed, will retry (${action.retries}/${MAX_RETRIES})`);
           saveQueueToStorage();
         }
       }
     } catch (error) {
-      console.error(`Error processing action ${action.id}:`, error);
+      offlineLogger.error(`Error processing action ${action.id}`, { error });
       action.retries++;
 
       if (action.retries >= MAX_RETRIES) {
@@ -233,10 +235,10 @@ function loadQueueFromStorage(): void {
     const stored = localStorage.getItem(QUEUE_STORAGE_KEY);
     if (stored) {
       state.queue = JSON.parse(stored);
-      console.log(`Loaded ${state.queue.length} queued actions from storage`);
+      offlineLogger.info(`Loaded ${state.queue.length} queued actions from storage`);
     }
   } catch (error) {
-    console.error('Failed to load queue from storage:', error);
+    offlineLogger.error('Failed to load queue from storage', { error });
     state.queue = [];
   }
 }
@@ -245,7 +247,7 @@ function saveQueueToStorage(): void {
   try {
     localStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(state.queue));
   } catch (error) {
-    console.error('Failed to save queue to storage:', error);
+    offlineLogger.error('Failed to save queue to storage', { error });
   }
 }
 

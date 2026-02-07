@@ -19,6 +19,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase, calculateRating } from '../lib/supabase';
 import { SUPPORT_CONFIG } from '../config/app.config';
 import { Capacitor } from '@capacitor/core';
@@ -27,6 +28,7 @@ import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { driver, signOut, isVerified, refreshDriver } = useAuth();
+  const { showError } = useToast();
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,7 +53,7 @@ export default function ProfilePage() {
 
       if (base64) await uploadPhoto(base64);
     } catch (err) {
-      console.error('Photo capture error:', err);
+      showError('Erreur lors de la capture photo');
     }
   }
 
@@ -89,7 +91,7 @@ export default function ProfilePage() {
 
       await refreshDriver();
     } catch (err) {
-      console.error('Upload error:', err);
+      showError('Erreur lors de l\'upload de la photo');
     } finally {
       setUploadingPhoto(false);
     }

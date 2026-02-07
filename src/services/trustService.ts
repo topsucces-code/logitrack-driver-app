@@ -1,5 +1,6 @@
 // Service de Confiance Renforcé - LogiTrack Africa
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 import {
   IdentityDocument,
   VerificationResult,
@@ -86,7 +87,7 @@ export async function uploadIdentityDocument(
 
     return { success: true, documentId: doc.id };
   } catch (error: any) {
-    console.error('Error uploading identity document:', error);
+    logger.error('Error uploading identity document', { error });
     return { success: false, error: error.message };
   }
 }
@@ -212,7 +213,7 @@ export async function calculateReliabilityScore(driverId: string): Promise<Drive
 
     return score;
   } catch (error) {
-    console.error('Error calculating reliability score:', error);
+    logger.error('Error calculating reliability score', { error });
     throw error;
   }
 }
@@ -456,7 +457,7 @@ export async function getTrackingByCode(shareCode: string): Promise<{
       updates: updates || [],
     };
   } catch (error) {
-    console.error('Error getting tracking:', error);
+    logger.error('Error getting tracking', { error });
     return null;
   }
 }

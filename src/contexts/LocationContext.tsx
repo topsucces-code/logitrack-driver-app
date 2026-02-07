@@ -3,6 +3,7 @@ import { Geolocation, Position } from '@capacitor/geolocation';
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { locationLogger } from '../utils/logger';
 
 interface LocationContextType {
   position: { lat: number; lng: number } | null;
@@ -83,7 +84,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
           p_accuracy: accuracy ?? null,
         });
       } catch (err) {
-        console.error('Error updating location:', err);
+        locationLogger.error('Error updating location', { error: err });
       }
     },
     [driver?.id]
@@ -186,7 +187,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
           },
           (err) => {
             setError(err.message);
-            console.error('Web geolocation error:', err);
+            locationLogger.error('Web geolocation error', { error: err });
           },
           geoOptions
         );
@@ -197,7 +198,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       setError('Erreur de géolocalisation');
-      console.error('Geolocation error:', err);
+      locationLogger.error('Geolocation error', { error: err });
     }
   }, [isTracking, handlePositionUpdate, getGeoOptions]);
 

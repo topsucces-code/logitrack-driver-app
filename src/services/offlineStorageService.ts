@@ -1,6 +1,8 @@
 // Service de stockage hors-ligne avancé - LogiTrack Africa
 // Utilise IndexedDB pour un stockage persistant
 
+import { offlineLogger } from '../utils/logger';
+
 const DB_NAME = 'logitrack-offline';
 const DB_VERSION = 1;
 
@@ -45,13 +47,13 @@ export async function initOfflineDB(): Promise<IDBDatabase> {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
-      console.error('Erreur ouverture IndexedDB:', request.error);
+      offlineLogger.error('Erreur ouverture IndexedDB', { error: request.error });
       reject(request.error);
     };
 
     request.onsuccess = () => {
       db = request.result;
-      console.log('IndexedDB initialisée');
+      offlineLogger.info('IndexedDB initialisée');
       resolve(db);
     };
 
@@ -510,5 +512,5 @@ function formatBytes(bytes: number): string {
 
 // Initialiser automatiquement
 if (typeof window !== 'undefined') {
-  initOfflineDB().catch(console.error);
+  initOfflineDB().catch((err) => offlineLogger.error('Failed to init IndexedDB', { error: err }));
 }

@@ -5,6 +5,7 @@
 import { supabase } from '../lib/supabase';
 import type { CreateIncidentData, Incident, IncidentPriority } from '../types/incidents';
 import { DRIVER_INCIDENT_TYPES } from '../types/incidents';
+import { logger } from '../utils/logger';
 
 class IncidentService {
   /**
@@ -45,7 +46,7 @@ class IncidentService {
         .single();
 
       if (error) {
-        console.error('Error creating incident:', error);
+        logger.error('Error creating incident', { error });
         return { success: false, error: error.message };
       }
 
@@ -61,7 +62,7 @@ class IncidentService {
 
       return { success: true, incident };
     } catch (err) {
-      console.error('Error in createIncident:', err);
+      logger.error('Error in createIncident', { error: err });
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
     }
   }
@@ -80,7 +81,7 @@ class IncidentService {
         });
 
       if (uploadError) {
-        console.error('Error uploading photo:', uploadError);
+        logger.error('Error uploading photo', { error: uploadError });
         return null;
       }
 
@@ -90,7 +91,7 @@ class IncidentService {
 
       return urlData.publicUrl;
     } catch (err) {
-      console.error('Error in uploadPhoto:', err);
+      logger.error('Error in uploadPhoto', { error: err });
       return null;
     }
   }
@@ -106,7 +107,7 @@ class IncidentService {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching incidents:', error);
+      logger.error('Error fetching incidents', { error });
       return [];
     }
 
@@ -124,7 +125,7 @@ class IncidentService {
       .single();
 
     if (error) {
-      console.error('Error fetching incident:', error);
+      logger.error('Error fetching incident', { error });
       return null;
     }
 

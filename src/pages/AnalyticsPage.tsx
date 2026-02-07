@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { logger } from '../utils/logger';
 import {
   ArrowLeft,
   TrendingUp,
@@ -193,7 +194,7 @@ export default function AnalyticsPage() {
         deliveriesChange,
       });
     } catch (err) {
-      console.error('Analytics error:', err);
+      logger.error('Analytics error', { error: err });
     }
 
     setLoading(false);

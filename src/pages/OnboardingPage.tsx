@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { driverLogger } from '../utils/logger';
 import {
   ArrowLeft,
   ArrowRight,
@@ -122,7 +123,7 @@ export default function OnboardingPage() {
         fileInputRef.current?.click();
       }
     } catch (err) {
-      console.error('Photo capture error:', err);
+      driverLogger.error('Photo capture error', { error: err });
     }
   }
 
@@ -167,7 +168,7 @@ export default function OnboardingPage() {
       const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
       return urlData.publicUrl;
     } catch (err) {
-      console.error('Upload error:', err);
+      driverLogger.error('Upload error', { error: err });
       return null;
     }
   }
@@ -177,7 +178,7 @@ export default function OnboardingPage() {
     setSubmitError(null);
 
     if (!user) {
-      console.error('handleSubmit: No user session found');
+      driverLogger.error('handleSubmit: No user session found');
       setSubmitError('Session expirée. Veuillez vous reconnecter.');
       // Redirect to auth after a short delay
       setTimeout(() => navigate('/auth'), 2000);
@@ -250,7 +251,7 @@ export default function OnboardingPage() {
       await refreshDriver();
       navigate('/');
     } catch (err) {
-      console.error('Registration error:', err);
+      driverLogger.error('Registration error', { error: err });
       const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'inscription. Veuillez réessayer.';
       setSubmitError(errorMessage);
     }
@@ -496,15 +497,15 @@ export default function OnboardingPage() {
             <div>
               <p className="text-xs font-medium text-gray-700 mb-2">Type de véhicule</p>
               <div className="grid grid-cols-4 gap-2">
-                {[
-                  { type: 'moto', label: 'Moto', icon: '🏍️' },
-                  { type: 'tricycle', label: 'Tricycle', icon: '🛺' },
-                  { type: 'voiture', label: 'Voiture', icon: '🚗' },
-                  { type: 'velo', label: 'Vélo', icon: '🚲' },
-                ].map((v) => (
+                {([
+                  { type: 'moto' as const, label: 'Moto', icon: '🏍️' },
+                  { type: 'tricycle' as const, label: 'Tricycle', icon: '🛺' },
+                  { type: 'voiture' as const, label: 'Voiture', icon: '🚗' },
+                  { type: 'velo' as const, label: 'Vélo', icon: '🚲' },
+                ]).map((v) => (
                   <button
                     key={v.type}
-                    onClick={() => setData(prev => ({ ...prev, vehicleType: v.type as any }))}
+                    onClick={() => setData(prev => ({ ...prev, vehicleType: v.type }))}
                     className={`p-2.5 rounded-xl border-2 text-center transition-colors ${
                       data.vehicleType === v.type
                         ? 'border-primary-500 bg-primary-50'

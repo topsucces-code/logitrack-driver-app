@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { VoiceMessageRecorder, PresetMessages } from './VoiceMessage';
 import { ShareTrackingButton } from './ShareTracking';
+import { logger } from '../utils/logger';
 
 interface DeliveryCommunicationProps {
   deliveryId: string;
@@ -45,7 +46,7 @@ export function DeliveryCommunication({
 
   const handleSendVoice = async (audioBlob: Blob, duration: number, audioBase64?: string) => {
     // En production, envoyer le message vocal via API
-    console.log('Voice message sent:', { duration, size: audioBlob.size });
+    logger.info('Voice message sent', { duration, size: audioBlob.size });
 
     // Pour l'instant, afficher un message de succès
     setSentMessage(`Message vocal (${duration}s) envoyé`);

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { deliveryLogger } from '../utils/logger';
 import {
   ArrowLeft,
   Phone,
@@ -52,7 +53,7 @@ export default function ClientAbsentProtocolPage() {
         .single();
 
       if (error) {
-        console.error('Error fetching delivery:', error);
+        deliveryLogger.error('Error fetching delivery', { error });
         navigate('/');
         return;
       }
@@ -192,7 +193,7 @@ export default function ClientAbsentProtocolPage() {
       });
 
       if (incidentError) {
-        console.error('Error creating incident:', incidentError);
+        deliveryLogger.error('Error creating incident', { error: incidentError });
       }
 
       // Mettre à jour le statut de la livraison
@@ -220,7 +221,7 @@ export default function ClientAbsentProtocolPage() {
       });
 
     } catch (err) {
-      console.error('Error returning package:', err);
+      deliveryLogger.error('Error returning package', { error: err });
       showError('Erreur lors du retour du colis');
     }
 

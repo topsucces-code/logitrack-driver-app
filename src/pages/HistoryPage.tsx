@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { deliveryLogger } from '../utils/logger';
 import {
   ArrowLeft,
   MapPin,
@@ -82,7 +83,7 @@ export default function HistoryPage() {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Error fetching history:', error);
+        deliveryLogger.error('Error fetching history', { error });
       } else {
         const deliveryList = (data as Delivery[]) || [];
         setDeliveries(deliveryList);
@@ -125,7 +126,7 @@ export default function HistoryPage() {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error loading more:', error);
+      deliveryLogger.error('Error loading more', { error });
     } else {
       const newItems = (data as Delivery[]) || [];
       setDeliveries(prev => [...prev, ...newItems]);

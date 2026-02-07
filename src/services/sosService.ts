@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { logger } from '../utils/logger';
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { hapticHeavy } from '../hooks/useHapticFeedback';
@@ -90,7 +91,7 @@ export async function sendSOSAlert(
 
     if (error) {
       // If table doesn't exist, log to incidents instead
-      console.error('SOS table error:', error);
+      logger.error('SOS table error', { error });
 
       // Fallback: Create an incident
       const { error: incidentError } = await supabase
@@ -122,7 +123,7 @@ export async function sendSOSAlert(
 
     return { success: true, alertId: data?.id };
   } catch (err) {
-    console.error('SOS error:', err);
+    logger.error('SOS error', { error: err });
     return { success: false, error: 'Erreur lors de l\'envoi de l\'alerte' };
   }
 }

@@ -3,6 +3,7 @@ import App from './App';
 import './index.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initSentry } from './lib/sentry';
+import { logger } from './utils/logger';
 
 // Capacitor plugins initialization
 import { SplashScreen } from '@capacitor/splash-screen';
@@ -32,7 +33,7 @@ async function initApp() {
     const updateSW = registerSW({
       immediate: true,
       onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
-        console.log('SW registered:', swUrl);
+        logger.info('SW registered', { swUrl });
         // Check for updates every hour, only when app is in foreground
         if (registration) {
           let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -69,11 +70,11 @@ async function initApp() {
         }
       },
       onOfflineReady() {
-        console.log('App ready to work offline');
+        logger.info('App ready to work offline');
       },
       onNeedRefresh() {
         // Auto-update SW and reload cleanly
-        console.log('New version available, updating...');
+        logger.info('New version available, updating...');
         updateSW(true);
       },
     });

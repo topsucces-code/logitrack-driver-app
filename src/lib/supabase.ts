@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { logger } from '../utils/logger';
 
 // LogiTrack Supabase configuration
 // IMPORTANT: Ces valeurs doivent être définies dans les variables d'environnement
@@ -9,7 +10,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 if (!isSupabaseConfigured) {
-  console.error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
+  logger.error('Missing Supabase environment variables. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
 // Create Supabase client with error handling
@@ -29,7 +30,7 @@ function createSupabaseClient(): SupabaseClient {
       },
     });
   } catch (error) {
-    console.error('Failed to create Supabase client:', error);
+    logger.error('Failed to create Supabase client', { error });
     // Return a minimal client that won't crash the app
     return createClient('https://placeholder.supabase.co', 'placeholder', {
       auth: { persistSession: false },

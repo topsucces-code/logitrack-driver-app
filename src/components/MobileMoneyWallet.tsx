@@ -37,6 +37,7 @@ import {
   formatCurrency,
   validatePhoneNumber,
 } from '../services/mobileMoneyService';
+import { paymentLogger } from '../utils/logger';
 
 interface MobileMoneyDashboardProps {
   onWithdraw?: () => void;
@@ -61,7 +62,7 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
       setTransactions(transactionsData);
       setEarnings(earningsData);
     } catch (error) {
-      console.error('Erreur chargement données:', error);
+      paymentLogger.error('Erreur chargement données', { error });
     } finally {
       setLoading(false);
       setRefreshing(false);

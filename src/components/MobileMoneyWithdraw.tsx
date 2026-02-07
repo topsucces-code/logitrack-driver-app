@@ -20,6 +20,7 @@ import {
   calculateFees,
   formatCurrency,
 } from '../services/mobileMoneyService';
+import { paymentLogger } from '../utils/logger';
 
 interface MobileMoneyWithdrawProps {
   onClose: () => void;
@@ -53,7 +54,7 @@ export function MobileMoneyWithdraw({
       const defaultWallet = data.find(w => w.isDefault) || data[0];
       setSelectedWallet(defaultWallet || null);
     } catch (error) {
-      console.error('Erreur chargement wallets:', error);
+      paymentLogger.error('Erreur chargement wallets', { error });
     } finally {
       setLoading(false);
     }

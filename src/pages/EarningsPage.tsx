@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { paymentLogger } from '../utils/logger';
 import {
   ArrowLeft,
   Wallet,
@@ -103,7 +104,7 @@ export default function EarningsPage() {
         pending: pendingAmount,
       });
     } catch (err) {
-      console.error('Error fetching earnings:', err);
+      paymentLogger.error('Error fetching earnings', { error: err });
     } finally {
       setLoading(false);
     }

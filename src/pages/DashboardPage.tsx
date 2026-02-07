@@ -118,7 +118,7 @@ export default function DashboardPage() {
         });
       }
     } catch (err) {
-      console.error('Error fetching deliveries:', err);
+      showError('Erreur lors du chargement des courses');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -179,6 +179,8 @@ export default function DashboardPage() {
     if (!error) {
       setIsOnline(newIsOnline);
       refreshDriver();
+    } else {
+      showError('Erreur lors du changement de statut');
     }
   }
 

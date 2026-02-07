@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { phoneSchema, otpSchema, validateForm } from '../lib/validations';
+import { authLogger } from '../utils/logger';
 
 export default function PhoneAuthPage() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ export default function PhoneAuthPage() {
       setStep('otp');
       startCountdown();
     } catch (err) {
-      console.error('OTP error:', err);
+      authLogger.error('OTP error', { error: err });
       setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi du code');
     }
 
@@ -143,7 +144,7 @@ export default function PhoneAuthPage() {
         }
       }
     } catch (err) {
-      console.error('Verify error:', err);
+      authLogger.error('Verify error', { error: err });
       setError(err instanceof Error ? err.message : 'Code invalide');
     }
 

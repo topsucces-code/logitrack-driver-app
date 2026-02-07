@@ -4,6 +4,7 @@ import { Button } from './ui/Button';
 import { supabase } from '../lib/supabase';
 import { useToast } from '../contexts/ToastContext';
 import { hapticLight, hapticSuccess } from '../hooks/useHapticFeedback';
+import { logger } from '../utils/logger';
 
 interface CustomerRatingProps {
   deliveryId: string;
@@ -80,7 +81,7 @@ export function CustomerRating({
 
       if (error) {
         // If table doesn't exist, try to update the delivery directly
-        console.error('Rating table error:', error);
+        logger.warn('Rating table error, falling back to delivery update', { error });
 
         // Update delivery with customer rating
         await supabase
@@ -97,7 +98,7 @@ export function CustomerRating({
       onSubmit?.();
       onClose();
     } catch (err) {
-      console.error('Rating error:', err);
+      logger.error('Rating error', { error: err });
       showError('Erreur lors de l\'envoi de l\'évaluation');
     }
 

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { gamificationLogger } from '../utils/logger';
 
 export interface Challenge {
   id: string;
@@ -268,17 +269,18 @@ export async function getActiveChallenges(driverId: string): Promise<Challenge[]
     const existingProgress = progressMap.get(progressKey);
 
     // Upsert progress record in background
-    supabase
-      .from('logitrack_challenge_progress')
-      .upsert({
-        challenge_id: ch.id,
-        driver_id: driverId,
-        period_start: period.periodStart,
-        current_value: currentValue,
-        completed,
-        completed_at: completed && !existingProgress?.completed_at ? new Date().toISOString() : (existingProgress?.completed_at || null),
-      }, { onConflict: 'challenge_id,driver_id,period_start' })
-      .then(() => {});
+    Promise.resolve(
+      supabase
+        .from('logitrack_challenge_progress')
+        .upsert({
+          challenge_id: ch.id,
+          driver_id: driverId,
+          period_start: period.periodStart,
+          current_value: currentValue,
+          completed,
+          completed_at: completed && !existingProgress?.completed_at ? new Date().toISOString() : (existingProgress?.completed_at || null),
+        }, { onConflict: 'challenge_id,driver_id,period_start' })
+    ).catch((err: unknown) => gamificationLogger.error('Challenge progress upsert failed', { error: err }));
 
     challenges.push({
       id: ch.id,
@@ -440,7 +442,7 @@ export async function getLeaderboard(
     const dId = row.driver_id;
     if (!dId) continue;
     if (!driverMap[dId]) {
-      const driverData = row.logitrack_drivers as any;
+      const driverData = row.logitrack_drivers as unknown as { full_name: string | null } | null;
       driverMap[dId] = { name: driverData?.full_name || 'Chauffeur', deliveries: 0, earnings: 0 };
     }
     driverMap[dId].deliveries += 1;

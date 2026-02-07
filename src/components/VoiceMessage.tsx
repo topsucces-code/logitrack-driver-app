@@ -25,6 +25,7 @@ import {
   PRESET_MESSAGES,
   isVoiceSupported,
 } from '../services/voiceService';
+import { logger } from '../utils/logger';
 
 interface VoiceMessageRecorderProps {
   onSend: (audioBlob: Blob, duration: number, audioBase64?: string) => void;
@@ -86,7 +87,7 @@ export function VoiceMessageRecorder({
       setAudioUrl(URL.createObjectURL(result.blob));
       setDuration(Math.round(result.duration));
     } catch (error) {
-      console.error('Erreur arrêt enregistrement:', error);
+      logger.error('Erreur arrêt enregistrement', { error });
       setRecording(false);
     }
   };

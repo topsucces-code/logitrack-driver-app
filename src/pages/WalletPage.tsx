@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { MobileMoneyDashboard } from '../components/MobileMoneyWallet';
 import { MobileMoneyWithdraw } from '../components/MobileMoneyWithdraw';
 import {
@@ -28,6 +29,7 @@ type TabType = 'overview' | 'history' | 'analytics';
 export default function WalletPage() {
   const navigate = useNavigate();
   const { driver } = useAuth();
+  const { showError } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -203,6 +205,7 @@ function TabButton({
 
 // Transaction History Component
 function TransactionHistory() {
+  const { showError } = useToast();
   const [transactions, setTransactions] = useState<MobileMoneyTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -289,7 +292,7 @@ function TransactionHistory() {
 
       doc.save(`logitrack-releve-${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (err) {
-      console.error('PDF export error:', err);
+      showError('Erreur lors de l\'export PDF');
     } finally {
       setExporting(false);
     }

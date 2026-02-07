@@ -15,6 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { uploadDeliveryProof, saveSignature, getDeliveryProofs } from '../services/trustService';
+import { logger } from '../utils/logger';
 import { DeliveryProof } from '../types/trust';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -61,7 +62,7 @@ export function DeliveryProofCapture({
             longitude: pos.coords.longitude,
           });
         },
-        (err) => console.error('Erreur GPS:', err)
+        (err) => logger.warn('Erreur GPS', { error: err })
       );
     }
   }, []);

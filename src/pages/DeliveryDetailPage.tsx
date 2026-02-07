@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { deliveryLogger } from '../utils/logger';
 import {
   ArrowLeft,
   MapPin,
@@ -88,7 +89,7 @@ export default function DeliveryDetailPage() {
         .single();
 
       if (error) {
-        console.error('Error fetching delivery:', error);
+        showError('Course introuvable');
         navigate('/');
         return;
       }
@@ -174,7 +175,7 @@ export default function DeliveryDetailPage() {
         input.click();
       }
     } catch (err) {
-      console.error('Camera error:', err);
+      showError('Erreur lors de la prise de photo');
     }
   }
 
@@ -210,7 +211,7 @@ export default function DeliveryDetailPage() {
 
       setShowProofModal(false);
     } catch (err) {
-      console.error('Error completing delivery:', err);
+      deliveryLogger.error('Error completing delivery', { error: err });
       showError('Erreur lors de l\'envoi de la preuve');
     }
 

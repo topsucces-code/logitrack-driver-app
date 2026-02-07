@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, R
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, Driver, VehicleType, isDriverVerified, getRegistrationStep, isSupabaseConfigured } from '../lib/supabase';
 import { removePushToken } from '../services/pushNotificationService';
+import { authLogger } from '../utils/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -34,25 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isVerified = driver ? isDriverVerified(driver) : false;
   const registrationStep = driver ? getRegistrationStep(driver) : 0;
 
-  // Initialize push notifications when driver is verified
-  // NOTE: Disabled until google-services.json / Firebase is configured
-  // Calling PushNotifications.register() without Firebase crashes the native app
-  // useEffect(() => {
-  //   if (driver && isVerified) {
-  //     initPushNotifications(
-  //       (notification) => {
-  //         console.log('Push notification received:', notification);
-  //       },
-  //       (action) => {
-  //         console.log('Push notification action:', action);
-  //         const data = action.notification.data;
-  //         if (data?.deliveryId) {
-  //           window.location.href = `/delivery/${data.deliveryId}`;
-  //         }
-  //       }
-  //     );
-  //   }
-  // }, [driver, isVerified]);
+  // Push notifications disabled until google-services.json / Firebase is configured
 
   const fetchDriver = useCallback(async (userId: string) => {
     try {
@@ -75,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // If Supabase is not configured, stop loading immediately
     if (!isSupabaseConfigured) {
-      console.warn('Supabase not configured - skipping auth initialization');
+      authLogger.warn('Supabase not configured - skipping auth initialization');
       setLoading(false);
       return () => clearTimeout(safetyTimeout);
     }
@@ -96,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setDriver(null);
             }
           } catch (error) {
-            console.error('Error in auth state change:', error);
+            authLogger.error('Error in auth state change', { error });
           } finally {
             setLoading(false);
           }
@@ -115,11 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
         })
         .catch((error) => {
-          console.error('Error getting session:', error);
+          authLogger.error('Error getting session', { error });
           setLoading(false);
         });
     } catch (error) {
-      console.error('Error initializing auth:', error);
+      authLogger.error('Error initializing auth', { error });
       setLoading(false);
     }
 
@@ -185,14 +168,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (rpcError) {
-        console.error('RPC register_logitrack_driver error:', rpcError);
+        authLogger.error('RPC register_logitrack_driver error', { error: rpcError });
         // Don't fail completely - the user is created, profile can be completed in onboarding
         // But log the error for debugging
       }
 
       return { error: null };
     } catch (err) {
-      console.error('SignUp error:', err);
+      authLogger.error('SignUp error', { error: err });
       return { error: 'Erreur lors de l\'inscription' };
     }
   }

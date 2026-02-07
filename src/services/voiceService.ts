@@ -1,6 +1,8 @@
 // Service de messages vocaux - LogiTrack Africa
 // Utilise Web Speech API pour la reconnaissance et synthèse vocale
 
+import { logger } from '../utils/logger';
+
 export interface VoiceMessage {
   id: string;
   audioBlob?: Blob;
@@ -79,7 +81,7 @@ export async function startRecording(): Promise<boolean> {
     mediaRecorder.start(100); // Capture toutes les 100ms
     return true;
   } catch (error) {
-    console.error('Erreur démarrage enregistrement:', error);
+    logger.error('Erreur démarrage enregistrement', { error });
     return false;
   }
 }
@@ -196,7 +198,7 @@ export function startSpeechRecognition(
     recognition.start();
     return true;
   } catch (error) {
-    console.error('Erreur démarrage reconnaissance:', error);
+    logger.error('Erreur démarrage reconnaissance', { error });
     return false;
   }
 }
@@ -389,7 +391,7 @@ export async function requestMicrophonePermission(): Promise<boolean> {
     stream.getTracks().forEach(track => track.stop());
     return true;
   } catch (error) {
-    console.error('Permission microphone refusée:', error);
+    logger.error('Permission microphone refusée', { error });
     return false;
   }
 }

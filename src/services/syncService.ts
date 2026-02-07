@@ -2,6 +2,7 @@
 // Gère la synchronisation des données hors-ligne vers le serveur
 
 import { supabase } from '../lib/supabase';
+import { offlineLogger } from '../utils/logger';
 import {
   getPendingActions,
   updateActionStatus,
@@ -156,7 +157,7 @@ async function syncPendingActions(): Promise<SyncResult> {
 
       // Si trop de tentatives, abandonner
       if (action.retryCount >= 5) {
-        console.error(`Abandon de l'action ${action.id} après 5 tentatives`);
+        offlineLogger.error(`Abandon de l'action ${action.id} après 5 tentatives`);
       }
     }
   }
@@ -277,7 +278,7 @@ async function syncCompleteDelivery(action: any): Promise<void> {
 export function setupAutoSync(intervalMs = 60000): () => void {
   // Synchroniser quand on revient en ligne
   const handleOnline = () => {
-    console.log('Connexion rétablie, synchronisation...');
+    offlineLogger.info('Connexion rétablie, synchronisation...');
     syncAll();
   };
 

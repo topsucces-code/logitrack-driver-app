@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { chatLogger } from '../utils/logger';
 
 export interface ChatMessage {
   id: string;
@@ -142,7 +143,8 @@ export async function getMessages(
     const { data, error } = await query;
 
     if (error) {
-      return { messages: [], error: null };
+      chatLogger.error('Error fetching messages', { error });
+      return { messages: [], error: error.message };
     }
 
     return { messages: (data as ChatMessage[]).reverse(), error: null };
@@ -170,8 +172,8 @@ export async function markMessagesAsRead(
       .from('logitrack_chat_conversations')
       .update({ unread_count: 0 })
       .eq('id', conversationId);
-  } catch {
-    // Silently fail
+  } catch (err) {
+    chatLogger.warn('Failed to mark messages as read', { error: err });
   }
 }
 
@@ -243,7 +245,7 @@ export async function closeConversation(conversationId: string): Promise<void> {
       .from('logitrack_chat_conversations')
       .update({ status: 'resolved' })
       .eq('id', conversationId);
-  } catch {
-    // Silently fail
+  } catch (err) {
+    chatLogger.warn('Failed to close conversation', { error: err });
   }
 }

@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { PushNotifications, Token, PushNotificationSchema, ActionPerformed } from '@capacitor/push-notifications';
 import { supabase } from '../lib/supabase';
+import { pushLogger } from '../utils/logger';
 
 interface PushNotificationState {
   token: string | null;
@@ -31,7 +32,7 @@ export async function initPushNotifications(
 ): Promise<boolean> {
   // Only available on native platforms
   if (!Capacitor.isNativePlatform()) {
-    console.log('Push notifications not available on web');
+    pushLogger.info('Push notifications not available on web');
     return false;
   }
 
@@ -51,7 +52,7 @@ export async function initPushNotifications(
     }
 
     if (state.permissionStatus !== 'granted') {
-      console.log('Push notifications permission denied');
+      pushLogger.info('Push notifications permission denied');
       return false;
     }
 
@@ -64,7 +65,7 @@ export async function initPushNotifications(
 
     return true;
   } catch (error) {
-    console.error('Failed to initialize push notifications:', error);
+    pushLogger.error('Failed to initialize push notifications', { error });
     return false;
   }
 }
@@ -75,7 +76,7 @@ export async function initPushNotifications(
 function setupListeners() {
   // On registration success - get token
   PushNotifications.addListener('registration', async (token: Token) => {
-    console.log('Push registration success, token:', token.value);
+    pushLogger.info('Push registration success', { token: token.value });
     state.token = token.value;
 
     // Save token to database
@@ -84,12 +85,12 @@ function setupListeners() {
 
   // On registration error
   PushNotifications.addListener('registrationError', (error) => {
-    console.error('Push registration error:', error);
+    pushLogger.error('Push registration error', { error });
   });
 
   // On notification received (app in foreground)
   PushNotifications.addListener('pushNotificationReceived', (notification: PushNotificationSchema) => {
-    console.log('Push notification received:', notification);
+    pushLogger.info('Push notification received', { notification });
 
     if (onNotificationReceived) {
       onNotificationReceived(notification);
@@ -98,7 +99,7 @@ function setupListeners() {
 
   // On notification action (user tapped notification)
   PushNotifications.addListener('pushNotificationActionPerformed', (action: ActionPerformed) => {
-    console.log('Push notification action:', action);
+    pushLogger.info('Push notification action', { action });
 
     if (onNotificationActionPerformed) {
       onNotificationActionPerformed(action);
@@ -114,7 +115,7 @@ async function saveTokenToDatabase(token: string): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      console.log('No user logged in, cannot save push token');
+      pushLogger.warn('No user logged in, cannot save push token');
       return;
     }
 
@@ -126,7 +127,7 @@ async function saveTokenToDatabase(token: string): Promise<void> {
       .single();
 
     if (!driver) {
-      console.log('No driver profile found');
+      pushLogger.warn('No driver profile found');
       return;
     }
 
@@ -140,12 +141,12 @@ async function saveTokenToDatabase(token: string): Promise<void> {
       .eq('id', driver.id);
 
     if (error) {
-      console.error('Failed to save push token:', error);
+      pushLogger.error('Failed to save push token', { error });
     } else {
-      console.log('Push token saved successfully');
+      pushLogger.info('Push token saved successfully');
     }
   } catch (error) {
-    console.error('Error saving push token:', error);
+    pushLogger.error('Error saving push token', { error });
   }
 }
 
@@ -176,7 +177,7 @@ export async function removePushToken(): Promise<void> {
 
     state.token = null;
   } catch (error) {
-    console.error('Error removing push token:', error);
+    pushLogger.error('Error removing push token', { error });
   }
 }
 
@@ -206,6 +207,6 @@ export async function unregisterPushNotifications(): Promise<void> {
     state.isRegistered = false;
     state.token = null;
   } catch (error) {
-    console.error('Error unregistering push notifications:', error);
+    pushLogger.error('Error unregistering push notifications', { error });
   }
 }
