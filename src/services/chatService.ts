@@ -64,18 +64,7 @@ export async function getOrCreateConversation(
       .single();
 
     if (error) {
-      // Table might not exist, create a local conversation object
-      const localConv: ChatConversation = {
-        id: `local_${Date.now()}`,
-        driver_id: driverId,
-        status: 'active',
-        subject: subject || 'Support général',
-        delivery_id: deliveryId,
-        unread_count: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      return { conversation: localConv, error: null };
+      return { conversation: null, error: error.message };
     }
 
     return { conversation: newConv as ChatConversation, error: null };
@@ -111,19 +100,7 @@ export async function sendMessage(
       .single();
 
     if (error) {
-      // Create local message if table doesn't exist
-      const localMsg: ChatMessage = {
-        id: `local_${Date.now()}`,
-        conversation_id: conversationId,
-        sender_type: 'driver',
-        sender_id: senderId,
-        sender_name: senderName,
-        message,
-        message_type: messageType,
-        metadata,
-        created_at: new Date().toISOString(),
-      };
-      return { message: localMsg, error: null };
+      return { message: null, error: error.message };
     }
 
     // Update conversation last message

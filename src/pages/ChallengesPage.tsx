@@ -88,12 +88,12 @@ export default function ChallengesPage() {
 
   const handleClaimReward = async (challenge: Challenge) => {
     if (!driver) return;
-    const result = await claimChallengeReward(driver.id, challenge.id, challenge.reward);
+    const result = await claimChallengeReward(driver.id, challenge.id, challenge.reward, challenge.periodStart);
     if (result.success) {
       hapticSuccess();
       showSuccess(`+${challenge.reward.toLocaleString()} FCFA bonus réclamé !`);
-      // Update local state to remove claimed challenge
-      setChallenges(prev => prev.filter(c => c.id !== challenge.id));
+      // Mark as claimed in local state
+      setChallenges(prev => prev.map(c => c.id === challenge.id ? { ...c, rewardClaimed: true } : c));
     } else {
       showError(result.error || 'Erreur lors de la réclamation');
     }
@@ -440,13 +440,19 @@ function ChallengeCard({
           </div>
 
           {/* Claim Button */}
-          {challenge.completed && (
+          {challenge.completed && !challenge.rewardClaimed && (
             <button
               onClick={onClaim}
               className="mt-2 w-full py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg"
             >
               {claimLabel}
             </button>
+          )}
+          {challenge.completed && challenge.rewardClaimed && (
+            <div className="mt-2 w-full py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs font-medium rounded-lg text-center flex items-center justify-center gap-1">
+              <Check className="w-3 h-3" />
+              Réclamé
+            </div>
           )}
         </div>
       </div>

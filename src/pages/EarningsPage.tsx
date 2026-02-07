@@ -32,7 +32,7 @@ export default function EarningsPage() {
   const [loading, setLoading] = useState(true);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [withdrawMethod, setWithdrawMethod] = useState('mobile_money');
+  const [withdrawMethod, setWithdrawMethod] = useState('momo');
   const [withdrawAccount, setWithdrawAccount] = useState('');
   const [withdrawing, setWithdrawing] = useState(false);
 
@@ -311,9 +311,9 @@ export default function EarningsPage() {
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => setWithdrawMethod('mobile_money')}
+                  onClick={() => setWithdrawMethod('momo')}
                   className={`p-2.5 rounded-lg border-2 text-sm font-medium ${
-                    withdrawMethod === 'mobile_money'
+                    withdrawMethod === 'momo'
                       ? 'border-primary-500 bg-primary-50 text-primary-600'
                       : 'border-gray-200 text-gray-600'
                   }`}
@@ -334,7 +334,7 @@ export default function EarningsPage() {
             </div>
 
             {/* Account */}
-            {withdrawMethod === 'mobile_money' && (
+            {withdrawMethod === 'momo' && (
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">
                   Numéro Mobile Money

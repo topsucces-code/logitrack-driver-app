@@ -16,8 +16,8 @@ import {
 
 // Configuration des opérateurs Mobile Money en Côte d'Ivoire
 export const MOBILE_MONEY_PROVIDERS: Record<MobileMoneyProvider, MobileMoneyProviderInfo> = {
-  orange_money: {
-    id: 'orange_money',
+  orange: {
+    id: 'orange',
     name: 'Orange Money',
     shortName: 'OM',
     color: '#FF6B00',
@@ -39,8 +39,8 @@ export const MOBILE_MONEY_PROVIDERS: Record<MobileMoneyProvider, MobileMoneyProv
     },
     isActive: true,
   },
-  mtn_momo: {
-    id: 'mtn_momo',
+  mtn: {
+    id: 'mtn',
     name: 'MTN Mobile Money',
     shortName: 'MoMo',
     color: '#FFCC00',
@@ -85,8 +85,8 @@ export const MOBILE_MONEY_PROVIDERS: Record<MobileMoneyProvider, MobileMoneyProv
     },
     isActive: true,
   },
-  moov_money: {
-    id: 'moov_money',
+  moov: {
+    id: 'moov',
     name: 'Moov Money',
     shortName: 'Moov',
     color: '#00A859',
@@ -143,11 +143,11 @@ export function validatePhoneNumber(phone: string): { valid: boolean; formatted:
   let provider: MobileMoneyProvider | undefined;
 
   if (['07', '08', '09'].includes(prefix)) {
-    provider = 'orange_money';
+    provider = 'orange';
   } else if (['05', '06'].includes(prefix)) {
-    provider = 'mtn_momo';
+    provider = 'mtn';
   } else if (['01', '02', '03'].includes(prefix)) {
-    provider = 'moov_money';
+    provider = 'moov';
   }
 
   const formatted = `+225 ${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
@@ -191,7 +191,7 @@ export async function getWallets(driverId?: string): Promise<MobileMoneyWallet[]
     return [{
       id: data.id,
       userId: data.user_id,
-      provider: 'orange_money' as MobileMoneyProvider,
+      provider: 'orange' as MobileMoneyProvider,
       phoneNumber: '',
       accountName: data.momo_name || '',
       balance: data.wallet_balance || 0,
@@ -323,7 +323,7 @@ export async function getTransactions(
     fees: 0,
     totalAmount: Math.abs(row.amount),
     currency: 'XOF' as const,
-    provider: 'orange_money' as MobileMoneyProvider,
+    provider: 'orange' as MobileMoneyProvider,
     phoneNumber: '',
     reference: row.id.slice(0, 12).toUpperCase(),
     description: row.description || mapTransactionDescription(row.type, Math.abs(row.amount)),
@@ -544,7 +544,7 @@ export async function checkTransactionStatus(transactionId: string): Promise<Mob
     fees: 0,
     totalAmount: Math.abs(data.amount),
     currency: 'XOF',
-    provider: 'orange_money' as MobileMoneyProvider,
+    provider: 'orange' as MobileMoneyProvider,
     phoneNumber: '',
     reference: data.id.slice(0, 12).toUpperCase(),
     description: data.description || '',

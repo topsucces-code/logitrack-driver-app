@@ -102,11 +102,11 @@ export const onboardingVehicleSchema = z.object({
     .optional(),
 });
 
-// Mobile Money providers (database format)
-const momoProviders = ['orange_money', 'mtn_momo', 'moov_money', 'wave'] as const;
+// Mobile Money providers (aligned with PostgreSQL momo_provider enum)
+const momoProviders = ['orange', 'mtn', 'moov', 'wave'] as const;
 
-// Mobile Money providers (onboarding form format)
-const momoProviderIds = ['orange', 'mtn', 'moov', 'wave'] as const;
+// Alias for backward compatibility
+const momoProviderIds = momoProviders;
 
 // Onboarding Step 5: Mobile Money
 export const onboardingMomoSchema = z.object({

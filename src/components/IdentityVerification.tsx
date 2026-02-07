@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Camera,
   Upload,
@@ -15,6 +15,7 @@ import {
 import { DocumentType, VerificationStatus } from '../types/trust';
 import { uploadIdentityDocument, getVerificationStatus } from '../services/trustService';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface IdentityVerificationProps {
   onComplete?: () => void;
@@ -63,6 +64,7 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
   const [verificationResult, setVerificationResult] = useState<{
     status: VerificationStatus;
     score?: number;
+    rejectionReason?: string;
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -90,6 +92,39 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
     reader.readAsDataURL(file);
   };
 
+  // Subscribe to document status changes via Realtime
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`identity_${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'identity_documents',
+          filter: `driver_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const doc = payload.new as any;
+          if (doc.verification_status === 'verified' || doc.verification_status === 'rejected') {
+            setVerificationResult({
+              status: doc.verification_status,
+              score: doc.verification_score,
+              rejectionReason: doc.rejection_reason,
+            });
+            setStep('result');
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [user]);
+
   const handleSubmit = async () => {
     if (!user || !frontImage || !selfieImage) {
       setError('Veuillez fournir toutes les images requises');
@@ -113,16 +148,10 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
         throw new Error(result.error);
       }
 
-      // Attendre un peu pour la vérification IA
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Récupérer le statut
-      const status = await getVerificationStatus(user.id);
+      // Document uploaded, show pending status
       setVerificationResult({
-        status: status?.verification_status || 'pending',
-        score: status?.verification_score,
+        status: 'pending',
       });
-
       setStep('result');
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la vérification');

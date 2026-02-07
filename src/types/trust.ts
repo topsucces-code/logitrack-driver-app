@@ -1,8 +1,16 @@
 // Types pour le Système de Confiance Renforcé
 
+import type {
+  DocumentType as _DocumentType,
+  DocumentVerificationStatus,
+  TrustLevel as _TrustLevel,
+  InsuranceType as _InsuranceType,
+  ClaimStatus as _ClaimStatus,
+} from './shared-types';
+
 // === VÉRIFICATION D'IDENTITÉ ===
-export type DocumentType = 'cni' | 'passport' | 'permis' | 'carte_consulaire';
-export type VerificationStatus = 'pending' | 'processing' | 'verified' | 'rejected' | 'expired';
+export type DocumentType = _DocumentType;
+export type VerificationStatus = DocumentVerificationStatus;
 
 export interface IdentityDocument {
   id: string;
@@ -91,8 +99,8 @@ export const TRUST_LEVELS = {
 } as const;
 
 // === ASSURANCE COLIS ===
-export type InsuranceType = 'basic' | 'standard' | 'premium';
-export type ClaimStatus = 'pending' | 'processing' | 'approved' | 'rejected' | 'paid';
+export type InsuranceType = _InsuranceType;
+export type ClaimStatus = _ClaimStatus;
 
 export interface PackageInsurance {
   id: string;

@@ -43,35 +43,23 @@ export const supabase = createSupabaseClient();
 // TYPES - Tables logitrack_*
 // ============================================
 
-// Types de véhicule
-export type VehicleType = 'moto' | 'tricycle' | 'voiture' | 'velo';
+// Types partagés (source de vérité : enums PostgreSQL)
+import type {
+  VehicleType, DriverStatus, VerificationStatus, MomoProvider,
+  DeliveryStatus, PackageSize, PaymentMethod, PaymentStatus,
+  TimeSlot, RecurrencePattern, DriverType, DeliveryCompanyStatus,
+  TransactionType, CompanyTransactionType, BusinessClientPlan,
+  BusinessClientStatus, PayoutMethod, IncidentReporterType,
+  IncidentPriority, IncidentStatus,
+} from '../types/shared-types';
 
-// Statut du livreur
-export type DriverStatus = 'pending' | 'approved' | 'rejected' | 'suspended' | 'inactive';
-
-// Statut de vérification
-export type VerificationStatus = 'pending' | 'verified' | 'rejected';
-
-// Fournisseur Mobile Money
-export type MomoProvider = 'orange_money' | 'mtn_momo' | 'moov_money' | 'wave';
-
-// Statut de livraison
-export type DeliveryStatus = 'pending' | 'assigned' | 'accepted' | 'picking_up' | 'picked_up' | 'in_transit' | 'delivering' | 'delivered' | 'completed' | 'cancelled' | 'failed';
-
-// Taille du colis
-export type PackageSize = 'small' | 'medium' | 'large' | 'extra_large';
-
-// Méthode de paiement
-export type PaymentMethod = 'cash' | 'mobile_money' | 'card' | 'wallet' | 'prepaid';
-
-// Statut de paiement
-export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';
-
-// Créneau horaire
-export type TimeSlot = 'morning' | 'afternoon' | 'evening' | 'night';
-
-// Pattern de récurrence
-export type RecurrencePattern = 'daily' | 'weekly' | 'monthly';
+export type {
+  VehicleType, DriverStatus, VerificationStatus, MomoProvider,
+  DeliveryStatus, PackageSize, PaymentMethod, PaymentStatus,
+  TimeSlot, RecurrencePattern, DriverType, DeliveryCompanyStatus,
+  TransactionType, CompanyTransactionType, BusinessClientPlan,
+  BusinessClientStatus, PayoutMethod,
+};
 
 // ============================================
 // DRIVER - logitrack_drivers
@@ -144,7 +132,7 @@ export interface Driver {
 
   // Multi-tenant
   company_id?: string;
-  driver_type: 'independent' | 'company';
+  driver_type: DriverType;
 
   // Timestamps
   created_at: string;
@@ -179,7 +167,7 @@ export interface DeliveryCompany {
   contract_url?: string;
 
   // Configuration
-  status: 'pending' | 'active' | 'suspended' | 'inactive';
+  status: DeliveryCompanyStatus;
   commission_rate: number;
   min_commission: number;
   can_set_custom_rates: boolean;
@@ -203,7 +191,7 @@ export interface DeliveryCompany {
   rating_count: number;
 
   // Paiement
-  payout_method: 'mobile_money' | 'bank_transfer';
+  payout_method: PayoutMethod;
   momo_provider?: string;
   momo_number?: string;
   momo_name?: string;
@@ -351,7 +339,7 @@ export interface DriverTransaction {
   delivery_id?: string;
   amount: number;
   balance_after: number;
-  type: 'earning' | 'bonus' | 'withdrawal' | 'penalty' | 'adjustment' | 'commission';
+  type: TransactionType;
   description?: string;
   reference?: string;
 
@@ -374,7 +362,7 @@ export interface CompanyTransaction {
   driver_id?: string;
   amount: number;
   balance_after: number;
-  type: 'earning' | 'commission' | 'withdrawal' | 'penalty' | 'adjustment' | 'deposit';
+  type: CompanyTransactionType;
   description?: string;
   reference?: string;
 
@@ -406,13 +394,13 @@ export interface BusinessClient {
   callback_url?: string;
 
   // Plan
-  plan: 'starter' | 'growth' | 'enterprise';
+  plan: BusinessClientPlan;
   monthly_delivery_limit: number;
   commission_rate: number;
   fixed_fee_per_delivery: number;
 
   // Statut
-  status: 'pending' | 'active' | 'suspended' | 'inactive';
+  status: BusinessClientStatus;
   verified_at?: string;
 
   // Statistiques
@@ -448,15 +436,15 @@ export interface Incident {
   id: string;
   delivery_id: string;
   tracking_code?: string;
-  reporter_type: 'driver' | 'customer' | 'vendor' | 'system';
+  reporter_type: IncidentReporterType;
   reporter_id: string;
   incident_type: string;
   title: string;
   description: string;
   photos: string[];
   disputed_amount?: number;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  status: 'open' | 'investigating' | 'resolved' | 'closed' | 'escalated';
+  priority: IncidentPriority;
+  status: IncidentStatus;
   resolution?: string;
   resolved_by?: string;
   resolved_at?: string;

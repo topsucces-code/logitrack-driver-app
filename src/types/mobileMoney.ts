@@ -1,6 +1,9 @@
 // Types pour le système Mobile Money en Côte d'Ivoire
 
-export type MobileMoneyProvider = 'orange_money' | 'mtn_momo' | 'wave' | 'moov_money';
+import type { MomoProvider, MobileMoneyTransactionType, MobileMoneyTransactionStatus } from './shared-types';
+
+// MobileMoneyProvider est un alias de MomoProvider (source de vérité : enum PostgreSQL)
+export type MobileMoneyProvider = MomoProvider;
 
 export interface MobileMoneyProviderInfo {
   id: MobileMoneyProvider;
@@ -39,8 +42,8 @@ export interface MobileMoneyWallet {
   lastUsed: string | null;
 }
 
-export type TransactionType = 'payment' | 'withdrawal' | 'deposit' | 'transfer' | 'refund' | 'earnings';
-export type TransactionStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'expired';
+export type TransactionType = MobileMoneyTransactionType;
+export type TransactionStatus = MobileMoneyTransactionStatus;
 
 export interface MobileMoneyTransaction {
   id: string;

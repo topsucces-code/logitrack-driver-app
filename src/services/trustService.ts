@@ -78,123 +78,17 @@ export async function uploadIdentityDocument(
 
     if (docError) throw docError;
 
-    // Lancer la vérification IA en arrière-plan
-    verifyDocumentWithAI(doc.id);
+    // Update driver verification status to pending
+    await supabase
+      .from('logitrack_drivers')
+      .update({ verification_status: 'pending' })
+      .eq('id', driverId);
 
     return { success: true, documentId: doc.id };
   } catch (error: any) {
     console.error('Error uploading identity document:', error);
     return { success: false, error: error.message };
   }
-}
-
-export async function verifyDocumentWithAI(documentId: string): Promise<VerificationResult> {
-  try {
-    // Mettre à jour le statut à "processing"
-    await supabase
-      .from('identity_documents')
-      .update({ verification_status: 'processing' })
-      .eq('id', documentId);
-
-    // Récupérer le document
-    const { data: doc, error } = await supabase
-      .from('identity_documents')
-      .select('*')
-      .eq('id', documentId)
-      .single();
-
-    if (error || !doc) throw new Error('Document not found');
-
-    // Simulation de l'analyse IA (à remplacer par une vraie API)
-    // En production: utiliser AWS Rekognition, Google Vision, ou une API locale
-    const aiResult = await simulateAIVerification(doc);
-
-    // Mettre à jour le document avec les résultats
-    const status: VerificationStatus = aiResult.scores.overall >= 70 ? 'verified' : 'rejected';
-
-    await supabase
-      .from('identity_documents')
-      .update({
-        verification_status: status,
-        verification_score: aiResult.scores.overall,
-        face_match_score: aiResult.scores.faceMatch,
-        document_authenticity_score: aiResult.scores.documentAuthenticity,
-        document_number: aiResult.extractedData?.documentNumber,
-        rejection_reason: status === 'rejected' ? aiResult.rejectionReason : null,
-        verified_at: status === 'verified' ? new Date().toISOString() : null,
-      })
-      .eq('id', documentId);
-
-    // Si vérifié, mettre à jour le profil du livreur
-    if (status === 'verified') {
-      await supabase
-        .from('drivers')
-        .update({
-          is_identity_verified: true,
-          identity_verified_at: new Date().toISOString(),
-        })
-        .eq('id', doc.driver_id);
-
-      // Ajouter un badge de vérification
-      await addTrustBadge(doc.driver_id, {
-        id: 'verified_identity',
-        name: 'Identité Vérifiée',
-        description: 'Document d\'identité vérifié avec succès',
-        icon: '✓',
-        earned_at: new Date().toISOString(),
-      });
-
-      // Recalculer le score de fiabilité
-      await calculateReliabilityScore(doc.driver_id);
-    }
-
-    return {
-      success: status === 'verified',
-      status,
-      scores: aiResult.scores,
-      extractedData: aiResult.extractedData,
-      rejectionReason: aiResult.rejectionReason,
-    };
-  } catch (error: any) {
-    console.error('Error verifying document:', error);
-    return {
-      success: false,
-      status: 'rejected',
-      scores: { overall: 0, faceMatch: 0, documentAuthenticity: 0, dataExtraction: 0 },
-      rejectionReason: 'Erreur lors de la vérification',
-    };
-  }
-}
-
-// Simulation IA - À remplacer par une vraie API
-async function simulateAIVerification(doc: any): Promise<{
-  scores: { overall: number; faceMatch: number; documentAuthenticity: number; dataExtraction: number };
-  extractedData?: any;
-  rejectionReason?: string;
-}> {
-  // Simuler un délai de traitement
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
-  // Scores simulés (en prod, utiliser l'IA réelle)
-  const faceMatch = 75 + Math.random() * 25;
-  const documentAuthenticity = 70 + Math.random() * 30;
-  const dataExtraction = 80 + Math.random() * 20;
-  const overall = (faceMatch * 0.4 + documentAuthenticity * 0.4 + dataExtraction * 0.2);
-
-  return {
-    scores: {
-      overall: Math.round(overall),
-      faceMatch: Math.round(faceMatch),
-      documentAuthenticity: Math.round(documentAuthenticity),
-      dataExtraction: Math.round(dataExtraction),
-    },
-    extractedData: {
-      fullName: 'KOUAME JEAN',
-      dateOfBirth: '1990-05-15',
-      documentNumber: 'CI' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-      nationality: 'Ivoirienne',
-    },
-  };
 }
 
 export async function getVerificationStatus(driverId: string): Promise<IdentityDocument | null> {
@@ -218,15 +112,15 @@ export async function calculateReliabilityScore(driverId: string): Promise<Drive
   try {
     // Récupérer les statistiques du livreur
     const { data: driver } = await supabase
-      .from('drivers')
-      .select('*, deliveries(*), incidents(*)')
+      .from('logitrack_drivers')
+      .select('*, logitrack_deliveries(*), logitrack_incidents(*)')
       .eq('id', driverId)
       .single();
 
     if (!driver) throw new Error('Driver not found');
 
-    const deliveries = driver.deliveries || [];
-    const incidents = driver.incidents || [];
+    const deliveries = driver.logitrack_deliveries || [];
+    const incidents = driver.logitrack_incidents || [];
 
     // Calculer les métriques
     const totalDeliveries = deliveries.length;
@@ -309,7 +203,7 @@ export async function calculateReliabilityScore(driverId: string): Promise<Drive
 
     // Mettre à jour le driver
     await supabase
-      .from('drivers')
+      .from('logitrack_drivers')
       .update({
         reliability_score: score.overall_score,
         trust_level: trustLevel,
@@ -523,9 +417,9 @@ export async function getTrackingByCode(shareCode: string): Promise<{
       .from('shared_tracking')
       .select(`
         *,
-        delivery:deliveries(
+        delivery:logitrack_deliveries(
           *,
-          driver:drivers(
+          driver:logitrack_drivers(
             id, full_name, phone, avatar_url, reliability_score, trust_level
           )
         )

@@ -21,6 +21,7 @@ import { DELIVERY_CONFIG } from '../config/app.config';
 import { useToast } from '../contexts/ToastContext';
 import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { DeliveryCardSkeleton } from '../components/ui/Skeleton';
+import { NotificationBell } from '../components/NotificationBell';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ export default function DashboardPage() {
         .from('logitrack_deliveries')
         .select('*')
         .eq('driver_id', driver.id)
-        .in('status', ['accepted', 'picking_up', 'picked_up', 'in_transit', 'delivering'])
+        .in('status', ['accepted', 'picking_up', 'picked_up', 'in_transit', 'arriving'])
         .maybeSingle();
 
       setCurrentDelivery(current as Delivery | null);
@@ -243,6 +244,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-1.5">
+            <NotificationBell />
             <button
               onClick={handleRefresh}
               className={`p-2.5 bg-white/20 rounded-full ${refreshing ? 'animate-spin' : ''}`}
@@ -346,7 +348,7 @@ export default function DashboardPage() {
                   {currentDelivery.status === 'picking_up' && '🚀 En route pickup'}
                   {currentDelivery.status === 'picked_up' && '📦 Colis récupéré'}
                   {currentDelivery.status === 'in_transit' && '🚗 En transit'}
-                  {currentDelivery.status === 'delivering' && '🏃 En livraison'}
+                  {currentDelivery.status === 'arriving' && '🏃 En livraison'}
                 </span>
                 {currentDelivery.is_express && (
                   <span className="flex items-center gap-1 text-yellow-600 text-xs font-medium">

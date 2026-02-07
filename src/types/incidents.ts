@@ -2,9 +2,8 @@
  * Types pour le signalement d'incidents - App Livreur
  */
 
-export type IncidentCategory = 'driver' | 'customer' | 'vendor';
-export type IncidentStatus = 'open' | 'investigating' | 'resolved' | 'closed' | 'escalated';
-export type IncidentPriority = 'low' | 'medium' | 'high' | 'critical';
+import type { IncidentCategory, IncidentStatus, IncidentPriority } from './shared-types';
+export type { IncidentCategory, IncidentStatus, IncidentPriority };
 
 export interface IncidentType {
   id: string;

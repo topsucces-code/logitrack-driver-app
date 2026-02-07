@@ -25,6 +25,11 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { SupportChat } from '../components/SupportChat';
 import { QRScanner } from '../components/QRScanner';
+import {
+  getPreferences,
+  updatePreferences,
+  type NotificationPreferences,
+} from '../services/notificationService';
 
 export default function SettingsPage() {
   const navigate = useNavigate();
@@ -39,6 +44,8 @@ export default function SettingsPage() {
   const [showHelp, setShowHelp] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showNotifSettings, setShowNotifSettings] = useState(false);
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences | null>(null);
 
   async function updateSettings() {
     if (!driver) return;
@@ -184,7 +191,16 @@ export default function SettingsPage() {
 
         {/* Notifications - Compact */}
         <div className="bg-white dark:bg-gray-800 rounded-lg">
-          <button className="w-full px-3 py-2 flex items-center justify-between">
+          <button
+            onClick={async () => {
+              if (driver) {
+                const prefs = await getPreferences(driver.user_id!);
+                setNotifPrefs(prefs);
+              }
+              setShowNotifSettings(true);
+            }}
+            className="w-full px-3 py-2 flex items-center justify-between"
+          >
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
                 <Bell className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
@@ -293,6 +309,120 @@ export default function SettingsPage() {
             <p><strong>4. Rémunération</strong><br/>La rémunération est calculée par livraison effectuée. Les paiements sont versés via Mobile Money. LogiTrack prélève une commission sur chaque livraison.</p>
             <p><strong>5. Résiliation</strong><br/>LogiTrack se réserve le droit de suspendre ou résilier un compte en cas de non-respect des présentes conditions, de plaintes répétées ou de comportement inapproprié.</p>
             <p><strong>6. Responsabilité</strong><br/>Le livreur est responsable des colis qui lui sont confiés. En cas de perte ou dommage par négligence, des retenues pourront être appliquées.</p>
+          </div>
+        </InfoModal>
+      )}
+
+      {showNotifSettings && (
+        <InfoModal title={t.pushNotifications} onClose={() => setShowNotifSettings(false)}>
+          <div className="space-y-3">
+            {/* Channels */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Canaux</p>
+              {([
+                { key: 'push_enabled', label: 'Notifications push' },
+                { key: 'sms_enabled', label: 'SMS' },
+                { key: 'whatsapp_enabled', label: 'WhatsApp' },
+              ] as const).map((item) => (
+                <div key={item.key} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-sm text-gray-900 dark:text-white">{item.label}</span>
+                  <button
+                    onClick={async () => {
+                      const newVal = !(notifPrefs?.[item.key] ?? true);
+                      setNotifPrefs((prev) => prev ? { ...prev, [item.key]: newVal } : null);
+                      if (driver) await updatePreferences(driver.user_id!, { [item.key]: newVal });
+                    }}
+                    className={`relative w-10 h-6 rounded-full transition-colors ${
+                      (notifPrefs?.[item.key] ?? true) ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${
+                      (notifPrefs?.[item.key] ?? true) ? 'left-4' : 'left-0.5'
+                    }`} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Event types */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Événements</p>
+              {([
+                { key: 'driver_assigned_enabled', label: 'Nouvelle course assignée' },
+                { key: 'picked_up_enabled', label: 'Colis récupéré' },
+                { key: 'in_transit_enabled', label: 'En transit' },
+                { key: 'delivered_enabled', label: 'Livraison terminée' },
+                { key: 'failed_enabled', label: 'Livraison échouée' },
+              ] as const).map((item) => (
+                <div key={item.key} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-sm text-gray-900 dark:text-white">{item.label}</span>
+                  <button
+                    onClick={async () => {
+                      const newVal = !(notifPrefs?.[item.key] ?? true);
+                      setNotifPrefs((prev) => prev ? { ...prev, [item.key]: newVal } : null);
+                      if (driver) await updatePreferences(driver.user_id!, { [item.key]: newVal });
+                    }}
+                    className={`relative w-10 h-6 rounded-full transition-colors ${
+                      (notifPrefs?.[item.key] ?? true) ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${
+                      (notifPrefs?.[item.key] ?? true) ? 'left-4' : 'left-0.5'
+                    }`} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Quiet hours */}
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Heures calmes</p>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                <span className="text-sm text-gray-900 dark:text-white">Activer les heures calmes</span>
+                <button
+                  onClick={async () => {
+                    const newVal = !(notifPrefs?.quiet_hours_enabled ?? true);
+                    setNotifPrefs((prev) => prev ? { ...prev, quiet_hours_enabled: newVal } : null);
+                    if (driver) await updatePreferences(driver.user_id!, { quiet_hours_enabled: newVal });
+                  }}
+                  className={`relative w-10 h-6 rounded-full transition-colors ${
+                    (notifPrefs?.quiet_hours_enabled ?? true) ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
+                  }`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow ${
+                    (notifPrefs?.quiet_hours_enabled ?? true) ? 'left-4' : 'left-0.5'
+                  }`} />
+                </button>
+              </div>
+              {(notifPrefs?.quiet_hours_enabled ?? true) && (
+                <div className="flex items-center gap-3 py-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 dark:text-gray-400">De</label>
+                    <input
+                      type="time"
+                      value={notifPrefs?.quiet_hours_start || '22:00'}
+                      onChange={async (e) => {
+                        setNotifPrefs((prev) => prev ? { ...prev, quiet_hours_start: e.target.value } : null);
+                        if (driver) await updatePreferences(driver.user_id!, { quiet_hours_start: e.target.value });
+                      }}
+                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 dark:text-gray-400">À</label>
+                    <input
+                      type="time"
+                      value={notifPrefs?.quiet_hours_end || '07:00'}
+                      onChange={async (e) => {
+                        setNotifPrefs((prev) => prev ? { ...prev, quiet_hours_end: e.target.value } : null);
+                        if (driver) await updatePreferences(driver.user_id!, { quiet_hours_end: e.target.value });
+                      }}
+                      className="w-full px-2 py-1.5 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </InfoModal>
       )}

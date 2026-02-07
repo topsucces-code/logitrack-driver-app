@@ -204,14 +204,6 @@ export default function OnboardingPage() {
         data.licensePhoto ? uploadPhoto(data.licensePhoto, 'driver-documents', `${userId}/license.jpg`) : null,
       ]);
 
-      // Map mobile money provider to the new enum format
-      const momoProviderMap: Record<string, string> = {
-        'orange': 'orange_money',
-        'mtn': 'mtn_momo',
-        'moov': 'moov_money',
-        'wave': 'wave',
-      };
-
       // Convert zone names to UUIDs if zones were loaded from database (real UUIDs, not fallback)
       // If using fallback zones (id starts with 'fallback-'), we skip secondary_zones
       let zoneIds: string[] = [];
@@ -234,7 +226,7 @@ export default function OnboardingPage() {
         driving_license_url: licenseUrl,
         // Only include secondary_zones if we have valid UUIDs
         ...(zoneIds.length > 0 ? { secondary_zones: zoneIds } : {}),
-        momo_provider: momoProviderMap[data.mobileMoneyProvider] || data.mobileMoneyProvider,
+        momo_provider: data.mobileMoneyProvider,
         momo_number: data.mobileMoneyNumber,
         // New schema defaults
         driver_type: 'independent',

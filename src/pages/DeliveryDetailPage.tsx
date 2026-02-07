@@ -255,7 +255,7 @@ export default function DeliveryDetailPage() {
             {delivery.status === 'picking_up' && 'En route vers le point de collecte'}
             {delivery.status === 'picked_up' && 'Colis récupéré'}
             {delivery.status === 'in_transit' && 'En transit'}
-            {delivery.status === 'delivering' && 'En cours de livraison'}
+            {delivery.status === 'arriving' && 'En cours de livraison'}
           </p>
         </div>
         {delivery.is_express && (
@@ -347,7 +347,7 @@ export default function DeliveryDetailPage() {
 
         {/* Delivery */}
         <div className={`bg-white rounded-lg p-3 ${
-          ['picked_up', 'delivering'].includes(delivery.status)
+          ['picked_up', 'arriving'].includes(delivery.status)
             ? 'border-2 border-red-500'
             : ''
         }`}>
@@ -463,7 +463,7 @@ export default function DeliveryDetailPage() {
 
         {delivery.status === 'picked_up' && (
           <Button
-            onClick={() => updateStatus('delivering')}
+            onClick={() => updateStatus('arriving')}
             loading={updating}
             fullWidth
             size="lg"
@@ -474,7 +474,7 @@ export default function DeliveryDetailPage() {
           </Button>
         )}
 
-        {delivery.status === 'delivering' && (
+        {delivery.status === 'arriving' && (
           <>
             <Button
               onClick={() => setShowProofModal(true)}
