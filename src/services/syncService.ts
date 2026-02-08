@@ -215,7 +215,7 @@ async function syncUpdateStatus(action: any): Promise<void> {
   const { deliveryId, payload } = action;
 
   const { error } = await supabase
-    .from('deliveries')
+    .from('logitrack_deliveries')
     .update({
       status: payload.status,
       updated_at: new Date().toISOString(),
@@ -260,7 +260,7 @@ async function syncCompleteDelivery(action: any): Promise<void> {
   const { deliveryId, payload } = action;
 
   const { error } = await supabase
-    .from('deliveries')
+    .from('logitrack_deliveries')
     .update({
       status: 'delivered',
       delivered_at: payload.deliveredAt,

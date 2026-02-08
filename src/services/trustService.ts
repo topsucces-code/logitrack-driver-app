@@ -225,7 +225,7 @@ export async function getReliabilityScore(driverId: string): Promise<DriverRelia
     .eq('driver_id', driverId)
     .single();
 
-  if (error) {
+  if (error || !data) {
     // Si pas de score, le calculer
     return calculateReliabilityScore(driverId);
   }
