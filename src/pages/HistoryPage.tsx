@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { deliveryLogger } from '../utils/logger';
 import {
@@ -12,6 +12,8 @@ import {
   Clock,
   Filter,
   Loader2,
+  Search,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, Delivery } from '../lib/supabase';
@@ -22,6 +24,7 @@ import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { PullToRefreshIndicator } from '../components/PullToRefreshIndicator';
 
 type FilterPeriod = 'week' | 'month' | 'all';
+type StatusFilter = 'all' | 'delivered' | 'cancelled' | 'in_progress';
 
 const PAGE_SIZE = DELIVERY_CONFIG.historyPageSize;
 
@@ -41,6 +44,84 @@ export default function HistoryPage() {
     totalEarnings: 0,
     totalDistance: 0,
   });
+
+  // Search & filter state
+  const [searchInput, setSearchInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDebouncing, setIsDebouncing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced search
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
+    setIsDebouncing(true);
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      setSearchQuery(value.trim().toLowerCase());
+      setIsDebouncing(false);
+    }, 300);
+  }, []);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
+  // Client-side filtered deliveries
+  const filteredDeliveries = useMemo(() => {
+    let result = deliveries;
+
+    // Status filter
+    if (statusFilter === 'delivered') {
+      result = result.filter(d => d.status === 'delivered' || d.status === 'completed');
+    } else if (statusFilter === 'cancelled') {
+      result = result.filter(d => d.status === 'cancelled' || d.status === 'failed');
+    } else if (statusFilter === 'in_progress') {
+      result = result.filter(d => !['delivered', 'completed', 'cancelled', 'failed'].includes(d.status));
+    }
+
+    // Search filter
+    if (searchQuery) {
+      result = result.filter(d => {
+        const trackingCode = (d.tracking_code || '').toLowerCase();
+        const pickupContact = (d.pickup_contact_name || '').toLowerCase();
+        const deliveryContact = (d.delivery_contact_name || '').toLowerCase();
+        const pickupAddress = (d.pickup_address || '').toLowerCase();
+        const deliveryAddress = (d.delivery_address || '').toLowerCase();
+
+        return (
+          trackingCode.includes(searchQuery) ||
+          pickupContact.includes(searchQuery) ||
+          deliveryContact.includes(searchQuery) ||
+          pickupAddress.includes(searchQuery) ||
+          deliveryAddress.includes(searchQuery)
+        );
+      });
+    }
+
+    return result;
+  }, [deliveries, searchQuery, statusFilter]);
+
+  const hasActiveFilters = searchInput.trim() !== '' || statusFilter !== 'all';
+
+  const clearFilters = useCallback(() => {
+    setSearchInput('');
+    setSearchQuery('');
+    setStatusFilter('all');
+    setIsDebouncing(false);
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+  }, []);
 
   const buildQuery = useCallback((cursor?: string) => {
     if (!driver) return null;
@@ -201,7 +282,7 @@ export default function HistoryPage() {
           <h1 className="text-base font-bold text-gray-900">Historique</h1>
         </div>
 
-        {/* Filter */}
+        {/* Period filter */}
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-gray-400" />
           <div className="flex gap-2">
@@ -213,7 +294,7 @@ export default function HistoryPage() {
               <button
                 key={option.value}
                 onClick={() => setFilterPeriod(option.value as FilterPeriod)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   filterPeriod === option.value
                     ? 'bg-primary-500 text-white'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -223,6 +304,60 @@ export default function HistoryPage() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Search input */}
+        <div className="relative mt-2.5">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            {isDebouncing ? (
+              <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+            ) : (
+              <Search className="w-4 h-4 text-gray-400" />
+            )}
+          </div>
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Code, client, adresse..."
+            className="w-full pl-9 pr-8 py-2.5 rounded-lg text-sm bg-gray-100 border-none outline-none focus:ring-2 focus:ring-primary-300 placeholder:text-gray-400"
+          />
+          {searchInput && (
+            <button
+              onClick={() => handleSearchChange('')}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+            >
+              <X className="w-4 h-4 text-gray-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Status filter */}
+        <div className="flex items-center gap-1.5 mt-2.5 overflow-x-auto no-scrollbar">
+          {([
+            { value: 'all', label: 'Toutes' },
+            { value: 'delivered', label: 'Livr\u00e9es' },
+            { value: 'cancelled', label: 'Annul\u00e9es' },
+            { value: 'in_progress', label: 'En cours' },
+          ] as const).map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setStatusFilter(option.value)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
+                statusFilter === option.value
+                  ? option.value === 'delivered'
+                    ? 'bg-green-100 text-green-700'
+                    : option.value === 'cancelled'
+                    ? 'bg-red-100 text-red-700'
+                    : option.value === 'in_progress'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-primary-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </header>
 
@@ -261,6 +396,22 @@ export default function HistoryPage() {
         </div>
       </div>
 
+        {/* Result count & clear filters */}
+        {!loading && hasActiveFilters && (
+          <div className="px-3 pt-1 pb-0 flex items-center justify-between">
+            <p className="text-xs text-gray-500">
+              {filteredDeliveries.length} livraison{filteredDeliveries.length !== 1 ? 's' : ''}
+            </p>
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 px-2.5 py-1 text-xs text-primary-600 font-medium rounded-lg hover:bg-primary-50 transition-colors"
+            >
+              <X className="w-3 h-3" />
+              Effacer filtres
+            </button>
+          </div>
+        )}
+
         {/* List */}
         <div className="px-3 pb-3">
           {loading ? (
@@ -273,14 +424,18 @@ export default function HistoryPage() {
               </div>
             ))}
           </div>
-        ) : deliveries.length === 0 ? (
+        ) : filteredDeliveries.length === 0 ? (
           <div className="bg-white rounded-lg p-6 text-center">
             <Package className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">Aucune livraison dans l'historique</p>
+            <p className="text-gray-500 text-sm">
+              {hasActiveFilters
+                ? 'Aucune livraison ne correspond aux filtres'
+                : 'Aucune livraison dans l\u2019historique'}
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
-            {deliveries.map((delivery) => (
+            {filteredDeliveries.map((delivery) => (
               <div key={delivery.id} className="bg-white rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
