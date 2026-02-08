@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   TrendingUp,
   TrendingDown,
+  Minus,
   Package,
   Clock,
   Star,
@@ -57,6 +58,13 @@ export default function AnalyticsPage() {
   const [comparison, setComparison] = useState({
     earningsChange: 0,
     deliveriesChange: 0,
+    avgPerDeliveryChange: 0,
+    completionRateChange: 0,
+    // Track whether previous period had data (to show "Nouveau" vs "0%")
+    hasPreviousEarnings: false,
+    hasPreviousDeliveries: false,
+    hasPreviousAvg: false,
+    hasPreviousCompletionRate: false,
   });
 
   useEffect(() => {
@@ -101,11 +109,26 @@ export default function AnalyticsPage() {
       // Fetch deliveries for comparison period (previous week/month)
       const { data: previousDeliveries } = await supabase
         .from('logitrack_deliveries')
-        .select('driver_earnings')
+        .select('driver_earnings, status')
         .eq('driver_id', driver.id)
         .gte('delivered_at', previousStartDate.toISOString())
         .lt('delivered_at', startDate.toISOString())
         .in('status', ['delivered', 'completed']);
+
+      // Fetch ALL previous period deliveries (including non-completed) for completion rate
+      const { data: previousAllDeliveries } = await supabase
+        .from('logitrack_deliveries')
+        .select('status')
+        .eq('driver_id', driver.id)
+        .gte('created_at', previousStartDate.toISOString())
+        .lt('created_at', startDate.toISOString());
+
+      // Fetch ALL current period deliveries for completion rate
+      const { data: currentAllDeliveries } = await supabase
+        .from('logitrack_deliveries')
+        .select('status')
+        .eq('driver_id', driver.id)
+        .gte('created_at', startDate.toISOString());
 
       // Calculate current stats
       const currentEarnings = (deliveries || []).reduce(
@@ -120,6 +143,29 @@ export default function AnalyticsPage() {
         0
       );
       const previousDeliveryCount = (previousDeliveries || []).length;
+      const previousAvgPerDelivery = previousDeliveryCount > 0
+        ? previousEarnings / previousDeliveryCount
+        : 0;
+      const currentAvgPerDelivery = currentDeliveryCount > 0
+        ? currentEarnings / currentDeliveryCount
+        : 0;
+
+      // Calculate completion rates for current and previous periods
+      const currentAllCount = (currentAllDeliveries || []).length;
+      const currentCompletedCount = (currentAllDeliveries || []).filter(
+        (d) => d.status === 'delivered' || d.status === 'completed'
+      ).length;
+      const currentCompletionRate = currentAllCount > 0
+        ? (currentCompletedCount / currentAllCount) * 100
+        : 0;
+
+      const previousAllCount = (previousAllDeliveries || []).length;
+      const previousCompletedCount = (previousAllDeliveries || []).filter(
+        (d) => d.status === 'delivered' || d.status === 'completed'
+      ).length;
+      const previousCompletionRate = previousAllCount > 0
+        ? (previousCompletedCount / previousAllCount) * 100
+        : 0;
 
       // Calculate comparison percentages
       const earningsChange = previousEarnings > 0
@@ -127,6 +173,13 @@ export default function AnalyticsPage() {
         : 0;
       const deliveriesChange = previousDeliveryCount > 0
         ? ((currentDeliveryCount - previousDeliveryCount) / previousDeliveryCount) * 100
+        : 0;
+      const avgPerDeliveryChange = previousAvgPerDelivery > 0
+        ? ((currentAvgPerDelivery - previousAvgPerDelivery) / previousAvgPerDelivery) * 100
+        : 0;
+      // Completion rate change is absolute difference in percentage points
+      const completionRateChange = previousAllCount > 0
+        ? currentCompletionRate - previousCompletionRate
         : 0;
 
       // Calculate average delivery time
@@ -193,6 +246,12 @@ export default function AnalyticsPage() {
       setComparison({
         earningsChange,
         deliveriesChange,
+        avgPerDeliveryChange,
+        completionRateChange,
+        hasPreviousEarnings: previousEarnings > 0,
+        hasPreviousDeliveries: previousDeliveryCount > 0,
+        hasPreviousAvg: previousAvgPerDelivery > 0,
+        hasPreviousCompletionRate: previousAllCount > 0,
       });
     } catch (err) {
       logger.error('Analytics error', { error: err });
@@ -275,6 +334,61 @@ export default function AnalyticsPage() {
 
   const maxDailyEarning = useMemo(() => Math.max(...dailyStats.map((d) => d.earnings), 1), [dailyStats]);
 
+  // Reusable comparison badge for period indicators
+  function ComparisonBadge({
+    change,
+    hasPrevious,
+    isPercentagePoints = false,
+  }: {
+    change: number;
+    hasPrevious: boolean;
+    isPercentagePoints?: boolean;
+  }) {
+    // "all" time range has no comparison
+    if (timeRange === 'all') return null;
+
+    // No previous data: show "Nouveau"
+    if (!hasPrevious) {
+      return (
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium">
+          Nouveau
+        </span>
+      );
+    }
+
+    const rounded = isPercentagePoints
+      ? Math.abs(change).toFixed(1)
+      : Math.abs(change).toFixed(1);
+    const suffix = isPercentagePoints ? ' pts' : '%';
+
+    if (change > 0.5) {
+      return (
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium">
+          <TrendingUp className="w-3 h-3" />
+          +{rounded}{suffix}
+        </span>
+      );
+    }
+
+    if (change < -0.5) {
+      return (
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-medium">
+          <TrendingDown className="w-3 h-3" />
+          {/* Negative sign included via rounded value */}
+          -{rounded}{suffix}
+        </span>
+      );
+    }
+
+    // No meaningful change
+    return (
+      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs font-medium">
+        <Minus className="w-3 h-3" />
+        0%
+      </span>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header - Compact */}
@@ -338,18 +452,10 @@ export default function AnalyticsPage() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {stats.totalEarnings.toLocaleString()} F
                 </p>
-                {comparison.earningsChange !== 0 && (
-                  <div className={`flex items-center gap-0.5 text-[10px] ${
-                    comparison.earningsChange > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {comparison.earningsChange > 0 ? (
-                      <TrendingUp className="w-3 h-3" />
-                    ) : (
-                      <TrendingDown className="w-3 h-3" />
-                    )}
-                    <span>{Math.abs(comparison.earningsChange).toFixed(0)}%</span>
-                  </div>
-                )}
+                <ComparisonBadge
+                  change={comparison.earningsChange}
+                  hasPrevious={comparison.hasPreviousEarnings}
+                />
               </div>
 
               {/* Deliveries */}
@@ -361,18 +467,10 @@ export default function AnalyticsPage() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {stats.totalDeliveries}
                 </p>
-                {comparison.deliveriesChange !== 0 && (
-                  <div className={`flex items-center gap-0.5 text-[10px] ${
-                    comparison.deliveriesChange > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {comparison.deliveriesChange > 0 ? (
-                      <TrendingUp className="w-3 h-3" />
-                    ) : (
-                      <TrendingDown className="w-3 h-3" />
-                    )}
-                    <span>{Math.abs(comparison.deliveriesChange).toFixed(0)}%</span>
-                  </div>
-                )}
+                <ComparisonBadge
+                  change={comparison.deliveriesChange}
+                  hasPrevious={comparison.hasPreviousDeliveries}
+                />
               </div>
 
               {/* Avg per delivery */}
@@ -384,6 +482,10 @@ export default function AnalyticsPage() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {stats.avgEarningsPerDelivery.toLocaleString(undefined, { maximumFractionDigits: 0 })} F
                 </p>
+                <ComparisonBadge
+                  change={comparison.avgPerDeliveryChange}
+                  hasPrevious={comparison.hasPreviousAvg}
+                />
               </div>
 
               {/* Rating */}
@@ -442,9 +544,16 @@ export default function AnalyticsPage() {
 
                 {/* Completion Rate */}
                 <div>
-                  <div className="flex justify-between text-xs mb-0.5">
+                  <div className="flex justify-between items-center text-xs mb-0.5">
                     <span className="text-gray-600 dark:text-gray-400">Taux de complétion</span>
-                    <span className="font-medium text-gray-900 dark:text-white">{(stats.completionRate * 100).toFixed(0)}%</span>
+                    <div className="flex items-center gap-1.5">
+                      <ComparisonBadge
+                        change={comparison.completionRateChange}
+                        hasPrevious={comparison.hasPreviousCompletionRate}
+                        isPercentagePoints
+                      />
+                      <span className="font-medium text-gray-900 dark:text-white">{(stats.completionRate * 100).toFixed(0)}%</span>
+                    </div>
                   </div>
                   <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
