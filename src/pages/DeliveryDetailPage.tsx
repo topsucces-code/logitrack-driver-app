@@ -14,6 +14,7 @@ import {
   Zap,
   AlertTriangle,
   UserX,
+  ChevronRight,
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -279,10 +280,33 @@ export default function DeliveryDetailPage() {
     ? { lat: Number(delivery.delivery_latitude), lng: Number(delivery.delivery_longitude) }
     : null;
 
+  const trackingLabel = delivery.tracking_code
+    ? `Détails #${delivery.tracking_code}`
+    : 'Détails';
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
+      {/* Breadcrumb */}
+      <nav className="bg-white safe-top px-3 py-2 flex items-center text-xs">
+        <button
+          onClick={() => navigate('/')}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          Accueil
+        </button>
+        <ChevronRight className="w-3 h-3 text-gray-400 mx-1 flex-shrink-0" />
+        <button
+          onClick={() => navigate('/history')}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          Courses
+        </button>
+        <ChevronRight className="w-3 h-3 text-gray-400 mx-1 flex-shrink-0" />
+        <span className="text-gray-900 font-medium truncate">{trackingLabel}</span>
+      </nav>
+
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 safe-top px-3 py-2.5 flex items-center gap-2.5">
+      <header className="bg-white border-b border-gray-200 px-3 py-2.5 flex items-center gap-2.5">
         <button
           onClick={() => navigate('/')}
           className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
