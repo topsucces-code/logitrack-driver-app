@@ -27,7 +27,8 @@ export type DeliveryStatus =
   | 'delivered'
   | 'completed'
   | 'cancelled'
-  | 'failed';
+  | 'failed'
+  | 'returned';
 
 export type PackageSize = 'small' | 'medium' | 'large' | 'xlarge';
 export type PaymentMethod = 'cash' | 'momo' | 'card' | 'wallet' | 'prepaid';

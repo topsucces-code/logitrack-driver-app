@@ -205,7 +205,7 @@ export default function DeliveryDetailPage() {
 
       // Update status with proof
       await updateStatus('delivered', {
-        p_proof_photo_url: urlData.publicUrl,
+        p_confirmation_photo_url: urlData.publicUrl,
         p_recipient_name: recipientName || null,
       });
 
