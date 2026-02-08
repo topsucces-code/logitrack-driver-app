@@ -12,6 +12,8 @@ import {
   Zap,
   TrendingUp,
   ChevronRight,
+  Check,
+  X,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
@@ -24,6 +26,9 @@ import { DeliveryCardSkeleton } from '../components/ui/Skeleton';
 import { NotificationBell } from '../components/NotificationBell';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { PullToRefreshIndicator } from '../components/PullToRefreshIndicator';
+import { useSwipeGesture } from '../hooks/useSwipeGesture';
+
+const SWIPE_HINT_KEY = 'logitrack_swipe_hint_shown';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -38,6 +43,28 @@ export default function DashboardPage() {
   const [weekStats, setWeekStats] = useState({ deliveries: 0, earnings: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showSwipeHint, setShowSwipeHint] = useState(() => {
+    try {
+      return !localStorage.getItem(SWIPE_HINT_KEY);
+    } catch {
+      return false;
+    }
+  });
+
+  // Dismiss a delivery by removing it from the local list (skip/ignore)
+  const dismissDelivery = useCallback((deliveryId: string) => {
+    setPendingDeliveries(prev => prev.filter(d => d.id !== deliveryId));
+  }, []);
+
+  // Hide the swipe hint after first interaction
+  const hideSwipeHint = useCallback(() => {
+    setShowSwipeHint(false);
+    try {
+      localStorage.setItem(SWIPE_HINT_KEY, '1');
+    } catch {
+      // localStorage unavailable
+    }
+  }, []);
 
   // Get greeting based on time
   function getGreeting() {
@@ -441,12 +468,21 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-3 pb-24">
+                {showSwipeHint && pendingDeliveries.length > 0 && (
+                  <div className="flex items-center justify-center gap-2 py-1.5 text-xs text-gray-400 animate-pulse">
+                    <span>&larr;</span>
+                    <span>Glissez pour accepter ou ignorer</span>
+                    <span>&rarr;</span>
+                  </div>
+                )}
                 {pendingDeliveries.map((delivery) => (
                   <DeliveryCard
                     key={delivery.id}
                     delivery={delivery}
                     onAccept={() => acceptDelivery(delivery.id)}
+                    onDismiss={() => dismissDelivery(delivery.id)}
                     onViewDetails={() => navigate(`/delivery/${delivery.id}`)}
+                    onSwipeStart={showSwipeHint ? hideSwipeHint : undefined}
                     disabled={!isOnline || !isVerified}
                   />
                 ))}
@@ -487,20 +523,44 @@ export default function DashboardPage() {
   );
 }
 
-// Delivery Card Component
+// Delivery Card Component with swipe gestures
 const DeliveryCard = memo(function DeliveryCard({
   delivery,
   onAccept,
+  onDismiss,
   onViewDetails,
+  onSwipeStart,
   disabled,
 }: {
   delivery: Delivery;
   onAccept: () => void;
+  onDismiss: () => void;
   onViewDetails: () => void;
+  onSwipeStart?: () => void;
   disabled: boolean;
 }) {
   const [timeLeft, setTimeLeft] = useState('');
   const [expired, setExpired] = useState(false);
+
+  const handleSwipeRight = useCallback(() => {
+    if (!disabled) onAccept();
+  }, [disabled, onAccept]);
+
+  const handleSwipeLeft = useCallback(() => {
+    onDismiss();
+  }, [onDismiss]);
+
+  const { swipeOffset, isSwiping, isDismissed, swipeProps } = useSwipeGesture({
+    onSwipeRight: handleSwipeRight,
+    onSwipeLeft: handleSwipeLeft,
+  });
+
+  // Notify parent on first swipe interaction (to hide hint)
+  useEffect(() => {
+    if (isSwiping && onSwipeStart) {
+      onSwipeStart();
+    }
+  }, [isSwiping, onSwipeStart]);
 
   // Calculate time since creation (simulate expiry countdown)
   useEffect(() => {
@@ -532,65 +592,114 @@ const DeliveryCard = memo(function DeliveryCard({
   const pickupZone = delivery.pickup_address?.split(',')[0] || delivery.pickup_contact_name || 'Pickup';
   const deliveryZone = delivery.delivery_address?.split(',')[0] || delivery.delivery_contact_name || 'Destination';
 
+  // Swipe progress for background reveal (0 to 1)
+  const swipeProgress = Math.min(Math.abs(swipeOffset) / 80, 1);
+  const isSwipingRight = swipeOffset > 0;
+  const isSwipingLeft = swipeOffset < 0;
+
   return (
-    <div className={`bg-white rounded-xl p-3 shadow-sm border border-gray-100 transition-opacity ${expired ? 'opacity-50' : ''}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm">📦</span>
-          <span className="font-semibold text-gray-900 text-sm">Nouvelle course !</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          {delivery.is_express && (
-            <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-medium rounded-full">
-              <Zap className="w-3 h-3" />
-              Express
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Route */}
-      <div className="mb-2">
-        <p className="text-gray-900 font-medium text-sm">
-          {pickupZone} → {deliveryZone}
-        </p>
-      </div>
-
-      {/* Details */}
-      <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
-        <span className="flex items-center gap-1">
-          <Navigation className="w-3.5 h-3.5" />
-          ~{delivery.distance_km?.toFixed(0) || '?'} km
-        </span>
-        <span className="font-bold text-primary-600">
-          Gain : {delivery.driver_earnings?.toLocaleString()} FCFA
-        </span>
-      </div>
-
-      {/* Timer */}
-      {timeLeft && (
-        <div className={`flex items-center gap-1.5 text-xs mb-2.5 ${expired ? 'text-red-600' : 'text-orange-600'}`}>
-          <Clock className="w-3.5 h-3.5" />
-          <span>{expired ? timeLeft : `Expire dans ${timeLeft}`}</span>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={onViewDetails}
-          className="flex-1 py-2 border border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:bg-gray-50 transition-colors"
+    <div
+      className={`relative overflow-hidden rounded-xl transition-all ${
+        isDismissed ? 'max-h-0 opacity-0 mb-0 mt-0' : 'max-h-96'
+      }`}
+      style={{
+        transitionDuration: isDismissed ? '300ms' : '0ms',
+        transitionProperty: 'max-height, opacity, margin',
+      }}
+    >
+      {/* Background action indicators */}
+      <div className="absolute inset-0 flex items-center rounded-xl overflow-hidden">
+        {/* Right swipe background (Accept - green) */}
+        <div
+          className="absolute inset-0 bg-green-500 flex items-center pl-4 rounded-xl"
+          style={{ opacity: isSwipingRight ? swipeProgress : 0 }}
         >
-          VOIR DÉTAILS
-        </button>
-        <button
-          onClick={onAccept}
-          disabled={disabled}
-          className="flex-1 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          <div className="flex items-center gap-1.5 text-white">
+            <Check className="w-5 h-5" />
+            <span className="font-semibold text-sm">Accepter</span>
+          </div>
+        </div>
+        {/* Left swipe background (Dismiss - red) */}
+        <div
+          className="absolute inset-0 bg-red-500 flex items-center justify-end pr-4 rounded-xl"
+          style={{ opacity: isSwipingLeft ? swipeProgress : 0 }}
         >
-          ACCEPTER
-        </button>
+          <div className="flex items-center gap-1.5 text-white">
+            <span className="font-semibold text-sm">Ignorer</span>
+            <X className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Swipeable card */}
+      <div
+        {...swipeProps}
+        className={`relative bg-white rounded-xl p-3 shadow-sm border border-gray-100 ${
+          expired ? 'opacity-50' : ''
+        } ${isSwiping ? '' : 'transition-transform duration-200'}`}
+        style={{
+          transform: `translateX(${swipeOffset}px)`,
+          willChange: isSwiping ? 'transform' : 'auto',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">📦</span>
+            <span className="font-semibold text-gray-900 text-sm">Nouvelle course !</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {delivery.is_express && (
+              <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-medium rounded-full">
+                <Zap className="w-3 h-3" />
+                Express
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Route */}
+        <div className="mb-2">
+          <p className="text-gray-900 font-medium text-sm">
+            {pickupZone} &rarr; {deliveryZone}
+          </p>
+        </div>
+
+        {/* Details */}
+        <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+          <span className="flex items-center gap-1">
+            <Navigation className="w-3.5 h-3.5" />
+            ~{delivery.distance_km?.toFixed(0) || '?'} km
+          </span>
+          <span className="font-bold text-primary-600">
+            Gain : {delivery.driver_earnings?.toLocaleString()} FCFA
+          </span>
+        </div>
+
+        {/* Timer */}
+        {timeLeft && (
+          <div className={`flex items-center gap-1.5 text-xs mb-2.5 ${expired ? 'text-red-600' : 'text-orange-600'}`}>
+            <Clock className="w-3.5 h-3.5" />
+            <span>{expired ? timeLeft : `Expire dans ${timeLeft}`}</span>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={onViewDetails}
+            className="flex-1 py-2 border border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            VOIR DETAILS
+          </button>
+          <button
+            onClick={onAccept}
+            disabled={disabled}
+            className="flex-1 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            ACCEPTER
+          </button>
+        </div>
       </div>
     </div>
   );
