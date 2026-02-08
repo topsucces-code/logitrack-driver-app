@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -11,6 +11,8 @@ import {
   CreditCard,
   Loader2,
   X,
+  Search,
+  RotateCcw,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -203,6 +205,48 @@ function TabButton({
   );
 }
 
+// Date range quick filter type
+type DateRangePreset = 'today' | 'week' | 'month' | 'all';
+
+// Debounce hook
+function useDebounce(value: string, delay: number): string {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// Get date range from preset
+function getDateRangeFromPreset(preset: DateRangePreset): { start: string; end: string } {
+  const now = new Date();
+  const end = now.toISOString().slice(0, 10);
+
+  switch (preset) {
+    case 'today': {
+      const start = now.toISOString().slice(0, 10);
+      return { start, end };
+    }
+    case 'week': {
+      const weekStart = new Date(now);
+      const day = weekStart.getDay();
+      const diff = day === 0 ? 6 : day - 1; // Monday = start of week
+      weekStart.setDate(weekStart.getDate() - diff);
+      return { start: weekStart.toISOString().slice(0, 10), end };
+    }
+    case 'month': {
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { start: monthStart.toISOString().slice(0, 10), end };
+    }
+    case 'all':
+    default:
+      return { start: '', end: '' };
+  }
+}
+
 // Transaction History Component
 function TransactionHistory() {
   const { showError } = useToast();
@@ -210,6 +254,13 @@ function TransactionHistory() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [filter, setFilter] = useState<'all' | 'earnings' | 'withdrawal'>('all');
+
+  // Search and date filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
+  const [datePreset, setDatePreset] = useState<DateRangePreset>('all');
+  const [dateStart, setDateStart] = useState('');
+  const [dateEnd, setDateEnd] = useState('');
 
   useEffect(() => {
     loadTransactions();
@@ -220,6 +271,37 @@ function TransactionHistory() {
     setTransactions(data);
     setLoading(false);
   };
+
+  // Handle date preset change
+  const handleDatePreset = useCallback((preset: DateRangePreset) => {
+    setDatePreset(preset);
+    const range = getDateRangeFromPreset(preset);
+    setDateStart(range.start);
+    setDateEnd(range.end);
+  }, []);
+
+  // Handle manual date change (clears the preset)
+  const handleDateStartChange = useCallback((value: string) => {
+    setDateStart(value);
+    setDatePreset('all');
+  }, []);
+
+  const handleDateEndChange = useCallback((value: string) => {
+    setDateEnd(value);
+    setDatePreset('all');
+  }, []);
+
+  // Check if any filter is active
+  const hasActiveFilters = debouncedSearch !== '' || dateStart !== '' || dateEnd !== '' || filter !== 'all';
+
+  // Reset all filters
+  const resetFilters = useCallback(() => {
+    setSearchQuery('');
+    setFilter('all');
+    setDatePreset('all');
+    setDateStart('');
+    setDateEnd('');
+  }, []);
 
   const handleExportPDF = async () => {
     if (transactions.length === 0) return;
@@ -239,7 +321,7 @@ function TransactionHistory() {
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100);
-      doc.text(`Relevé de transactions — ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, y);
+      doc.text(`Releve de transactions — ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, y);
       y += 12;
 
       // Table header
@@ -275,7 +357,7 @@ function TransactionHistory() {
         doc.setTextColor(tx.type === 'earnings' ? 34 : 220, tx.type === 'earnings' ? 139 : 38, tx.type === 'earnings' ? 34 : 38);
         doc.text(`${prefix}${formatCurrency(tx.amount)} FCFA`, margin + 110, y);
 
-        const statusLabels: Record<string, string> = { completed: 'Complété', pending: 'En attente', failed: 'Échoué' };
+        const statusLabels: Record<string, string> = { completed: 'Complete', pending: 'En attente', failed: 'Echoue' };
         doc.setTextColor(100);
         doc.text(statusLabels[tx.status] || tx.status, margin + 145, y);
         y += 6;
@@ -288,7 +370,7 @@ function TransactionHistory() {
       y += 6;
       doc.setFontSize(8);
       doc.setTextColor(150);
-      doc.text('Document généré automatiquement par LogiTrack Africa', margin, y);
+      doc.text('Document genere automatiquement par LogiTrack Africa', margin, y);
 
       doc.save(`logitrack-releve-${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (err) {
@@ -298,12 +380,33 @@ function TransactionHistory() {
     }
   };
 
-  const filteredTransactions = useMemo(() => transactions.filter((tx) => {
-    if (filter === 'all') return true;
-    if (filter === 'earnings') return tx.type === 'earnings';
-    if (filter === 'withdrawal') return tx.type === 'withdrawal';
-    return true;
-  }), [transactions, filter]);
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((tx) => {
+      // Type filter
+      if (filter === 'earnings' && tx.type !== 'earnings') return false;
+      if (filter === 'withdrawal' && tx.type !== 'withdrawal') return false;
+
+      // Search filter (reference or description)
+      if (debouncedSearch) {
+        const query = debouncedSearch.toLowerCase();
+        const matchesRef = tx.reference.toLowerCase().includes(query);
+        const matchesDesc = tx.description.toLowerCase().includes(query);
+        if (!matchesRef && !matchesDesc) return false;
+      }
+
+      // Date range filter
+      if (dateStart) {
+        const txDate = tx.createdAt.slice(0, 10);
+        if (txDate < dateStart) return false;
+      }
+      if (dateEnd) {
+        const txDate = tx.createdAt.slice(0, 10);
+        if (txDate > dateEnd) return false;
+      }
+
+      return true;
+    });
+  }, [transactions, filter, debouncedSearch, dateStart, dateEnd]);
 
   // Group by date
   const groupedTransactions = useMemo(() => filteredTransactions.reduce((groups, tx) => {
@@ -328,9 +431,77 @@ function TransactionHistory() {
   }
 
   return (
-    <div className="p-4">
-      {/* Filters */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+    <div className="p-3 space-y-3">
+      {/* Search Input */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Rechercher par reference ou description..."
+          className="w-full pl-9 pr-3 py-2.5 rounded-lg text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2"
+          >
+            <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+          </button>
+        )}
+      </div>
+
+      {/* Date Range Filter */}
+      <div className="space-y-2">
+        {/* Quick date buttons */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {([
+            { key: 'today', label: "Aujourd'hui" },
+            { key: 'week', label: 'Cette semaine' },
+            { key: 'month', label: 'Ce mois' },
+            { key: 'all', label: 'Tout' },
+          ] as { key: DateRangePreset; label: string }[]).map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => handleDatePreset(key)}
+              className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                datePreset === key
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom date range inputs */}
+        <div className="flex gap-2 items-center">
+          <div className="flex-1 relative">
+            <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            <input
+              type="date"
+              value={dateStart}
+              onChange={(e) => handleDateStartChange(e.target.value)}
+              className="w-full pl-8 pr-2 py-2.5 rounded-lg text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+          <span className="text-xs text-gray-400 flex-shrink-0">a</span>
+          <div className="flex-1 relative">
+            <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+            <input
+              type="date"
+              value={dateEnd}
+              onChange={(e) => handleDateEndChange(e.target.value)}
+              className="w-full pl-8 pr-2 py-2.5 rounded-lg text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Type Filters */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
         <FilterChip
           active={filter === 'all'}
           onClick={() => setFilter('all')}
@@ -350,27 +521,53 @@ function TransactionHistory() {
         />
       </div>
 
+      {/* Result count and reset */}
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
+        </p>
+        {hasActiveFilters && (
+          <button
+            onClick={resetFilters}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Reinitialiser
+          </button>
+        )}
+      </div>
+
       {/* Export Button */}
       <button
         onClick={handleExportPDF}
         disabled={exporting || transactions.length === 0}
-        className="w-full mb-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300 font-medium disabled:opacity-50"
+        className="w-full py-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium disabled:opacity-50"
       >
-        {exporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-        {exporting ? 'Génération...' : 'Exporter en PDF'}
+        {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+        {exporting ? 'Generation...' : 'Exporter en PDF'}
       </button>
 
       {/* Transactions List */}
       {Object.keys(groupedTransactions).length === 0 ? (
-        <div className="text-center py-12">
-          <History className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">Aucune transaction</p>
+        <div className="text-center py-10">
+          <History className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {hasActiveFilters ? 'Aucune transaction correspondante' : 'Aucune transaction'}
+          </p>
+          {hasActiveFilters && (
+            <button
+              onClick={resetFilters}
+              className="mt-2 text-xs text-primary-600 dark:text-primary-400 underline"
+            >
+              Effacer les filtres
+            </button>
+          )}
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {Object.entries(groupedTransactions).map(([date, txs]) => (
             <div key={date}>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 capitalize">
+              <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 capitalize">
                 {date}
               </h3>
               <div className="space-y-2">
