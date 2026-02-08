@@ -8,6 +8,7 @@ import {
   X,
   ChevronDown,
   Info,
+  RotateCcw,
 } from 'lucide-react';
 import {
   MobileMoneyWallet,
@@ -41,6 +42,8 @@ export function MobileMoneyWithdraw({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [showWalletPicker, setShowWalletPicker] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     loadWallets();
@@ -80,7 +83,7 @@ export function MobileMoneyWithdraw({
     setError('');
   };
 
-  const handleWithdraw = async () => {
+  const handleWithdraw = async (isRetry = false) => {
     if (!selectedWallet || amountNum <= 0) return;
 
     // Validations
@@ -97,6 +100,12 @@ export function MobileMoneyWithdraw({
     setProcessing(true);
     setError('');
 
+    if (isRetry) {
+      setRetryCount(prev => prev + 1);
+    } else {
+      setRetryCount(0);
+    }
+
     try {
       const result = await initiateWithdrawal({
         amount: amountNum,
@@ -106,6 +115,7 @@ export function MobileMoneyWithdraw({
 
       if (result.success) {
         setSuccess(true);
+        setRetryCount(0);
         setTimeout(() => {
           onSuccess?.();
           onClose();
@@ -117,6 +127,12 @@ export function MobileMoneyWithdraw({
       setError('Erreur de connexion');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleRetryWithdrawal = () => {
+    if (retryCount < MAX_RETRIES) {
+      handleWithdraw(true);
     }
   };
 
@@ -294,17 +310,39 @@ export function MobileMoneyWithdraw({
             </div>
           )}
 
-          {/* Erreur */}
+          {/* Erreur avec bouton Réessayer */}
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
+              </div>
+              {retryCount < MAX_RETRIES && (
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-xs text-red-400 dark:text-red-500">
+                    {retryCount > 0 ? `Tentative ${retryCount}/${MAX_RETRIES}` : ''}
+                  </span>
+                  <button
+                    onClick={handleRetryWithdrawal}
+                    disabled={processing}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 disabled:opacity-50 transition-colors"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Réessayer
+                  </button>
+                </div>
+              )}
+              {retryCount >= MAX_RETRIES && (
+                <p className="mt-2 text-xs text-red-400 dark:text-red-500">
+                  Nombre maximum de tentatives atteint. Veuillez réessayer plus tard.
+                </p>
+              )}
             </div>
           )}
 
           {/* Bouton de retrait */}
           <button
-            onClick={handleWithdraw}
+            onClick={() => handleWithdraw(false)}
             disabled={processing || amountNum <= 0 || !selectedWallet}
             className="w-full py-4 btn-gradient text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
           >

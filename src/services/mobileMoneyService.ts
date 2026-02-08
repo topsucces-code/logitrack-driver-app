@@ -164,6 +164,27 @@ export function formatCurrency(amount: number): string {
   }).format(amount) + ' FCFA';
 }
 
+// Retry wrapper with exponential backoff for network calls
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelayMs = 2000
+): Promise<T> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt < maxRetries - 1) {
+        const delay = baseDelayMs * Math.pow(2, attempt); // exponential backoff: 2s, 4s, 8s
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
 // ========== Real Supabase API ==========
 
 // Récupérer les wallets de l'utilisateur (from driver profile)
@@ -473,7 +494,7 @@ export async function getEarningsHistory(days = 7, driverId?: string): Promise<{
   return Object.entries(dayMap).map(([date, amount]) => ({ date, amount }));
 }
 
-// Initier un retrait via RPC
+// Initier un retrait via RPC (with automatic retry on network errors)
 export async function initiateWithdrawal(request: WithdrawalRequest): Promise<PaymentResult> {
   const provider = MOBILE_MONEY_PROVIDERS[request.provider];
   if (!provider || !provider.isActive) {
@@ -484,24 +505,36 @@ export async function initiateWithdrawal(request: WithdrawalRequest): Promise<Pa
     return { success: false, error: `Montant minimum: ${formatCurrency(provider.limits.minAmount)}` };
   }
 
-  const { data, error } = await supabase.rpc('request_logitrack_withdrawal', {
-    p_amount: request.amount,
-    p_method: provider.name,
-    p_account: request.phoneNumber,
-  });
+  try {
+    const { data, error } = await withRetry(
+      async () => {
+        const result = await supabase.rpc('request_logitrack_withdrawal', {
+          p_amount: request.amount,
+          p_method: provider.name,
+          p_account: request.phoneNumber,
+        });
+        return result;
+      },
+      3,
+      2000
+    );
 
-  if (error) {
-    return { success: false, error: error.message };
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (data && !data.success) {
+      return { success: false, error: data.error || 'Erreur lors du retrait' };
+    }
+
+    return {
+      success: true,
+      otpMessage: `Votre retrait de ${formatCurrency(request.amount)} est en cours de traitement.`,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { success: false, error: `Erreur réseau: ${message}` };
   }
-
-  if (data && !data.success) {
-    return { success: false, error: data.error || 'Erreur lors du retrait' };
-  }
-
-  return {
-    success: true,
-    otpMessage: `Votre retrait de ${formatCurrency(request.amount)} est en cours de traitement.`,
-  };
 }
 
 // Initier un paiement via Edge Function

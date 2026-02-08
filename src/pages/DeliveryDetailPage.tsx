@@ -32,6 +32,23 @@ import { CustomerRating } from '../components/CustomerRating';
 import { CommunicationButton } from '../components/DeliveryCommunication';
 import { ShareTrackingButton } from '../components/ShareTracking';
 
+// GPS proximity radius in meters for pickup/delivery validation
+const GPS_PROXIMITY_RADIUS_M = 200;
+
+/**
+ * Calculate distance between two coordinates in meters using the Haversine formula.
+ */
+function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000; // Earth radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // Fix Leaflet marker icons - use local files for offline support
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -115,6 +132,29 @@ export default function DeliveryDetailPage() {
   // Update delivery status
   async function updateStatus(newStatus: string, extraData?: Record<string, any>) {
     if (!delivery || !position) return;
+
+    // GPS proximity validation for picked_up (must be near pickup) and delivered (must be near delivery)
+    if (newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
+      const dist = getDistanceMeters(
+        position.lat, position.lng,
+        Number(delivery.pickup_latitude), Number(delivery.pickup_longitude)
+      );
+      if (dist > GPS_PROXIMITY_RADIUS_M) {
+        showError(`Vous êtes à ${Math.round(dist)}m du point de collecte. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
+        return;
+      }
+    }
+
+    if (newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
+      const dist = getDistanceMeters(
+        position.lat, position.lng,
+        Number(delivery.delivery_latitude), Number(delivery.delivery_longitude)
+      );
+      if (dist > GPS_PROXIMITY_RADIUS_M) {
+        showError(`Vous êtes à ${Math.round(dist)}m du point de livraison. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
+        return;
+      }
+    }
 
     setUpdating(true);
 
