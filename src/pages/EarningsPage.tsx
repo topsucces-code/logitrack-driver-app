@@ -8,6 +8,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Clock,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase, WalletTransaction } from '../lib/supabase';
@@ -150,6 +151,46 @@ export default function EarningsPage() {
     setWithdrawing(false);
   }
 
+  function exportCSV() {
+    if (transactions.length === 0) {
+      showError('Aucune transaction à exporter');
+      return;
+    }
+
+    const typeLabels: Record<string, string> = {
+      earning: 'Gain livraison',
+      withdrawal: 'Retrait',
+      bonus: 'Bonus',
+      penalty: 'Pénalité',
+      adjustment: 'Ajustement',
+    };
+
+    const statusLabels: Record<string, string> = {
+      pending: 'En attente',
+      processing: 'En cours',
+      completed: 'Terminé',
+      failed: 'Échoué',
+    };
+
+    const headers = ['Date', 'Type', 'Description', 'Montant', 'Statut'];
+    const rows = transactions.map((tx) => [
+      format(new Date(tx.created_at), 'dd/MM/yyyy HH:mm', { locale: fr }),
+      typeLabels[tx.type] || tx.type,
+      tx.description || '-',
+      tx.amount.toString(),
+      tx.payout_status ? statusLabels[tx.payout_status] || tx.payout_status : '-',
+    ]);
+
+    const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `revenus_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (!driver) return null;
 
   return (
@@ -163,7 +204,15 @@ export default function EarningsPage() {
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <h1 className="text-base font-bold">Mes gains</h1>
+          <h1 className="text-base font-bold flex-1">Mes gains</h1>
+          <button
+            onClick={exportCSV}
+            disabled={loading || transactions.length === 0}
+            className="px-3 py-2 text-xs rounded-lg bg-white/20 hover:bg-white/30 disabled:opacity-50 flex items-center gap-1.5 font-medium transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Exporter CSV
+          </button>
         </div>
 
         {/* Balance */}

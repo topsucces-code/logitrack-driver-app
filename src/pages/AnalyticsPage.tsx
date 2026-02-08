@@ -14,6 +14,7 @@ import {
   Wallet,
   Target,
   Award,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -200,6 +201,76 @@ export default function AnalyticsPage() {
     setLoading(false);
   }
 
+  function exportCSV() {
+    const timeRangeLabels: Record<TimeRange, string> = {
+      week: 'Semaine',
+      month: 'Mois',
+      all: 'Tout',
+    };
+
+    const headers = [
+      'Période',
+      'Livraisons',
+      'Revenus (FCFA)',
+      'Moyenne par livraison (FCFA)',
+      'Note moyenne',
+      'Taux d\'acceptation (%)',
+      'Taux de complétion (%)',
+      'Temps moyen (min)',
+    ];
+
+    const row = [
+      timeRangeLabels[timeRange],
+      stats.totalDeliveries.toString(),
+      stats.totalEarnings.toString(),
+      stats.avgEarningsPerDelivery.toFixed(0),
+      stats.rating.toFixed(1),
+      (stats.acceptanceRate * 100).toFixed(0),
+      (stats.completionRate * 100).toFixed(0),
+      stats.avgDeliveryTime.toFixed(0),
+    ];
+
+    // Add daily breakdown
+    const dailyHeaders = ['', '', 'Détail quotidien'];
+    const dailyColHeaders = ['Date', 'Livraisons', 'Revenus (FCFA)'];
+    const dailyRows = dailyStats
+      .filter((d) => d.deliveries > 0 || d.earnings > 0)
+      .map((d) => [
+        format(new Date(d.date), 'dd/MM/yyyy', { locale: fr }),
+        d.deliveries.toString(),
+        d.earnings.toString(),
+      ]);
+
+    // Add zone breakdown
+    const zoneSection = zoneStats.length > 0
+      ? [
+          ['', '', 'Top zones'],
+          ['Zone', 'Livraisons', 'Revenus (FCFA)'],
+          ...zoneStats.map((z) => [z.zone, z.deliveries.toString(), z.earnings.toString()]),
+        ]
+      : [];
+
+    const allRows = [
+      headers,
+      row,
+      [],
+      dailyHeaders,
+      dailyColHeaders,
+      ...dailyRows,
+      [],
+      ...zoneSection,
+    ];
+
+    const csv = allRows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `statistiques_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (!driver) return null;
 
   const maxDailyEarning = useMemo(() => Math.max(...dailyStats.map((d) => d.earnings), 1), [dailyStats]);
@@ -215,7 +286,15 @@ export default function AnalyticsPage() {
           >
             <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white">Statistiques</h1>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white flex-1">Statistiques</h1>
+          <button
+            onClick={exportCSV}
+            disabled={loading}
+            className="px-3 py-2 text-xs rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-200 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Exporter
+          </button>
         </div>
 
         {/* Time Range Selector - Compact */}
