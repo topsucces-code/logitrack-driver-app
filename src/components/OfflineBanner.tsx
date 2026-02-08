@@ -44,19 +44,28 @@ export function OfflineBanner() {
           ? pendingCount > 0
             ? 'bg-yellow-500 text-yellow-900'
             : 'bg-green-500 text-white'
-          : 'bg-red-500 text-white'
+          : pendingCount > 0
+            ? 'bg-amber-600 text-white'
+            : 'bg-red-500 text-white'
       }`}
     >
       <div className="flex items-center justify-center gap-2">
         {!isOnline ? (
-          <>
-            <WifiOff className="w-4 h-4" />
-            <span>Vous êtes hors ligne</span>
-          </>
+          pendingCount > 0 ? (
+            <>
+              <WifiOff className="w-4 h-4" />
+              <span>Hors ligne - {pendingCount} action{pendingCount > 1 ? 's' : ''} en attente de sync</span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="w-4 h-4" />
+              <span>Vous êtes hors ligne</span>
+            </>
+          )
         ) : pendingCount > 0 ? (
           <>
             <RefreshCw className="w-4 h-4 animate-spin" />
-            <span>Synchronisation de {pendingCount} action{pendingCount > 1 ? 's' : ''}...</span>
+            <span>Synchronisation en cours... ({pendingCount})</span>
           </>
         ) : (
           <span>Connexion rétablie</span>

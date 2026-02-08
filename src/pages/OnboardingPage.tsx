@@ -28,6 +28,31 @@ import {
   validateForm,
 } from '../lib/validations';
 
+// Compress image before upload
+async function compressImage(base64: string, maxWidth = 1024, quality = 0.7): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(base64); // fallback to original if compression fails
+    img.src = base64;
+  });
+}
+
 // Zone type from database
 interface Zone {
   id: string;
@@ -113,10 +138,9 @@ export default function OnboardingPage() {
         });
 
         if (photo.base64String) {
-          setData(prev => ({
-            ...prev,
-            [field]: `data:image/jpeg;base64,${photo.base64String}`,
-          }));
+          const raw = `data:image/jpeg;base64,${photo.base64String}`;
+          const compressed = await compressImage(raw);
+          setData(prev => ({ ...prev, [field]: compressed }));
         }
       } else {
         setCurrentPhotoField(field);
@@ -132,10 +156,11 @@ export default function OnboardingPage() {
     const file = e.target.files?.[0];
     if (file && currentPhotoField) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
+        const compressed = await compressImage(reader.result as string);
         setData(prev => ({
           ...prev,
-          [currentPhotoField]: reader.result as string,
+          [currentPhotoField]: compressed,
         }));
       };
       reader.readAsDataURL(file);

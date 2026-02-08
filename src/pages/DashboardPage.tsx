@@ -78,7 +78,13 @@ export default function DashboardPage() {
         query = query.limit(DELIVERY_CONFIG.defaultListLimit);
 
         const { data: pending } = await query;
-        setPendingDeliveries((pending as Delivery[]) || []);
+        const now = new Date().getTime();
+        const validDeliveries = ((pending as Delivery[]) || []).filter(d => {
+          const created = new Date(d.created_at).getTime();
+          const ageMinutes = (now - created) / 60000;
+          return ageMinutes < DELIVERY_CONFIG.expiryMinutes;
+        });
+        setPendingDeliveries(validDeliveries);
       } else {
         setPendingDeliveries([]);
       }
@@ -479,6 +485,7 @@ const DeliveryCard = memo(function DeliveryCard({
   disabled: boolean;
 }) {
   const [timeLeft, setTimeLeft] = useState('');
+  const [expired, setExpired] = useState(false);
 
   // Calculate time since creation (simulate expiry countdown)
   useEffect(() => {
@@ -494,8 +501,10 @@ const DeliveryCard = memo(function DeliveryCard({
         const min = Math.floor(expiryMin);
         const sec = Math.floor((expiryMin - min) * 60);
         setTimeLeft(`${min}:${sec.toString().padStart(2, '0')}`);
+        setExpired(false);
       } else {
-        setTimeLeft('');
+        setTimeLeft('Expir\u00e9e');
+        setExpired(true);
       }
     };
 
@@ -509,7 +518,7 @@ const DeliveryCard = memo(function DeliveryCard({
   const deliveryZone = delivery.delivery_address?.split(',')[0] || delivery.delivery_contact_name || 'Destination';
 
   return (
-    <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+    <div className={`bg-white rounded-xl p-3 shadow-sm border border-gray-100 transition-opacity ${expired ? 'opacity-50' : ''}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
@@ -546,9 +555,9 @@ const DeliveryCard = memo(function DeliveryCard({
 
       {/* Timer */}
       {timeLeft && (
-        <div className="flex items-center gap-1.5 text-xs text-orange-600 mb-2.5">
+        <div className={`flex items-center gap-1.5 text-xs mb-2.5 ${expired ? 'text-red-600' : 'text-orange-600'}`}>
           <Clock className="w-3.5 h-3.5" />
-          <span>Expire dans {timeLeft}</span>
+          <span>{expired ? timeLeft : `Expire dans ${timeLeft}`}</span>
         </div>
       )}
 
