@@ -22,6 +22,8 @@ import { useToast } from '../contexts/ToastContext';
 import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { DeliveryCardSkeleton } from '../components/ui/Skeleton';
 import { NotificationBell } from '../components/NotificationBell';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { PullToRefreshIndicator } from '../components/PullToRefreshIndicator';
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -130,6 +132,16 @@ export default function DashboardPage() {
       setRefreshing(false);
     }
   }, [driver]);
+
+  // Pull-to-refresh
+  const handlePullRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchDeliveries();
+  }, [fetchDeliveries]);
+
+  const { pullDistance, pullState, pullToRefreshProps } = usePullToRefresh({
+    onRefresh: handlePullRefresh,
+  });
 
   // Initial fetch
   useEffect(() => {
@@ -292,7 +304,9 @@ export default function DashboardPage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-3 -mt-1">
+      <div className="flex-1 overflow-y-auto" {...pullToRefreshProps}>
+        <PullToRefreshIndicator pullDistance={pullDistance} pullState={pullState} />
+        <div className="px-3 -mt-1">
         {/* Earnings Card */}
         <div className="bg-white rounded-xl shadow-sm p-3 mb-3">
           <div className="flex items-center justify-between mb-3">
@@ -450,6 +464,7 @@ export default function DashboardPage() {
             </p>
           </div>
         )}
+        </div>
       </div>
 
       {/* Bottom Navigation */}

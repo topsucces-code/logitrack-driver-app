@@ -25,6 +25,8 @@ import {
 } from '../services/mobileMoneyService';
 import { MobileMoneyTransaction } from '../types/mobileMoney';
 import jsPDF from 'jspdf';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { PullToRefreshIndicator } from '../components/PullToRefreshIndicator';
 
 type TabType = 'overview' | 'history' | 'analytics';
 
@@ -37,15 +39,27 @@ export default function WalletPage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<MobileMoneyTransaction[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Load recent transactions for notifications
-  useEffect(() => {
-    async function loadNotifs() {
-      const txs = await getTransactions(undefined, 5);
-      setNotifications(txs);
-    }
-    loadNotifs();
+  const loadNotifs = useCallback(async () => {
+    const txs = await getTransactions(undefined, 5);
+    setNotifications(txs);
   }, []);
+
+  useEffect(() => {
+    loadNotifs();
+  }, [loadNotifs]);
+
+  // Pull-to-refresh
+  const handlePullRefresh = useCallback(async () => {
+    await loadNotifs();
+    setRefreshKey(k => k + 1);
+  }, [loadNotifs]);
+
+  const { pullDistance, pullState, pullToRefreshProps } = usePullToRefresh({
+    onRefresh: handlePullRefresh,
+  });
 
   // Close notifications on outside click
   useEffect(() => {
@@ -155,16 +169,18 @@ export default function WalletPage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" {...pullToRefreshProps}>
+        <PullToRefreshIndicator pullDistance={pullDistance} pullState={pullState} />
+
         {activeTab === 'overview' && (
-          <div className="p-4">
+          <div className="p-4" key={`overview-${refreshKey}`}>
             <MobileMoneyDashboard onWithdraw={() => setShowWithdraw(true)} />
           </div>
         )}
 
-        {activeTab === 'history' && <TransactionHistory />}
+        {activeTab === 'history' && <TransactionHistory key={`history-${refreshKey}`} />}
 
-        {activeTab === 'analytics' && <EarningsAnalytics />}
+        {activeTab === 'analytics' && <EarningsAnalytics key={`analytics-${refreshKey}`} />}
       </div>
 
       {/* Withdraw Modal */}

@@ -18,6 +18,8 @@ import { supabase, Delivery } from '../lib/supabase';
 import { format, startOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DELIVERY_CONFIG } from '../config/app.config';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { PullToRefreshIndicator } from '../components/PullToRefreshIndicator';
 
 type FilterPeriod = 'week' | 'month' | 'all';
 
@@ -68,45 +70,51 @@ export default function HistoryPage() {
     return query.limit(PAGE_SIZE);
   }, [driver, filterPeriod]);
 
-  // Initial fetch
-  useEffect(() => {
+  // Fetch history data
+  const fetchHistory = useCallback(async () => {
     if (!driver) return;
 
-    async function fetchHistory() {
-      setLoading(true);
-      setDeliveries([]);
-      setHasMore(true);
+    setLoading(true);
+    setDeliveries([]);
+    setHasMore(true);
 
-      const query = buildQuery();
-      if (!query) return;
+    const query = buildQuery();
+    if (!query) return;
 
-      const { data, error } = await query;
+    const { data, error } = await query;
 
-      if (error) {
-        deliveryLogger.error('Error fetching history', { error });
-      } else {
-        const deliveryList = (data as Delivery[]) || [];
-        setDeliveries(deliveryList);
-        setHasMore(deliveryList.length === PAGE_SIZE);
+    if (error) {
+      deliveryLogger.error('Error fetching history', { error });
+    } else {
+      const deliveryList = (data as Delivery[]) || [];
+      setDeliveries(deliveryList);
+      setHasMore(deliveryList.length === PAGE_SIZE);
 
-        // Calculate stats
-        const delivered = deliveryList.filter(d => d.status === 'delivered' || d.status === 'completed');
-        const cancelled = deliveryList.filter(d => d.status === 'cancelled' || d.status === 'failed');
+      // Calculate stats
+      const delivered = deliveryList.filter(d => d.status === 'delivered' || d.status === 'completed');
+      const cancelled = deliveryList.filter(d => d.status === 'cancelled' || d.status === 'failed');
 
-        setStats({
-          total: deliveryList.length,
-          delivered: delivered.length,
-          cancelled: cancelled.length,
-          totalEarnings: delivered.reduce((sum, d) => sum + (d.driver_earnings || 0), 0),
-          totalDistance: delivered.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0),
-        });
-      }
-
-      setLoading(false);
+      setStats({
+        total: deliveryList.length,
+        delivered: delivered.length,
+        cancelled: cancelled.length,
+        totalEarnings: delivered.reduce((sum, d) => sum + (d.driver_earnings || 0), 0),
+        totalDistance: delivered.reduce((sum, d) => sum + (Number(d.distance_km) || 0), 0),
+      });
     }
 
+    setLoading(false);
+  }, [driver, buildQuery]);
+
+  // Initial fetch
+  useEffect(() => {
     fetchHistory();
-  }, [driver, filterPeriod, buildQuery]);
+  }, [fetchHistory, filterPeriod]);
+
+  // Pull-to-refresh
+  const { pullDistance, pullState, pullToRefreshProps } = usePullToRefresh({
+    onRefresh: fetchHistory,
+  });
 
   // Load more
   const loadMore = useCallback(async () => {
@@ -218,9 +226,13 @@ export default function HistoryPage() {
         </div>
       </header>
 
-      {/* Stats */}
-      <div className="px-3 py-3">
-        <div className="grid grid-cols-2 gap-2">
+      {/* Scrollable content with pull-to-refresh */}
+      <div className="flex-1 overflow-y-auto" {...pullToRefreshProps}>
+        <PullToRefreshIndicator pullDistance={pullDistance} pullState={pullState} />
+
+        {/* Stats */}
+        <div className="px-3 py-3">
+          <div className="grid grid-cols-2 gap-2">
           <div className="bg-white rounded-lg p-3">
             <p className="text-xs text-gray-500">Livraisons</p>
             <p className="text-xl font-bold text-gray-900">{stats.delivered}</p>
@@ -249,9 +261,9 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      {/* List */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3">
-        {loading ? (
+        {/* List */}
+        <div className="px-3 pb-3">
+          {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="bg-white rounded-xl p-4 animate-pulse">
@@ -338,8 +350,9 @@ export default function HistoryPage() {
                 )}
               </button>
             )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
