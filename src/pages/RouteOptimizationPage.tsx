@@ -14,6 +14,7 @@ import {
   Play,
   Package,
   AlertTriangle,
+  X,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import {
@@ -43,6 +44,7 @@ export default function RouteOptimizationPage() {
   const [deliveries, setDeliveries] = useState<DeliveryStop[]>([]);
   const [optimizedRoute, setOptimizedRoute] = useState<OptimizedRoute | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     if (!driver) return;
@@ -335,13 +337,132 @@ export default function RouteOptimizationPage() {
               {t.navigate}
             </button>
             <button
-              onClick={handleApplyRoute}
-              disabled={applying}
-              className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-1 text-sm disabled:opacity-50"
+              onClick={() => setShowConfirmModal(true)}
+              className="flex-1 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg flex items-center justify-center gap-1 text-sm"
             >
-              {applying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              <Check className="w-4 h-4" />
               {t.applyOptimization}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && optimizedRoute && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+          onClick={() => !applying && setShowConfirmModal(false)}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/50" />
+
+          {/* Modal */}
+          <div
+            className="relative w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+                Confirmer le changement d'itinéraire
+              </h2>
+              <button
+                onClick={() => !applying && setShowConfirmModal(false)}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="overflow-y-auto flex-1 px-3 py-2.5">
+              {/* Summary */}
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Livraisons</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">
+                    {optimizedRoute.stops.length}
+                  </p>
+                </div>
+                {optimizedRoute.savings.time > 0 && (
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center">
+                    <p className="text-xs text-green-600 dark:text-green-400">Temps économisé</p>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {formatDuration(optimizedRoute.savings.time)}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* New delivery order */}
+              <div className="mb-3">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1.5">
+                  Nouvel ordre de livraison
+                </p>
+                <div className="space-y-1">
+                  {optimizedRoute.stops.map((stop, index) => (
+                    <div
+                      key={stop.id}
+                      className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2.5 py-1.5"
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                          index === 0
+                            ? 'bg-green-500 text-white'
+                            : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {stop.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {stop.address}
+                        </p>
+                      </div>
+                      {stop.priority === 'high' && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 flex-shrink-0">
+                          !
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Warning */}
+              <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  Cette action va modifier l'ordre de vos livraisons.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-2 px-3 py-2.5 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                disabled={applying}
+                className="flex-1 py-2.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleApplyRoute}
+                disabled={applying}
+                className="flex-1 py-2.5 text-sm rounded-lg bg-green-500 hover:bg-green-600 text-white font-medium flex items-center justify-center gap-1.5 disabled:opacity-50"
+              >
+                {applying ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                {applying ? 'Application...' : 'Appliquer'}
+              </button>
+            </div>
           </div>
         </div>
       )}
