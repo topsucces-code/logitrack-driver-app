@@ -207,8 +207,8 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
         </div>
       </header>
 
-      {/* Scrollable content area - messages + input all inside */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      {/* Scrollable content area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-16">
         {/* Welcome message */}
         {messages.length === 0 && (
           <div className="px-3 py-6">
@@ -295,8 +295,8 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
         )}
       </div>
 
-      {/* Input bar - outside scroll, at bottom */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 py-2 safe-bottom">
+      {/* Input bar - fixed at bottom like Dashboard nav */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 py-2 safe-bottom z-10">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}
