@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, Check, CheckCheck, Package, Wallet, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -11,6 +11,98 @@ import {
 } from '../services/notificationService';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+function NotificationItem({
+  notif,
+  onRead,
+  getNotifIcon,
+}: {
+  notif: AppNotification;
+  onRead: (id: string) => void;
+  getNotifIcon: (n: AppNotification) => React.ReactNode;
+}) {
+  const itemRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // IntersectionObserver: auto-mark as read after 2s of visibility
+  useEffect(() => {
+    if (notif.delivered_at) return; // already read
+
+    const el = itemRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          timerRef.current = setTimeout(() => {
+            onRead(notif.id);
+          }, 2000);
+        } else {
+          if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+          }
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [notif.id, notif.delivered_at, onRead]);
+
+  const isRead = !!notif.delivered_at;
+
+  return (
+    <div
+      ref={itemRef}
+      onClick={() => !isRead && onRead(notif.id)}
+      className={`w-full px-3 py-2.5 flex items-start gap-2.5 border-b border-gray-50 dark:border-gray-700 text-left transition-all duration-500 cursor-pointer ${
+        !isRead
+          ? 'bg-primary-50/50 dark:bg-primary-900/20'
+          : 'opacity-70 hover:opacity-100 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+      }`}
+    >
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+        isRead ? 'bg-gray-50 dark:bg-gray-700/50' : 'bg-gray-100 dark:bg-gray-700'
+      }`}>
+        {getNotifIcon(notif)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <p className={`font-medium text-sm truncate ${
+            isRead ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'
+          }`}>
+            {notif.title || 'Notification'}
+          </p>
+          {!isRead && (
+            <span className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 animate-pulse" />
+          )}
+        </div>
+        <p className={`text-xs line-clamp-2 ${
+          isRead ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'
+        }`}>
+          {notif.body}
+        </p>
+        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+          {formatDistanceToNow(new Date(notif.created_at), {
+            addSuffix: true,
+            locale: fr,
+          })}
+        </p>
+      </div>
+      {isRead && (
+        <Check className="w-3.5 h-3.5 text-gray-300 flex-shrink-0 mt-1" />
+      )}
+    </div>
+  );
+}
 
 export function NotificationBell() {
   const { driver } = useAuth();
@@ -61,7 +153,7 @@ export function NotificationBell() {
     }
   }
 
-  async function handleMarkAsRead(notifId: string) {
+  const handleMarkAsRead = useCallback(async (notifId: string) => {
     await markAsRead(notifId);
     setNotifications((prev) =>
       prev.map((n) =>
@@ -69,7 +161,7 @@ export function NotificationBell() {
       )
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
-  }
+  }, []);
 
   async function handleMarkAllRead() {
     if (!driver) return;
@@ -115,6 +207,11 @@ export function NotificationBell() {
           <div className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
               Notifications
+              {unreadCount > 0 && (
+                <span className="ml-1.5 text-xs font-normal text-gray-500">
+                  ({unreadCount} non lue{unreadCount > 1 ? 's' : ''})
+                </span>
+              )}
             </h3>
             {unreadCount > 0 && (
               <button
@@ -126,6 +223,15 @@ export function NotificationBell() {
               </button>
             )}
           </div>
+
+          {/* Auto-read hint */}
+          {unreadCount > 0 && (
+            <div className="px-3 py-1.5 bg-primary-50/50 dark:bg-primary-900/10 border-b border-gray-100 dark:border-gray-700">
+              <p className="text-[10px] text-primary-600 dark:text-primary-400">
+                Les notifications sont marquées lues automatiquement
+              </p>
+            </div>
+          )}
 
           {/* List */}
           <div className="flex-1 overflow-y-auto">
@@ -140,41 +246,12 @@ export function NotificationBell() {
               </div>
             ) : (
               notifications.map((notif) => (
-                <button
+                <NotificationItem
                   key={notif.id}
-                  onClick={() => !notif.delivered_at && handleMarkAsRead(notif.id)}
-                  className={`w-full px-3 py-2.5 flex items-start gap-2.5 border-b border-gray-50 dark:border-gray-700 text-left transition-colors ${
-                    !notif.delivered_at
-                      ? 'bg-primary-50/50 dark:bg-primary-900/20'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
-                  }`}
-                >
-                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {getNotifIcon(notif)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                        {notif.title || 'Notification'}
-                      </p>
-                      {!notif.delivered_at && (
-                        <span className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {notif.body}
-                    </p>
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-                      {formatDistanceToNow(new Date(notif.created_at), {
-                        addSuffix: true,
-                        locale: fr,
-                      })}
-                    </p>
-                  </div>
-                  {notif.delivered_at && (
-                    <Check className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 mt-1" />
-                  )}
-                </button>
+                  notif={notif}
+                  onRead={handleMarkAsRead}
+                  getNotifIcon={getNotifIcon}
+                />
               ))
             )}
           </div>
