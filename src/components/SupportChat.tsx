@@ -198,8 +198,8 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
-      {/* Header - exact same pattern as ProfilePage */}
+    <div className="h-mobile-screen flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
+      {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-3 py-2.5 flex items-center gap-2.5 flex-shrink-0">
         <button
           onClick={() => onClose ? onClose() : navigate(-1)}

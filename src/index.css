@@ -96,6 +96,13 @@ img, a {
   z-index: 0;
 }
 
+/* Full height that works on mobile (avoids 100vh bug) */
+.h-mobile-screen {
+  height: 100vh; /* fallback */
+  height: 100dvh;
+  height: -webkit-fill-available;
+}
+
 /* Bottom navigation safe area */
 .safe-bottom {
   padding-bottom: max(8px, calc(var(--sab) + 4px));
