@@ -197,11 +197,9 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col">
-      {/* Header - safe area background covers the notch/status bar */}
+      {/* Header - safe-top on header itself so padding pushes content below notch */}
       <div className="bg-primary-500 flex-shrink-0">
-        {/* Safe area spacer - fills the notch/status bar area with the header color */}
-        <div className="safe-top" />
-        <header className="text-white px-3 py-2.5 flex items-center gap-2.5">
+        <header className="text-white px-3 py-2.5 flex items-center gap-2.5 safe-top">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
