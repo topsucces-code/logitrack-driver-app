@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  X,
+  ArrowLeft,
   Send,
   Loader2,
   ChevronDown,
@@ -23,10 +24,11 @@ import { hapticLight } from '../hooks/useHapticFeedback';
 
 interface SupportChatProps {
   deliveryId?: string;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
+  const navigate = useNavigate();
   const { driver } = useAuth();
   const { showError } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -197,20 +199,18 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
-      {/* Header - same pattern as SettingsPage/ProfilePage */}
-      <header className="bg-primary-500 text-white safe-top px-3 py-2.5 flex items-center gap-2.5 flex-shrink-0">
+      {/* Header - exact same pattern as ProfilePage */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-3 py-2.5 flex items-center gap-2.5 flex-shrink-0">
         <button
-          onClick={onClose}
-          className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
+          onClick={() => onClose ? onClose() : navigate(-1)}
+          className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
         >
-          <X className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
         </button>
+        <Headphones className="w-4 h-4 text-primary-500" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            <Headphones className="w-4 h-4" />
-            <h1 className="font-semibold text-sm">Support LogiTrack</h1>
-          </div>
-          <p className="text-xs text-white/80">
+          <h1 className="text-base font-bold text-gray-900 dark:text-white">Support LogiTrack</h1>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400">
             {conversation?.status === 'waiting'
               ? 'En attente d\'un agent...'
               : 'En ligne'}

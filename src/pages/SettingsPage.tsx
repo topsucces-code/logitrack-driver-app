@@ -23,7 +23,6 @@ import { supabase } from '../lib/supabase';
 import { DRIVER_CONFIG, APP_CONFIG } from '../config/app.config';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { LanguageSelector } from '../components/LanguageSelector';
-import { SupportChat } from '../components/SupportChat';
 import { QRScanner } from '../components/QRScanner';
 import {
   getPreferences,
@@ -39,7 +38,6 @@ export default function SettingsPage() {
   const [autoAccept, setAutoAccept] = useState(driver?.auto_accept || false);
   const [maxDistance, setMaxDistance] = useState(driver?.max_distance_km || DRIVER_CONFIG.defaultMaxDistanceKm);
   const [saving, setSaving] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
@@ -69,11 +67,6 @@ export default function SettingsPage() {
   }
 
   if (!driver) return null;
-
-  // Render chat as full page replacement instead of overlay
-  if (showChat) {
-    return <SupportChat onClose={() => setShowChat(false)} />;
-  }
 
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
@@ -247,7 +240,7 @@ export default function SettingsPage() {
             <h2 className="font-semibold text-sm text-gray-900 dark:text-white">{t.support}</h2>
           </div>
 
-          <button onClick={() => setShowChat(true)} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+          <button onClick={() => navigate('/chat')} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
                 <MessageCircle className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />

@@ -21,6 +21,9 @@ const EarningsPage = lazy(() => import('./pages/EarningsPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
+// Lazy-loaded pages - chat
+const SupportChatPage = lazy(() => import('./components/SupportChat'));
+
 // Lazy-loaded pages - secondary routes
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
@@ -247,6 +250,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <RouteOptimizationPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <SupportChatPage />
             </ProtectedRoute>
           }
         />
