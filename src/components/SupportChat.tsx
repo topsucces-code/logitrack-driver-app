@@ -196,10 +196,10 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col">
-      {/* Header - safe-top on header itself so padding pushes content below notch */}
-      <div className="bg-primary-500 flex-shrink-0">
-        <header className="text-white px-3 py-2.5 flex items-center gap-2.5 safe-top">
+    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="bg-primary-500 flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+        <header className="text-white px-3 py-2.5 flex items-center gap-2.5">
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
@@ -222,7 +222,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
       </div>
 
       {/* Messages - Compact */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 bg-gray-50 dark:bg-gray-800">
+      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2.5 bg-gray-50 dark:bg-gray-800">
         {/* Welcome message */}
         {messages.length === 0 && (
           <div className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center">
