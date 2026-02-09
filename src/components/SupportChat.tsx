@@ -186,8 +186,8 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center">
           <Loader2 className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Connexion au support...</p>
         </div>
@@ -196,7 +196,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 flex flex-col overflow-hidden h-screen" style={{ height: '100dvh' }}>
+    <div className="h-screen flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
       {/* Header */}
       <div className="bg-primary-500 flex-shrink-0">
         <header className="text-white px-3 py-2.5 flex items-center gap-2.5">

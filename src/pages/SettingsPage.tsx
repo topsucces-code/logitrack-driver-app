@@ -70,6 +70,11 @@ export default function SettingsPage() {
 
   if (!driver) return null;
 
+  // Render chat as full page replacement instead of overlay
+  if (showChat) {
+    return <SupportChat onClose={() => setShowChat(false)} />;
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header - Compact */}
@@ -294,9 +299,6 @@ export default function SettingsPage() {
           {t.saving}
         </div>
       )}
-
-      {/* Support Chat Modal */}
-      {showChat && <SupportChat onClose={() => setShowChat(false)} />}
 
       {/* QR Scanner Modal */}
       {showScanner && (
