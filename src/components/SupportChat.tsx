@@ -196,9 +196,9 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col overflow-hidden">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 flex flex-col overflow-hidden h-screen" style={{ height: '100dvh' }}>
       {/* Header */}
-      <div className="bg-primary-500 flex-shrink-0" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      <div className="bg-primary-500 flex-shrink-0">
         <header className="text-white px-3 py-2.5 flex items-center gap-2.5">
           <button
             onClick={onClose}
