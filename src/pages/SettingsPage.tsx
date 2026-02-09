@@ -47,7 +47,7 @@ export default function SettingsPage() {
   const [showNotifSettings, setShowNotifSettings] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences | null>(null);
 
-  async function updateSettings() {
+  async function updateSettings(overrides?: { auto_accept?: boolean; max_distance_km?: number }) {
     if (!driver) return;
 
     setSaving(true);
@@ -55,8 +55,8 @@ export default function SettingsPage() {
     const { error } = await supabase
       .from('logitrack_drivers')
       .update({
-        auto_accept: autoAccept,
-        max_distance_km: maxDistance,
+        auto_accept: overrides?.auto_accept ?? autoAccept,
+        max_distance_km: overrides?.max_distance_km ?? maxDistance,
         updated_at: new Date().toISOString()
       })
       .eq('id', driver.id);
@@ -103,8 +103,9 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={() => {
-                setAutoAccept(!autoAccept);
-                setTimeout(updateSettings, 100);
+                const newVal = !autoAccept;
+                setAutoAccept(newVal);
+                updateSettings({ auto_accept: newVal });
               }}
               className={`relative w-10 h-6 rounded-full transition-colors ${
                 autoAccept ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-600'
@@ -136,8 +137,8 @@ export default function SettingsPage() {
               onChange={(e) => {
                 setMaxDistance(parseInt(e.target.value));
               }}
-              onMouseUp={updateSettings}
-              onTouchEnd={updateSettings}
+              onMouseUp={() => updateSettings()}
+              onTouchEnd={() => updateSettings()}
               className="w-full h-1.5 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-primary-500"
             />
             <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1">
@@ -166,27 +167,51 @@ export default function SettingsPage() {
             <h2 className="font-semibold text-sm text-gray-900 dark:text-white">{t.tools}</h2>
           </div>
 
-          {[
-            { onClick: () => setShowScanner(true), icon: QrCode, color: 'indigo', label: t.qrScanner },
-            { onClick: () => navigate('/reports'), icon: BarChart3, color: 'cyan', label: t.reports },
-            { onClick: () => navigate('/analytics'), icon: BarChart3, color: 'emerald', label: t.analytics },
-            { onClick: () => navigate('/route-optimization'), icon: Route, color: 'orange', label: t.routeOptimization },
-            { onClick: () => navigate('/challenges'), icon: Trophy, color: 'yellow', label: t.challengesAndRewards },
-          ].map((item, idx, arr) => (
-            <button
-              key={item.label}
-              onClick={item.onClick}
-              className={`w-full px-3 py-2 flex items-center justify-between ${idx < arr.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''}`}
-            >
-              <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 bg-${item.color}-100 dark:bg-${item.color}-900 rounded-full flex items-center justify-center`}>
-                  <item.icon className={`w-3.5 h-3.5 text-${item.color}-600 dark:text-${item.color}-400`} />
-                </div>
-                <p className="font-medium text-sm text-gray-900 dark:text-white">{item.label}</p>
+          <button onClick={() => setShowScanner(true)} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
+                <QrCode className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            </button>
-          ))}
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.qrScanner}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => navigate('/reports')} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-cyan-100 dark:bg-cyan-900 rounded-full flex items-center justify-center">
+                <BarChart3 className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.reports}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => navigate('/analytics')} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center">
+                <BarChart3 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.analytics}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => navigate('/route-optimization')} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
+                <Route className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.routeOptimization}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => navigate('/challenges')} className="w-full px-3 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-yellow-100 dark:bg-yellow-900 rounded-full flex items-center justify-center">
+                <Trophy className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.challengesAndRewards}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
         </div>
 
         {/* Notifications - Compact */}
@@ -217,26 +242,42 @@ export default function SettingsPage() {
             <h2 className="font-semibold text-sm text-gray-900 dark:text-white">{t.support}</h2>
           </div>
 
-          {[
-            { onClick: () => setShowChat(true), icon: MessageCircle, color: 'primary', label: t.chatWithSupport },
-            { onClick: () => setShowHelp(true), icon: HelpCircle, color: 'teal', label: t.helpFAQ },
-            { onClick: () => setShowTerms(true), icon: FileText, color: 'gray', label: t.termsOfService },
-            { onClick: () => setShowPrivacy(true), icon: Shield, color: 'gray', label: t.privacyPolicy },
-          ].map((item, idx, arr) => (
-            <button
-              key={item.label}
-              onClick={item.onClick}
-              className={`w-full px-3 py-2 flex items-center justify-between ${idx < arr.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''}`}
-            >
-              <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 bg-${item.color}-100 dark:bg-${item.color}-900 rounded-full flex items-center justify-center`}>
-                  <item.icon className={`w-3.5 h-3.5 text-${item.color}-600 dark:text-${item.color}-400`} />
-                </div>
-                <p className="font-medium text-sm text-gray-900 dark:text-white">{item.label}</p>
+          <button onClick={() => setShowChat(true)} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center">
+                <MessageCircle className="w-3.5 h-3.5 text-primary-600 dark:text-primary-400" />
               </div>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-            </button>
-          ))}
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.chatWithSupport}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => setShowHelp(true)} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-teal-100 dark:bg-teal-900 rounded-full flex items-center justify-center">
+                <HelpCircle className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.helpFAQ}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => setShowTerms(true)} className="w-full px-3 py-2 flex items-center justify-between border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <FileText className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.termsOfService}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
+          <button onClick={() => setShowPrivacy(true)} className="w-full px-3 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <Shield className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+              </div>
+              <p className="font-medium text-sm text-gray-900 dark:text-white">{t.privacyPolicy}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </button>
         </div>
 
         {/* Version - Compact */}

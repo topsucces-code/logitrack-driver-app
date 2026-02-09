@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  MessageCircle,
   X,
   Send,
   Loader2,
   ChevronDown,
   Headphones,
+  MessageCircle,
 } from 'lucide-react';
-import { Button } from './ui/Button';
 import {
   getOrCreateConversation,
   sendMessage,
@@ -31,6 +30,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   const { driver } = useAuth();
   const { showError } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -38,8 +38,23 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const quickReplies = getQuickReplies(deliveryId ? 'delivery' : 'general');
+
+  // Detect mobile keyboard open/close via visualViewport
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    function onResize() {
+      const isKeyboard = vv!.height < window.innerHeight * 0.75;
+      setKeyboardVisible(isKeyboard);
+    }
+
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
 
   // Initialize conversation
   useEffect(() => {
@@ -61,12 +76,8 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
 
       if (conv) {
         setConversation(conv);
-
-        // Load existing messages
         const { messages: msgs } = await getMessages(conv.id);
         setMessages(msgs);
-
-        // Mark as read
         markMessagesAsRead(conv.id, currentDriver.id);
       }
 
@@ -85,9 +96,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
 
     const channel = subscribeToMessages(conversationId, (message) => {
       setMessages((prev) => {
-        // Skip if message already exists (from optimistic update or duplicate event)
         if (prev.some((m) => m.id === message.id)) return prev;
-        // Replace temp message from same sender with real one
         const hasTempFromSender = prev.some(
           (m) => m.id.startsWith('temp_') && m.sender_id === message.sender_id
         );
@@ -144,11 +153,9 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
 
     if (error) {
       showError('Erreur lors de l\'envoi du message');
-      // Remove temp message on error
       setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
       setNewMessage(messageText);
     } else if (sentMessage) {
-      // Replace temp message with real one from server
       setMessages((prev) => prev.map((m) => m.id === tempMessage.id ? sentMessage : m));
     }
 
@@ -159,6 +166,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
     hapticLight();
     setNewMessage(reply);
     setShowQuickReplies(false);
+    inputRef.current?.focus();
   };
 
   const formatTime = (dateStr: string) => {
@@ -168,53 +176,61 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
     });
   };
 
+  // Auto-resize textarea
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value);
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-        <div className="bg-white rounded-2xl p-8">
-          <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto" />
-          <p className="text-gray-600 mt-3">Connexion au support...</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
+          <Loader2 className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Connexion au support...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col safe-top safe-bottom">
-      {/* Header */}
-      <header className="bg-primary-500 text-white p-4 flex items-center gap-3">
+    <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col">
+      {/* Header - Compact mobile */}
+      <header className="bg-primary-500 text-white px-3 py-2.5 flex items-center gap-2.5 safe-top flex-shrink-0">
         <button
           onClick={onClose}
-          className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
+          className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <Headphones className="w-5 h-5" />
-            <h1 className="font-semibold">Support LogiTrack</h1>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Headphones className="w-4 h-4" />
+            <h1 className="font-semibold text-sm">Support LogiTrack</h1>
           </div>
-          <p className="text-sm text-white/80">
+          <p className="text-xs text-white/80">
             {conversation?.status === 'waiting'
               ? 'En attente d\'un agent...'
               : 'En ligne'}
           </p>
         </div>
-        <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
+        <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
       </header>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-800">
+      {/* Messages - Compact */}
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5 bg-gray-50 dark:bg-gray-800">
         {/* Welcome message */}
         {messages.length === 0 && (
-          <div className="bg-white dark:bg-gray-700 rounded-xl p-4 text-center">
-            <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mx-auto mb-3">
-              <MessageCircle className="w-8 h-8 text-primary-500" />
+          <div className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center">
+            <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center mx-auto mb-2">
+              <MessageCircle className="w-6 h-6 text-primary-500" />
             </div>
-            <h2 className="font-semibold text-gray-900 dark:text-white mb-1">
+            <h2 className="font-semibold text-sm text-gray-900 dark:text-white mb-0.5">
               Comment pouvons-nous vous aider ?
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Notre équipe est là pour vous assister 24h/24
             </p>
           </div>
@@ -229,22 +245,22 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+              className={`max-w-[85%] rounded-xl px-3 py-2 ${
                 msg.sender_type === 'driver'
                   ? 'bg-primary-500 text-white rounded-br-sm'
                   : msg.sender_type === 'system'
-                  ? 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-center text-sm'
+                  ? 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-center'
                   : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm shadow-sm'
               }`}
             >
               {msg.sender_type === 'support' && (
-                <p className="text-xs font-medium text-primary-500 mb-1">
+                <p className="text-[10px] font-medium text-primary-500 mb-0.5">
                   {msg.sender_name}
                 </p>
               )}
-              <p className="whitespace-pre-wrap">{msg.message}</p>
+              <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
               <p
-                className={`text-xs mt-1 ${
+                className={`text-[10px] mt-0.5 ${
                   msg.sender_type === 'driver'
                     ? 'text-white/70'
                     : 'text-gray-400'
@@ -259,26 +275,26 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Replies */}
-      {showQuickReplies && messages.length === 0 && (
-        <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      {/* Quick Replies - Compact */}
+      {showQuickReplies && messages.length === 0 && !keyboardVisible && (
+        <div className="px-3 py-2 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
               Réponses rapides
             </p>
             <button
               onClick={() => setShowQuickReplies(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 p-1"
             >
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {quickReplies.slice(0, 4).map((reply, index) => (
               <button
                 key={index}
                 onClick={() => handleQuickReply(reply)}
-                className="px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-sm text-gray-700 dark:text-gray-300 transition-colors"
+                className="px-2.5 py-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 transition-colors"
               >
                 {reply}
               </button>
@@ -287,16 +303,18 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
         </div>
       )}
 
-      {/* Input */}
-      <div className="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+      {/* Input - Compact mobile */}
+      <div className="px-3 py-2 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-bottom flex-shrink-0">
         <div className="flex items-end gap-2">
-          <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-2">
+          <div className="flex-1 bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2">
             <textarea
+              ref={inputRef}
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleTextareaChange}
               placeholder="Écrivez votre message..."
               rows={1}
-              className="w-full bg-transparent resize-none focus:outline-none text-gray-900 dark:text-white placeholder-gray-500 max-h-32"
+              className="w-full bg-transparent resize-none focus:outline-none text-sm text-gray-900 dark:text-white placeholder-gray-500 max-h-[100px] leading-5"
+              style={{ height: 'auto' }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -305,17 +323,17 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
               }}
             />
           </div>
-          <Button
+          <button
             onClick={handleSend}
             disabled={!newMessage.trim() || sending}
-            className="!rounded-full !p-3"
+            className="w-9 h-9 rounded-full bg-primary-500 hover:bg-primary-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white flex items-center justify-center flex-shrink-0 transition-colors"
           >
             {sending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4" />
             )}
-          </Button>
+          </button>
         </div>
       </div>
     </div>
