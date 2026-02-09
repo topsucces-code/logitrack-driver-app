@@ -29,6 +29,7 @@ import { NotificationBell } from '../components/NotificationBell';
 import { usePullToRefresh } from '../hooks/usePullToRefresh';
 import { PullToRefreshIndicator } from '../components/PullToRefreshIndicator';
 import { useSwipeGesture } from '../hooks/useSwipeGesture';
+import { subscribeToNotifications, type AppNotification } from '../services/notificationService';
 
 const SWIPE_HINT_KEY = 'logitrack_swipe_hint_shown';
 
@@ -101,9 +102,26 @@ export default function DashboardPage() {
           .is('driver_id', null)
           .order('created_at', { ascending: false });
 
-        // If driver belongs to a company, only show company deliveries
         if (driver.company_id) {
+          // Company drivers: only show company deliveries
           query = query.eq('company_id', driver.company_id);
+        } else {
+          // Independent drivers: filter by zone
+          const zoneFilters: string[] = [];
+          if (driver.primary_zone_id) {
+            zoneFilters.push(`pickup_zone_id.eq.${driver.primary_zone_id}`);
+          }
+          if (driver.secondary_zones?.length) {
+            for (const zid of driver.secondary_zones) {
+              zoneFilters.push(`pickup_zone_id.eq.${zid}`);
+            }
+          }
+          // Also include deliveries without a zone (fallback)
+          zoneFilters.push('pickup_zone_id.is.null');
+
+          if (zoneFilters.length > 0) {
+            query = query.or(zoneFilters.join(','));
+          }
         }
 
         query = query.limit(DELIVERY_CONFIG.defaultListLimit);
@@ -194,6 +212,31 @@ export default function DashboardPage() {
       fetchDeliveries();
     }, [fetchDeliveries]),
   });
+
+  // Listen for delivery_assigned notifications → refresh + toast
+  useEffect(() => {
+    if (!driver) return;
+
+    const channel = subscribeToNotifications(driver.id, (notif: AppNotification) => {
+      const notifType = (notif.data as Record<string, unknown>)?.type;
+      if (notifType === 'delivery_assigned') {
+        fetchDeliveries();
+        // Play notification sound if enabled
+        if (driver.notification_sound) {
+          try {
+            const audio = new Audio('/notification.mp3');
+            audio.play().catch(() => {});
+          } catch {
+            // audio not available
+          }
+        }
+      }
+    });
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [driver, fetchDeliveries]);
 
   // Sync isOnline state with driver
   useEffect(() => {
