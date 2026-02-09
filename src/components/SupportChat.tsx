@@ -196,30 +196,28 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
-      {/* Header */}
-      <div className="bg-primary-500 flex-shrink-0">
-        <header className="text-white px-3 py-2.5 flex items-center gap-2.5">
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
-          >
-            <X className="w-4 h-4" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5">
-              <Headphones className="w-4 h-4" />
-              <h1 className="font-semibold text-sm">Support LogiTrack</h1>
-            </div>
-            <p className="text-xs text-white/80">
-              {conversation?.status === 'waiting'
-                ? 'En attente d\'un agent...'
-                : 'En ligne'}
-            </p>
+    <div className="h-screen flex flex-col bg-white dark:bg-gray-900">
+      {/* Header - same pattern as SettingsPage/ProfilePage */}
+      <header className="bg-primary-500 text-white safe-top px-3 py-2.5 flex items-center gap-2.5 flex-shrink-0">
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5">
+            <Headphones className="w-4 h-4" />
+            <h1 className="font-semibold text-sm">Support LogiTrack</h1>
           </div>
-          <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
-        </header>
-      </div>
+          <p className="text-xs text-white/80">
+            {conversation?.status === 'waiting'
+              ? 'En attente d\'un agent...'
+              : 'En ligne'}
+          </p>
+        </div>
+        <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
+      </header>
 
       {/* Messages - Compact */}
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2.5 bg-gray-50 dark:bg-gray-800">
