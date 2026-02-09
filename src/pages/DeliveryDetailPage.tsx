@@ -285,42 +285,42 @@ export default function DeliveryDetailPage() {
     : 'Détails';
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Breadcrumb */}
-      <nav className="bg-white safe-top px-3 py-2 flex items-center text-xs">
+      <nav className="bg-white dark:bg-gray-800 safe-top px-3 py-2 flex items-center text-xs">
         <button
           onClick={() => navigate('/')}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         >
           Accueil
         </button>
         <ChevronRight className="w-3 h-3 text-gray-400 mx-1 flex-shrink-0" />
         <button
           onClick={() => navigate('/history')}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         >
           Courses
         </button>
         <ChevronRight className="w-3 h-3 text-gray-400 mx-1 flex-shrink-0" />
-        <span className="text-gray-900 font-medium truncate">{trackingLabel}</span>
+        <span className="text-gray-900 dark:text-white font-medium truncate">{trackingLabel}</span>
       </nav>
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-3 py-2.5 flex items-center gap-2.5">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2.5 flex items-center gap-2.5">
         <button
           onClick={() => navigate('/')}
-          className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+          className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
         >
-          <ArrowLeft className="w-4 h-4 text-gray-600" />
+          <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
         </button>
         <div className="flex-1">
-          <h1 className="font-semibold text-gray-900 text-sm">Course #{delivery.id.slice(0, 8)}</h1>
-          <p className="text-xs text-gray-500 capitalize">
+          <h1 className="font-semibold text-gray-900 dark:text-white text-sm">Course #{delivery.id.slice(0, 8)}</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
             {delivery.status === 'accepted' && 'Assignée - En route vers pickup'}
             {delivery.status === 'picking_up' && 'En route vers le point de collecte'}
             {delivery.status === 'picked_up' && 'Colis récupéré'}
-            {delivery.status === 'in_transit' && 'En transit'}
-            {delivery.status === 'arriving' && 'En cours de livraison'}
+            {delivery.status === 'in_transit' && 'En transit vers le client'}
+            {delivery.status === 'arriving' && 'Arrivé - Livraison en cours'}
           </p>
         </div>
         {delivery.is_express && (
@@ -369,21 +369,21 @@ export default function DeliveryDetailPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {/* Pickup */}
-        <div className={`bg-white rounded-lg p-3 ${
+        <div className={`bg-white dark:bg-gray-800 rounded-lg p-3 ${
           ['accepted', 'picking_up'].includes(delivery.status)
             ? 'border-2 border-green-500'
             : ''
         }`}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <MapPin className="w-3.5 h-3.5 text-green-600" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-500">Point de collecte</p>
-              <p className="font-semibold text-gray-900 text-sm">{delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">Point de collecte</p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">{delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-600 mb-1.5">{delivery.pickup_address}</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1.5">{delivery.pickup_address}</p>
           {delivery.pickup_instructions && (
             <p className="text-xs text-gray-500 italic mb-2">
               Instructions: {delivery.pickup_instructions}
@@ -411,21 +411,21 @@ export default function DeliveryDetailPage() {
         </div>
 
         {/* Delivery */}
-        <div className={`bg-white rounded-lg p-3 ${
-          ['picked_up', 'arriving'].includes(delivery.status)
+        <div className={`bg-white dark:bg-gray-800 rounded-lg p-3 ${
+          ['picked_up', 'in_transit', 'arriving'].includes(delivery.status)
             ? 'border-2 border-red-500'
             : ''
         }`}>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <MapPin className="w-3.5 h-3.5 text-red-600" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-500">Point de livraison</p>
-              <p className="font-semibold text-gray-900 text-sm">{delivery.delivery_contact_name || 'Destination'}</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">Point de livraison</p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">{delivery.delivery_contact_name || 'Destination'}</p>
             </div>
           </div>
-          <p className="text-xs text-gray-600 mb-1.5">{delivery.delivery_address}</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1.5">{delivery.delivery_address}</p>
           {delivery.delivery_instructions && (
             <p className="text-xs text-gray-500 italic mb-2">
               Instructions: {delivery.delivery_instructions}
@@ -467,14 +467,14 @@ export default function DeliveryDetailPage() {
 
         {/* Package Info */}
         {delivery.package_description && (
-          <div className="bg-white rounded-lg p-3">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
             <div className="flex items-center gap-1.5 mb-1.5">
               <Package className="w-4 h-4 text-gray-400" />
-              <p className="font-medium text-gray-900 text-sm">Description du colis</p>
+              <p className="font-medium text-gray-900 dark:text-white text-sm">Description du colis</p>
             </div>
-            <p className="text-sm text-gray-600">{delivery.package_description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{delivery.package_description}</p>
             {delivery.package_size && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Taille: <span className="capitalize">{delivery.package_size}</span>
               </p>
             )}
@@ -499,7 +499,7 @@ export default function DeliveryDetailPage() {
       </div>
 
       {/* Action Button */}
-      <div className="bg-white border-t border-gray-200 p-3 safe-bottom">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 safe-bottom">
         {delivery.status === 'accepted' && (
           <Button
             onClick={() => updateStatus('picking_up')}
@@ -528,7 +528,7 @@ export default function DeliveryDetailPage() {
 
         {delivery.status === 'picked_up' && (
           <Button
-            onClick={() => updateStatus('arriving')}
+            onClick={() => updateStatus('in_transit')}
             loading={updating}
             fullWidth
             size="lg"
@@ -536,6 +536,19 @@ export default function DeliveryDetailPage() {
             className="bg-orange-500 hover:bg-orange-600"
           >
             En route vers la livraison
+          </Button>
+        )}
+
+        {delivery.status === 'in_transit' && (
+          <Button
+            onClick={() => updateStatus('arriving')}
+            loading={updating}
+            fullWidth
+            size="lg"
+            icon={<MapPin className="w-5 h-5" />}
+            className="bg-purple-500 hover:bg-purple-600"
+          >
+            Arrivé sur place
           </Button>
         )}
 

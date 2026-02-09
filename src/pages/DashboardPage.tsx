@@ -14,6 +14,8 @@ import {
   ChevronRight,
   Check,
   X,
+  BarChart3,
+  History,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
@@ -261,7 +263,7 @@ export default function DashboardPage() {
   const driverRating = calculateRating(driver.rating_sum, driver.rating_count);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-primary-500 text-white safe-top px-3 pt-3 pb-3">
         <div className="flex items-center justify-between mb-3">
@@ -335,9 +337,9 @@ export default function DashboardPage() {
         <PullToRefreshIndicator pullDistance={pullDistance} pullState={pullState} />
         <div className="px-3 -mt-1">
         {/* Earnings Card */}
-        <div className="bg-white rounded-xl shadow-sm p-3 mb-3">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 mb-3">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-gray-900 text-sm">Aujourd'hui</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white text-sm">Aujourd'hui</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => navigate('/wallet')}
@@ -363,18 +365,18 @@ export default function DashboardPage() {
               </p>
               <p className="text-xs text-primary-700 font-medium">FCFA</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-gray-900">{todayStats.deliveries}</p>
-              <p className="text-xs text-gray-600 font-medium">courses</p>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{todayStats.deliveries}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">courses</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs bg-gray-50 rounded-lg px-2.5 py-1.5">
-            <div className="flex items-center gap-1.5 text-gray-600">
+          <div className="flex items-center justify-between text-xs bg-gray-50 dark:bg-gray-700 rounded-lg px-2.5 py-1.5">
+            <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>Cette semaine</span>
             </div>
-            <span className="font-bold text-gray-900">
+            <span className="font-bold text-gray-900 dark:text-white">
               {weekStats.earnings.toLocaleString()} FCFA
             </span>
           </div>
@@ -438,7 +440,7 @@ export default function DashboardPage() {
         {/* Available Deliveries */}
         {!currentDelivery && (
           <>
-            <h2 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5">
               <Package className="w-4 h-4 text-gray-400" />
               Courses disponibles
               {pendingDeliveries.length > 0 && (
@@ -455,12 +457,12 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : pendingDeliveries.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 text-center">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Package className="w-6 h-6 text-gray-300" />
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center">
+                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <Package className="w-6 h-6 text-gray-300 dark:text-gray-500" />
                 </div>
-                <p className="text-gray-900 font-medium text-sm mb-1">Aucune course disponible</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-gray-900 dark:text-white font-medium text-sm mb-1">Aucune course disponible</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {isOnline
                     ? 'Restez connecté, les nouvelles courses apparaîtront ici'
                     : 'Passez en ligne pour voir les courses'}
@@ -504,13 +506,23 @@ export default function DashboardPage() {
       </div>
 
       {/* Bottom Navigation */}
-      <nav className="bg-white border-t border-gray-200 safe-bottom fixed bottom-0 left-0 right-0">
+      <nav className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-bottom fixed bottom-0 left-0 right-0">
         <div className="flex items-center justify-around py-2">
           <NavItem icon={<Package />} label="Courses" active onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+          <NavItem
+            icon={<History />}
+            label="Historique"
+            onClick={() => navigate('/history')}
+          />
           <NavItem
             icon={<Wallet />}
             label="Gains"
             onClick={() => navigate('/earnings')}
+          />
+          <NavItem
+            icon={<BarChart3 />}
+            label="Stats"
+            onClick={() => navigate('/analytics')}
           />
           <NavItem
             icon={<User />}
@@ -634,7 +646,7 @@ const DeliveryCard = memo(function DeliveryCard({
       {/* Swipeable card */}
       <div
         {...swipeProps}
-        className={`relative bg-white rounded-xl p-3 shadow-sm border border-gray-100 ${
+        className={`relative bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700 ${
           expired ? 'opacity-50' : ''
         } ${isSwiping ? '' : 'transition-transform duration-200'}`}
         style={{
@@ -646,7 +658,7 @@ const DeliveryCard = memo(function DeliveryCard({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5">
             <span className="text-sm">📦</span>
-            <span className="font-semibold text-gray-900 text-sm">Nouvelle course !</span>
+            <span className="font-semibold text-gray-900 dark:text-white text-sm">Nouvelle course !</span>
           </div>
           <div className="flex items-center gap-1.5">
             {delivery.is_express && (
@@ -660,13 +672,13 @@ const DeliveryCard = memo(function DeliveryCard({
 
         {/* Route */}
         <div className="mb-2">
-          <p className="text-gray-900 font-medium text-sm">
+          <p className="text-gray-900 dark:text-white font-medium text-sm">
             {pickupZone} &rarr; {deliveryZone}
           </p>
         </div>
 
         {/* Details */}
-        <div className="flex items-center gap-3 text-xs text-gray-600 mb-2">
+        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400 mb-2">
           <span className="flex items-center gap-1">
             <Navigation className="w-3.5 h-3.5" />
             ~{delivery.distance_km?.toFixed(0) || '?'} km
@@ -720,12 +732,12 @@ const NavItem = memo(function NavItem({
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center gap-1 px-6 py-2 ${
-        active ? 'text-primary-600' : 'text-gray-400'
+      className={`flex flex-col items-center gap-0.5 px-3 py-2 ${
+        active ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 dark:text-gray-500'
       }`}
     >
-      <span className={active ? 'text-primary-600' : ''}>{icon}</span>
-      <span className="text-xs font-medium">{label}</span>
+      <span className={active ? 'text-primary-600 dark:text-primary-400' : ''}>{icon}</span>
+      <span className="text-[10px] font-medium">{label}</span>
     </button>
   );
 });

@@ -137,7 +137,7 @@ export default function ReportIncidentPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-5 safe-top">
         <div className="flex items-center gap-3">
@@ -166,7 +166,7 @@ export default function ReportIncidentPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 pb-32">
         {/* Question */}
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Quel est le problème ?
         </h2>
 
@@ -175,10 +175,10 @@ export default function ReportIncidentPage() {
           {DRIVER_INCIDENT_TYPES.map((type) => (
             <label
               key={type.id}
-              className={`flex items-center gap-3 p-4 bg-white rounded-xl border-2 cursor-pointer transition-all ${
+              className={`flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-xl border-2 cursor-pointer transition-all ${
                 selectedType === type.code
-                  ? 'border-orange-500 bg-orange-50'
-                  : 'border-gray-200'
+                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                  : 'border-gray-200 dark:border-gray-700'
               }`}
             >
               <input
@@ -190,7 +190,7 @@ export default function ReportIncidentPage() {
                 className="w-5 h-5 text-orange-500 border-gray-300 focus:ring-orange-500"
               />
               <span className={`flex-1 ${
-                selectedType === type.code ? 'text-orange-700 font-medium' : 'text-gray-700'
+                selectedType === type.code ? 'text-orange-700 dark:text-orange-400 font-medium' : 'text-gray-700 dark:text-gray-300'
               }`}>
                 {type.label}
               </span>
@@ -203,7 +203,7 @@ export default function ReportIncidentPage() {
 
         {/* Description */}
         <div className="mb-6">
-          <label className="block text-lg font-semibold text-gray-900 mb-3">
+          <label className="block text-lg font-semibold text-gray-900 dark:text-white mb-3">
             Décris le problème :
           </label>
           <textarea
@@ -211,7 +211,7 @@ export default function ReportIncidentPage() {
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
             placeholder="Le client ne répond pas au téléphone depuis 15 minutes..."
-            className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 resize-none text-gray-700 placeholder-gray-400"
+            className="w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 resize-none text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
           />
         </div>
 
@@ -289,7 +289,7 @@ export default function ReportIncidentPage() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 safe-bottom">
         <button
           onClick={handleSubmit}
           disabled={submitting || !selectedType || !description.trim()}

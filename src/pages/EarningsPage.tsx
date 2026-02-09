@@ -35,7 +35,7 @@ export default function EarningsPage() {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [withdrawMethod, setWithdrawMethod] = useState('momo');
-  const [withdrawAccount, setWithdrawAccount] = useState('');
+  const [withdrawAccount, setWithdrawAccount] = useState(driver?.momo_number || '');
   const [withdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
@@ -194,7 +194,7 @@ export default function EarningsPage() {
   if (!driver) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-primary-500 text-white safe-top px-3 pt-3 pb-6">
         <div className="flex items-center gap-2.5 mb-4">
@@ -229,18 +229,18 @@ export default function EarningsPage() {
 
       {/* Stats Cards */}
       <div className="px-3 -mt-3">
-        <div className="bg-white rounded-lg shadow-sm p-3 grid grid-cols-3 gap-3">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 grid grid-cols-3 gap-3">
           <div className="text-center">
-            <p className="text-xl font-bold text-gray-900">{stats.today.toLocaleString()}</p>
-            <p className="text-[10px] text-gray-500">Aujourd'hui</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.today.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">Aujourd'hui</p>
           </div>
-          <div className="text-center border-x border-gray-100">
-            <p className="text-xl font-bold text-gray-900">{stats.week.toLocaleString()}</p>
-            <p className="text-[10px] text-gray-500">Cette semaine</p>
+          <div className="text-center border-x border-gray-100 dark:border-gray-700">
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.week.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">Cette semaine</p>
           </div>
           <div className="text-center">
-            <p className="text-xl font-bold text-gray-900">{stats.month.toLocaleString()}</p>
-            <p className="text-[10px] text-gray-500">Ce mois</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-white">{stats.month.toLocaleString()}</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">Ce mois</p>
           </div>
         </div>
       </div>
@@ -264,7 +264,7 @@ export default function EarningsPage() {
 
       {/* Transactions */}
       <div className="flex-1 overflow-y-auto px-3 pb-3">
-        <h2 className="text-sm font-semibold text-gray-900 mb-2">Historique</h2>
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Historique</h2>
 
         {loading ? (
           <div className="space-y-3">
@@ -280,14 +280,14 @@ export default function EarningsPage() {
             ))}
           </div>
         ) : transactions.length === 0 ? (
-          <div className="bg-white rounded-lg p-6 text-center">
-            <TrendingUp className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">Aucune transaction</p>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center">
+            <TrendingUp className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Aucune transaction</p>
           </div>
         ) : (
           <div className="space-y-1.5">
             {transactions.map((tx) => (
-              <div key={tx.id} className="bg-white rounded-lg p-3 flex items-center gap-2.5">
+              <div key={tx.id} className="bg-white dark:bg-gray-800 rounded-lg p-3 flex items-center gap-2.5">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center ${
                     tx.amount > 0 ? 'bg-green-100' : 'bg-red-100'
@@ -300,14 +300,14 @@ export default function EarningsPage() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-gray-900 dark:text-white">
                     {tx.type === 'earning' && 'Gain livraison'}
                     {tx.type === 'withdrawal' && 'Retrait'}
                     {tx.type === 'bonus' && 'Bonus'}
                     {tx.type === 'penalty' && 'Pénalité'}
                     {tx.type === 'adjustment' && 'Ajustement'}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {format(new Date(tx.created_at), 'dd MMM à HH:mm', { locale: fr })}
                   </p>
                   {tx.payout_status === 'pending' && (
@@ -334,8 +334,8 @@ export default function EarningsPage() {
       {/* Withdraw Modal */}
       {showWithdrawModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-4 safe-bottom">
-            <h2 className="text-base font-bold text-gray-900 mb-3">Retirer mes gains</h2>
+          <div className="bg-white dark:bg-gray-800 w-full rounded-t-2xl p-4 safe-bottom">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white mb-3">Retirer mes gains</h2>
 
             {/* Amount */}
             <div className="mb-3">

@@ -19,6 +19,7 @@ import { Capacitor } from '@capacitor/core';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { FALLBACK_ZONES, MOBILE_MONEY_PROVIDERS } from '../config/app.config';
 import { Button } from '../components/ui/Button';
+import { useToast } from '../contexts/ToastContext';
 import {
   onboardingPersonalInfoSchema,
   onboardingCniSchema,
@@ -77,6 +78,7 @@ interface OnboardingData {
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const { user, refreshDriver } = useAuth();
+  const { showError: showToastError, showSuccess } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(1);
@@ -148,6 +150,7 @@ export default function OnboardingPage() {
       }
     } catch (err) {
       driverLogger.error('Photo capture error', { error: err });
+      showToastError('Impossible de capturer la photo. Vérifiez les permissions de la caméra.');
     }
   }
 
@@ -274,6 +277,7 @@ export default function OnboardingPage() {
       }
 
       await refreshDriver();
+      showSuccess('Inscription terminée !');
       navigate('/');
     } catch (err) {
       driverLogger.error('Registration error', { error: err });

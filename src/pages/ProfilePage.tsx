@@ -103,16 +103,16 @@ export default function ProfilePage() {
   const rating = calculateRating(driver.rating_sum, driver.rating_count);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 safe-top px-3 py-2.5 flex items-center gap-2.5">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-3 py-2.5 flex items-center gap-2.5">
         <button
           onClick={() => navigate('/')}
-          className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"
+          className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
         >
-          <ArrowLeft className="w-4 h-4 text-gray-600" />
+          <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
         </button>
-        <h1 className="text-base font-bold text-gray-900">Mon profil</h1>
+        <h1 className="text-base font-bold text-gray-900 dark:text-white">Mon profil</h1>
       </header>
 
       {/* Hidden file input for web */}
@@ -127,7 +127,7 @@ export default function ProfilePage() {
 
       <div className="flex-1 overflow-y-auto">
         {/* Profile Header */}
-        <div className="bg-white p-4 text-center">
+        <div className="bg-white dark:bg-gray-800 p-4 text-center">
           <div className="relative inline-block mb-3">
             {driver.photo_url ? (
               <img
@@ -152,8 +152,8 @@ export default function ProfilePage() {
               )}
             </button>
           </div>
-          <h2 className="text-base font-bold text-gray-900">{driver.full_name}</h2>
-          <div className="flex items-center justify-center gap-1.5 text-gray-500 text-sm mt-0.5">
+          <h2 className="text-base font-bold text-gray-900 dark:text-white">{driver.full_name}</h2>
+          <div className="flex items-center justify-center gap-1.5 text-gray-500 dark:text-gray-400 text-sm mt-0.5">
             <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
             <span>{rating.toFixed(1)}</span>
             <span>•</span>
@@ -190,14 +190,14 @@ export default function ProfilePage() {
         {/* Info Sections */}
         <div className="p-3 space-y-3">
           {/* Contact Info */}
-          <div className="bg-white rounded-lg divide-y divide-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
             <div className="px-3 py-2.5 flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                 <Phone className="w-4 h-4 text-blue-600" />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] text-gray-500">Téléphone</p>
-                <p className="font-medium text-gray-900 text-sm">{driver.phone}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Téléphone</p>
+                <p className="font-medium text-gray-900 dark:text-white text-sm">{driver.phone}</p>
               </div>
             </div>
             {driver.email && (
@@ -214,14 +214,14 @@ export default function ProfilePage() {
           </div>
 
           {/* Vehicle Info */}
-          <div className="bg-white rounded-lg divide-y divide-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
             <div className="px-3 py-2.5 flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
                 <Truck className="w-4 h-4 text-orange-600" />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] text-gray-500">Type de véhicule</p>
-                <p className="font-medium text-gray-900 text-sm capitalize">{driver.vehicle_type}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Type de véhicule</p>
+                <p className="font-medium text-gray-900 dark:text-white text-sm capitalize">{driver.vehicle_type}</p>
               </div>
             </div>
             {driver.vehicle_plate && (
@@ -281,66 +281,66 @@ export default function ProfilePage() {
           )}
 
           {/* Stats */}
-          <div className="bg-white rounded-lg p-3">
-            <h3 className="font-medium text-gray-900 text-sm mb-2">Statistiques</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+            <h3 className="font-medium text-gray-900 dark:text-white text-sm mb-2">Statistiques</h3>
             <div className="grid grid-cols-3 gap-2">
-              <div className="text-center p-2 bg-gray-50 rounded-lg">
-                <p className="text-xl font-bold text-gray-900">{driver.total_deliveries}</p>
-                <p className="text-[10px] text-gray-500">Livraisons</p>
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{driver.total_deliveries}</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Livraisons</p>
               </div>
-              <div className="text-center p-2 bg-gray-50 rounded-lg">
-                <p className="text-xl font-bold text-gray-900">
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {driver.acceptance_rate?.toFixed(0) || 100}%
                 </p>
-                <p className="text-[10px] text-gray-500">Acceptation</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Acceptation</p>
               </div>
-              <div className="text-center p-2 bg-gray-50 rounded-lg">
-                <p className="text-xl font-bold text-gray-900">
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className="text-xl font-bold text-gray-900 dark:text-white">
                   {driver.completion_rate?.toFixed(0) || 100}%
                 </p>
-                <p className="text-[10px] text-gray-500">Complétion</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Complétion</p>
               </div>
             </div>
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white rounded-lg divide-y divide-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-lg divide-y divide-gray-100 dark:divide-gray-700">
             <button
               onClick={() => navigate('/history')}
-              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50"
+              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
                 <History className="w-4 h-4 text-indigo-600" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium text-gray-900 text-sm">Historique</p>
-                <p className="text-[10px] text-gray-500">Voir vos anciennes livraisons</p>
+                <p className="font-medium text-gray-900 dark:text-white text-sm">Historique</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Voir vos anciennes livraisons</p>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-400" />
             </button>
             <button
               onClick={() => navigate('/settings')}
-              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50"
+              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                 <Settings className="w-4 h-4 text-gray-600" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium text-gray-900 text-sm">Paramètres</p>
-                <p className="text-[10px] text-gray-500">Configuration du compte</p>
+                <p className="font-medium text-gray-900 dark:text-white text-sm">Paramètres</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Configuration du compte</p>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-400" />
             </button>
             <button
               onClick={() => window.open(SUPPORT_CONFIG.whatsappUrl, '_blank')}
-              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50"
+              className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                 <HelpCircle className="w-4 h-4 text-green-600" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium text-gray-900 text-sm">Aide & Support</p>
-                <p className="text-[10px] text-gray-500">Contactez notre équipe</p>
+                <p className="font-medium text-gray-900 dark:text-white text-sm">Aide & Support</p>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Contactez notre équipe</p>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-400" />
             </button>

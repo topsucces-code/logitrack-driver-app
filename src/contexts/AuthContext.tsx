@@ -169,8 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (rpcError) {
         authLogger.error('RPC register_logitrack_driver error', { error: rpcError });
-        // Don't fail completely - the user is created, profile can be completed in onboarding
-        // But log the error for debugging
+        // User is created but profile failed - return a warning so the user knows
+        // They can still complete their profile in onboarding
+        return { error: 'Compte créé, mais le profil n\'a pas pu être initialisé. Complétez votre profil dans l\'onboarding.' };
       }
 
       return { error: null };
