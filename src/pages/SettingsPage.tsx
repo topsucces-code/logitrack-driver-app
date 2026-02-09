@@ -83,7 +83,7 @@ export default function SettingsPage() {
         <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t.settings}</h1>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-3 pb-20 space-y-3">
+      <div className="flex-1 overflow-y-auto p-3 pb-4 space-y-3">
         {/* Delivery Settings - Compact */}
         <div className="bg-white dark:bg-gray-800 rounded-lg">
           <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700">

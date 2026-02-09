@@ -98,7 +98,7 @@ img, a {
 
 /* Bottom navigation safe area */
 .safe-bottom {
-  padding-bottom: max(24px, calc(var(--sab) + 16px));
+  padding-bottom: max(8px, calc(var(--sab) + 4px));
 }
 
 /* Top safe area */
@@ -109,7 +109,7 @@ img, a {
 /* Safe area margins */
 .safe-area-inset {
   padding-top: max(16px, var(--sat));
-  padding-bottom: max(24px, calc(var(--sab) + 16px));
+  padding-bottom: max(8px, calc(var(--sab) + 4px));
   padding-left: max(16px, var(--sal));
   padding-right: max(16px, var(--sar));
 }
