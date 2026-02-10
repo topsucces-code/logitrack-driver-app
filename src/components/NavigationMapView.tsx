@@ -40,6 +40,24 @@ class NavErrorBoundary extends Component<EBProps, EBState> {
   }
 }
 
+// ==================== MAP ERROR BOUNDARY ====================
+class MapErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(err: Error, info: ErrorInfo) { console.error('[MapEB] crash:', err, info); }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-gray-200 p-4">
+          <AlertTriangle className="w-8 h-8 text-orange-400 mb-2" />
+          <p className="text-gray-600 text-sm text-center">Carte indisponible</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // ==================== TYPES ====================
 interface NavigationMapViewProps {
   destination: { lat: number; lng: number };
@@ -282,40 +300,42 @@ function NavigationMapInner({
         </div>
       )}
 
-      {/* MAP */}
+      {/* MAP - wrapped in its own error boundary */}
       <div className="flex-1 relative">
-        {isLoaded ? (
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '100%' }}
-            center={destination}
-            zoom={14}
-            options={{
-              disableDefaultUI: true,
-              zoomControl: false,
-              mapTypeControl: false,
-              streetViewControl: false,
-              fullscreenControl: false,
-            }}
-            onLoad={(map) => { mapRef.current = map; }}
-            onDragStart={() => setFollowDriver(false)}
-          >
-            {directions && (
-              <DirectionsRenderer
-                directions={directions}
-                options={{
-                  suppressMarkers: true,
-                  polylineOptions: { strokeColor: '#4285F4', strokeWeight: 6, strokeOpacity: 0.9 },
-                }}
-              />
-            )}
-            <MarkerF position={destination} icon={getIcon(destMarkerUrl)} title={destinationLabel} />
-            {position && <MarkerF position={position} icon={getIcon(DRIVER_MARKER_URL)} title="Vous" />}
-          </GoogleMap>
-        ) : (
-          <div className="h-full w-full flex items-center justify-center bg-gray-200">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-          </div>
-        )}
+        <MapErrorBoundary>
+          {isLoaded && typeof google !== 'undefined' && google.maps ? (
+            <GoogleMap
+              mapContainerStyle={{ width: '100%', height: '100%' }}
+              center={destination}
+              zoom={14}
+              options={{
+                disableDefaultUI: true,
+                zoomControl: false,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+              }}
+              onLoad={(map) => { mapRef.current = map; }}
+              onDragStart={() => setFollowDriver(false)}
+            >
+              {directions && (
+                <DirectionsRenderer
+                  directions={directions}
+                  options={{
+                    suppressMarkers: true,
+                    polylineOptions: { strokeColor: '#4285F4', strokeWeight: 6, strokeOpacity: 0.9 },
+                  }}
+                />
+              )}
+              <MarkerF position={destination} icon={getIcon(destMarkerUrl)} title={destinationLabel} />
+              {position && <MarkerF position={position} icon={getIcon(DRIVER_MARKER_URL)} title="Vous" />}
+            </GoogleMap>
+          ) : (
+            <div className="h-full w-full flex items-center justify-center bg-gray-200">
+              <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+            </div>
+          )}
+        </MapErrorBoundary>
       </div>
 
       {/* FOLLOW BUTTON */}
