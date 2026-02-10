@@ -45,19 +45,21 @@ export function NavigationButton({
   const eta = distance ? estimateTravelTime(distance, vehicleType) : null;
 
   const handleNavigate = (app: NavigationApp) => {
-    hapticLight();
+    try { hapticLight(); } catch { /* ignore */ }
     navigateTo({ ...destination, label }, app);
     setShowModal(false);
   };
 
   const handleQuickNavigate = () => {
-    hapticLight();
+    try { hapticLight(); } catch { /* ignore */ }
     navigateTo({ ...destination, label }, 'default');
   };
 
-  // Compact variant (icon only)
+  // Render the trigger button based on variant
+  let triggerButton: React.ReactNode;
+
   if (variant === 'compact') {
-    return (
+    triggerButton = (
       <button
         onClick={handleQuickNavigate}
         className="w-10 h-10 bg-primary-500 hover:bg-primary-600 rounded-full flex items-center justify-center text-white shadow-md active:scale-95 transition-transform"
@@ -65,11 +67,8 @@ export function NavigationButton({
         <Navigation className="w-5 h-5" />
       </button>
     );
-  }
-
-  // Inline variant (small button)
-  if (variant === 'inline') {
-    return (
+  } else if (variant === 'inline') {
+    triggerButton = (
       <button
         onClick={() => setShowModal(true)}
         className="flex items-center gap-2 px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-lg text-sm font-medium transition-colors"
@@ -81,11 +80,8 @@ export function NavigationButton({
         )}
       </button>
     );
-  }
-
-  // Default variant (full button)
-  return (
-    <>
+  } else {
+    triggerButton = (
       <Button
         onClick={() => setShowModal(true)}
         fullWidth
@@ -98,8 +94,14 @@ export function NavigationButton({
           )}
         </span>
       </Button>
+    );
+  }
 
-      {/* Navigation App Selection Modal */}
+  return (
+    <>
+      {triggerButton}
+
+      {/* Navigation App Selection Modal - always in DOM */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
           <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom">

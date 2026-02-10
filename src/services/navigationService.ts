@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { AppLauncher } from '@capacitor/app-launcher';
 
 export interface NavigationDestination {
   latitude: number;
@@ -8,64 +9,44 @@ export interface NavigationDestination {
 
 export type NavigationApp = 'google_maps' | 'waze' | 'apple_maps' | 'default';
 
-// Check if app is available (only works on native)
-function isNative(): boolean {
-  return Capacitor.isNativePlatform();
-}
-
 // Get platform
 function getPlatform(): 'ios' | 'android' | 'web' {
-  if (Capacitor.getPlatform() === 'ios') return 'ios';
-  if (Capacitor.getPlatform() === 'android') return 'android';
+  const p = Capacitor.getPlatform();
+  if (p === 'ios') return 'ios';
+  if (p === 'android') return 'android';
   return 'web';
 }
 
-// Open a URL reliably on all platforms (mobile browsers, PWA, native)
+// Open a URL externally - uses AppLauncher on native, window.open on web
 function openUrl(url: string): void {
-  // window.open is most reliable in user gesture context
-  const win = window.open(url, '_blank');
-  if (!win) {
-    // Fallback: navigate current page (always works)
-    window.location.href = url;
+  if (Capacitor.isNativePlatform()) {
+    AppLauncher.openUrl({ url })
+      .catch(() => {
+        // Fallback to window.open
+        window.open(url, '_blank');
+      });
+  } else {
+    const win = window.open(url, '_blank');
+    if (!win) {
+      window.location.href = url;
+    }
   }
 }
 
 // Open Google Maps
 export function openGoogleMaps(destination: NavigationDestination): void {
   const { latitude, longitude } = destination;
-  const platform = getPlatform();
-
-  if (platform === 'android') {
-    // Native Android: Use geo intent
-    window.location.href = `google.navigation:q=${latitude},${longitude}`;
-  } else if (platform === 'ios') {
-    // Native iOS: Try Google Maps app, fallback to web
-    window.location.href = `comgooglemaps://?daddr=${latitude},${longitude}&directionsmode=driving`;
-    setTimeout(() => {
-      openUrl(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`);
-    }, 500);
-  } else {
-    // Web/PWA: Open Google Maps web
-    openUrl(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`);
-  }
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
+  openUrl(url);
 }
 
 // Open Waze
 export function openWaze(destination: NavigationDestination): void {
   const { latitude, longitude } = destination;
-  const platform = getPlatform();
 
-  let url: string;
-
-  if (platform === 'ios' || platform === 'android') {
-    // Native: Use Waze deep link
-    window.location.href = `waze://?ll=${latitude},${longitude}&navigate=yes`;
-    // Fallback to web after delay
-    setTimeout(() => {
-      openUrl(`https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`);
-    }, 500);
+  if (Capacitor.isNativePlatform()) {
+    openUrl(`https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`);
   } else {
-    // Web/PWA
     openUrl(`https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`);
   }
 }
