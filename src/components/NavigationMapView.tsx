@@ -1,6 +1,6 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GoogleMap, DirectionsRenderer, MarkerF, PolylineF } from '@react-google-maps/api';
-import { X, Navigation, ExternalLink, RefreshCw, Crosshair, Loader2, AlertTriangle } from 'lucide-react';
+import { X, RefreshCw, Crosshair, Locate, Loader2, AlertTriangle } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
 import { useGoogleMaps } from './GoogleMapsProvider';
 import { useNavigationRoute } from '../hooks/useNavigationRoute';
@@ -11,7 +11,7 @@ import {
   MARKER_SIZE,
   MARKER_ANCHOR,
 } from '../config/mapIcons';
-import { formatDistance, formatTravelTime, openGoogleMaps } from '../services/navigationService';
+import { formatDistance, formatTravelTime } from '../services/navigationService';
 
 interface NavigationMapViewProps {
   destination: { lat: number; lng: number };
@@ -50,6 +50,16 @@ export function NavigationMapView({
   } = useNavigationRoute({ destination, enabled: isLoaded });
 
   const mapRef = useRef<google.maps.Map | null>(null);
+  const [followDriver, setFollowDriver] = useState(true);
+
+  // Auto-follow driver position
+  useEffect(() => {
+    if (!followDriver || !mapRef.current || !position) return;
+    mapRef.current.panTo(position);
+    if (mapRef.current.getZoom()! < 15) {
+      mapRef.current.setZoom(16);
+    }
+  }, [followDriver, position?.lat, position?.lng]);
 
   const handleRecenter = useCallback(() => {
     if (!mapRef.current) return;
@@ -59,13 +69,13 @@ export function NavigationMapView({
     mapRef.current.fitBounds(bounds, 50);
   }, [destination, position]);
 
-  const handleOpenExternal = useCallback(() => {
-    openGoogleMaps({
-      latitude: destination.lat,
-      longitude: destination.lng,
-      label: destinationLabel,
-    });
-  }, [destination, destinationLabel]);
+  const handleFollowMe = useCallback(() => {
+    setFollowDriver(true);
+    if (mapRef.current && position) {
+      mapRef.current.panTo(position);
+      mapRef.current.setZoom(16);
+    }
+  }, [position]);
 
   const destMarkerUrl = destinationType === 'pickup' ? PICKUP_MARKER_URL : DELIVERY_MARKER_URL;
 
@@ -157,6 +167,7 @@ export function NavigationMapView({
           zoom={14}
           options={mapOptions}
           onLoad={onMapLoad}
+          onDragStart={() => setFollowDriver(false)}
         >
           {/* Route via DirectionsRenderer */}
           {directions && !isFallback && (
@@ -209,21 +220,23 @@ export function NavigationMapView({
         )}
       </div>
 
+      {/* Floating follow-me button (when auto-follow is off) */}
+      {!followDriver && position && (
+        <button
+          onClick={handleFollowMe}
+          className="absolute bottom-20 right-3 z-20 w-12 h-12 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center border border-gray-200 dark:border-gray-600 active:scale-95 transition-transform"
+        >
+          <Locate className="w-5 h-5 text-primary-500" />
+        </button>
+      )}
+
       {/* Bottom bar */}
-      <div className="bg-white dark:bg-gray-800 safe-bottom px-3 py-3 flex gap-2 shadow-up z-10">
+      <div className="bg-white dark:bg-gray-800 safe-bottom px-3 py-3 shadow-up z-10">
         <button
           onClick={onClose}
-          className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors"
+          className="w-full py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors"
         >
           Fermer
-        </button>
-        <button
-          onClick={handleOpenExternal}
-          className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary-500 hover:bg-primary-600 rounded-lg text-sm font-medium text-white transition-colors"
-        >
-          <Navigation className="w-4 h-4" />
-          Naviguer
-          <ExternalLink className="w-3 h-3 opacity-70" />
         </button>
       </div>
     </div>
