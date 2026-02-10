@@ -1,21 +1,26 @@
-import { LoadScript } from '@react-google-maps/api';
-import { ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
+import { useJsApiLoader } from '@react-google-maps/api';
 
 const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || '';
 
-interface GoogleMapsProviderProps {
-  children: ReactNode;
+interface GoogleMapsContextValue {
+  isLoaded: boolean;
 }
 
-export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
-  if (!GOOGLE_MAPS_KEY) {
-    // Render children without Google Maps if key is missing (graceful fallback)
-    return <>{children}</>;
-  }
+const GoogleMapsContext = createContext<GoogleMapsContextValue>({ isLoaded: false });
+
+export function useGoogleMaps() {
+  return useContext(GoogleMapsContext);
+}
+
+export function GoogleMapsProvider({ children }: { children: ReactNode }) {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: GOOGLE_MAPS_KEY,
+  });
 
   return (
-    <LoadScript googleMapsApiKey={GOOGLE_MAPS_KEY}>
+    <GoogleMapsContext.Provider value={{ isLoaded }}>
       {children}
-    </LoadScript>
+    </GoogleMapsContext.Provider>
   );
 }

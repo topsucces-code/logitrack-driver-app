@@ -14,6 +14,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { GoogleMap, MarkerF } from '@react-google-maps/api';
+import { useGoogleMaps } from '../components/GoogleMapsProvider';
 import { getTrackingByCode } from '../services/trustService';
 import { SharedTracking, TrackingUpdate } from '../types/trust';
 import { TRUST_LEVELS } from '../types/trust';
@@ -34,6 +35,7 @@ function makeMarkerIcon(url: string) {
 
 export default function PublicTrackingPage() {
   const { code } = useParams<{ code: string }>();
+  const { isLoaded: mapsLoaded } = useGoogleMaps();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tracking, setTracking] = useState<SharedTracking | null>(null);
@@ -289,7 +291,7 @@ export default function PublicTrackingPage() {
         </div>
 
         {/* Live Map */}
-        {delivery?.status === 'in_transit' && latestUpdate && (
+        {delivery?.status === 'in_transit' && latestUpdate && mapsLoaded && (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-4">
             <GoogleMap
               mapContainerStyle={{ height: '12rem', width: '100%' }}

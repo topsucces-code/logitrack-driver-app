@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { GoogleMap, MarkerF } from '@react-google-maps/api';
+import { useGoogleMaps } from '../components/GoogleMapsProvider';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { supabase, Delivery } from '../lib/supabase';
@@ -78,6 +79,7 @@ function MiniMap({
   driverPos: { lat: number; lng: number } | null;
   delivery: Delivery;
 }) {
+  const { isLoaded } = useGoogleMaps();
   const center = pickupCoords || deliveryCoords || MAP_CONFIG.defaultCenter;
 
   const onLoad = useCallback((map: google.maps.Map) => {
@@ -89,6 +91,14 @@ function MiniMap({
       map.fitBounds(bounds, 30);
     }
   }, [pickupCoords, deliveryCoords, driverPos]);
+
+  if (!isLoaded) {
+    return (
+      <div className="h-36 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="h-36 relative">

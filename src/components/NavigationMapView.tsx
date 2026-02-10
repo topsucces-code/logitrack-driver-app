@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { GoogleMap, DirectionsRenderer, MarkerF, PolylineF } from '@react-google-maps/api';
 import { X, Navigation, RefreshCw, Crosshair, Loader2, AlertTriangle } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
+import { useGoogleMaps } from './GoogleMapsProvider';
 import { useNavigationRoute } from '../hooks/useNavigationRoute';
 import {
   PICKUP_MARKER_URL,
@@ -37,6 +38,7 @@ export function NavigationMapView({
   onClose,
 }: NavigationMapViewProps) {
   const { position } = useLocation();
+  const { isLoaded } = useGoogleMaps();
 
   const {
     directions,
@@ -46,7 +48,7 @@ export function NavigationMapView({
     etaMinutes,
     isFallback,
     refetchRoute,
-  } = useNavigationRoute({ destination, enabled: true });
+  } = useNavigationRoute({ destination, enabled: isLoaded });
 
   const mapRef = useRef<google.maps.Map | null>(null);
 
@@ -145,6 +147,11 @@ export function NavigationMapView({
 
       {/* Map */}
       <div className="flex-1 relative">
+        {!isLoaded ? (
+          <div className="h-full w-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        ) : (
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={destination}
@@ -200,6 +207,7 @@ export function NavigationMapView({
             />
           )}
         </GoogleMap>
+        )}
       </div>
 
       {/* Bottom bar */}
