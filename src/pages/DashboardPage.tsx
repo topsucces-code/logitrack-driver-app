@@ -473,11 +473,12 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-3 text-xs text-gray-600">
                   <span className="flex items-center gap-1">
                     <Navigation className="w-3.5 h-3.5" />
-                    {currentDelivery.distance_km?.toFixed(1)} km
+                    {Number(currentDelivery.distance_km || 0).toFixed(1)} km
                   </span>
+                  <span className="text-gray-400">#{currentDelivery.tracking_code}</span>
                 </div>
                 <p className="font-bold text-primary-600 text-base">
-                  {currentDelivery.driver_earnings?.toLocaleString()} F
+                  {(currentDelivery.driver_earnings || currentDelivery.total_price || 0).toLocaleString()} F
                 </p>
               </div>
             </button>
@@ -728,10 +729,10 @@ const DeliveryCard = memo(function DeliveryCard({
         <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400 mb-2">
           <span className="flex items-center gap-1">
             <Navigation className="w-3.5 h-3.5" />
-            ~{delivery.distance_km?.toFixed(0) || '?'} km
+            ~{Number(delivery.distance_km || 0).toFixed(1)} km
           </span>
           <span className="font-bold text-primary-600">
-            Gain : {delivery.driver_earnings?.toLocaleString()} FCFA
+            {(delivery.driver_earnings || delivery.total_price || 0).toLocaleString()} F
           </span>
         </div>
 
