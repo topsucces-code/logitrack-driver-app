@@ -581,16 +581,49 @@ export default function DeliveryDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Secondary actions (in scrollable area) */}
+        {delivery.status === 'arriving' && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium transition-colors"
+            >
+              <UserX className="w-4 h-4" />
+              Client absent
+            </button>
+            <button
+              onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
+                state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
+              })}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              Signaler
+            </button>
+          </div>
+        )}
+
+        {delivery.status !== 'arriving' && (
+          <button
+            onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
+              state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
+            })}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            Signaler un problème
+          </button>
+        )}
       </div>
 
-      {/* Action Button */}
-      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 safe-bottom">
+      {/* Action Button - fixed bottom */}
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 py-2 safe-bottom">
         {delivery.status === 'assigned' && (
           <Button
             onClick={() => updateStatus('accepted')}
             loading={updating}
             fullWidth
-            size="lg"
             icon={<CheckCircle className="w-5 h-5" />}
             className="bg-primary-500 hover:bg-primary-600"
           >
@@ -603,7 +636,6 @@ export default function DeliveryDetailPage() {
             onClick={() => updateStatus('picking_up')}
             loading={updating}
             fullWidth
-            size="lg"
             icon={<Navigation className="w-5 h-5" />}
             className="bg-green-500 hover:bg-green-600"
           >
@@ -616,7 +648,6 @@ export default function DeliveryDetailPage() {
             onClick={() => updateStatus('picked_up')}
             loading={updating}
             fullWidth
-            size="lg"
             icon={<Package className="w-5 h-5" />}
             className="bg-blue-500 hover:bg-blue-600"
           >
@@ -629,7 +660,6 @@ export default function DeliveryDetailPage() {
             onClick={() => updateStatus('in_transit')}
             loading={updating}
             fullWidth
-            size="lg"
             icon={<Navigation className="w-5 h-5" />}
             className="bg-orange-500 hover:bg-orange-600"
           >
@@ -642,7 +672,6 @@ export default function DeliveryDetailPage() {
             onClick={() => updateStatus('arriving')}
             loading={updating}
             fullWidth
-            size="lg"
             icon={<MapPin className="w-5 h-5" />}
             className="bg-purple-500 hover:bg-purple-600"
           >
@@ -651,48 +680,13 @@ export default function DeliveryDetailPage() {
         )}
 
         {delivery.status === 'arriving' && (
-          <>
-            <Button
-              onClick={() => setShowProofModal(true)}
-              disabled={updating}
-              fullWidth
-              size="lg"
-              icon={<CheckCircle className="w-5 h-5" />}
-            >
-              Confirmer la livraison
-            </Button>
-            <div className="flex gap-2 mt-2">
-              <button
-                onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium transition-colors"
-              >
-                <UserX className="w-4 h-4" />
-                Client absent
-              </button>
-              <button
-                onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
-                  state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
-                })}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
-              >
-                <AlertTriangle className="w-4 h-4" />
-                Signaler
-              </button>
-            </div>
-          </>
-        )}
-
-        {delivery.status !== 'arriving' && (
           <Button
-            onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
-              state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
-            })}
-            variant="outline"
+            onClick={() => setShowProofModal(true)}
+            disabled={updating}
             fullWidth
-            className="mt-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-            icon={<AlertTriangle className="w-5 h-5" />}
+            icon={<CheckCircle className="w-5 h-5" />}
           >
-            Signaler un problème
+            Confirmer la livraison
           </Button>
         )}
       </div>
