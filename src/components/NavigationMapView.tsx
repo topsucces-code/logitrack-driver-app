@@ -11,7 +11,6 @@ import {
   MARKER_SIZE,
   MARKER_ANCHOR,
 } from '../config/mapIcons';
-import { openGoogleMaps } from '../services/navigationService';
 import { formatDistance, formatTravelTime } from '../services/navigationService';
 
 interface NavigationMapViewProps {
@@ -59,14 +58,6 @@ export function NavigationMapView({
     if (position) bounds.extend(position);
     mapRef.current.fitBounds(bounds, 50);
   }, [destination, position]);
-
-  const handleOpenGoogleMaps = useCallback(() => {
-    openGoogleMaps({
-      latitude: destination.lat,
-      longitude: destination.lng,
-      label: destinationLabel,
-    });
-  }, [destination, destinationLabel]);
 
   const destMarkerUrl = destinationType === 'pickup' ? PICKUP_MARKER_URL : DELIVERY_MARKER_URL;
 
@@ -219,11 +210,11 @@ export function NavigationMapView({
           Fermer
         </button>
         <button
-          onClick={handleOpenGoogleMaps}
+          onClick={handleRecenter}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary-500 hover:bg-primary-600 rounded-lg text-sm font-medium text-white transition-colors"
         >
           <Navigation className="w-4 h-4" />
-          Google Maps
+          Naviguer
         </button>
       </div>
     </div>

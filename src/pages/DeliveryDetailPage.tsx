@@ -661,30 +661,44 @@ export default function DeliveryDetailPage() {
             >
               Confirmer la livraison
             </Button>
-            <Button
-              onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
-              variant="outline"
-              fullWidth
-              className="mt-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
-              icon={<UserX className="w-5 h-5" />}
-            >
-              Client absent
-            </Button>
+            <div className="flex gap-2 mt-2">
+              <Button
+                onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
+                variant="outline"
+                fullWidth
+                className="bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
+                icon={<UserX className="w-4 h-4" />}
+              >
+                Client absent
+              </Button>
+              <Button
+                onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
+                  state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
+                })}
+                variant="outline"
+                fullWidth
+                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+                icon={<AlertTriangle className="w-4 h-4" />}
+              >
+                Signaler
+              </Button>
+            </div>
           </>
         )}
 
-        {/* Bouton Signaler un problème */}
-        <Button
-          onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
-            state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
-          })}
-          variant="outline"
-          fullWidth
-          className="mt-3 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-          icon={<AlertTriangle className="w-5 h-5" />}
-        >
-          Signaler un problème
-        </Button>
+        {delivery.status !== 'arriving' && (
+          <Button
+            onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
+              state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
+            })}
+            variant="outline"
+            fullWidth
+            className="mt-2 bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
+            icon={<AlertTriangle className="w-5 h-5" />}
+          >
+            Signaler un problème
+          </Button>
+        )}
       </div>
 
       {/* Proof Modal */}
