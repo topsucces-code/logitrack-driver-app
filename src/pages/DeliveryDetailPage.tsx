@@ -166,25 +166,37 @@ export default function DeliveryDetailPage() {
 
     setUpdating(true);
 
-    const { data, error } = await supabase.rpc('update_delivery_status', {
-      p_delivery_id: delivery.id,
-      p_status: newStatus,
-      p_lat: position?.lat || 0,
-      p_lng: position?.lng || 0,
-      ...extraData,
-    });
+    try {
+      const { data, error } = await supabase.rpc('update_delivery_status', {
+        p_delivery_id: delivery.id,
+        p_status: newStatus,
+        p_lat: position?.lat || 0,
+        p_lng: position?.lng || 0,
+        ...extraData,
+      });
 
-    if (error || !data?.success) {
-      showError(data?.error || 'Erreur lors de la mise à jour');
-    } else {
-      if (newStatus === 'delivered') {
-        refreshDriver();
-        setDeliveryCompleted(true);
-        setShowRatingModal(true);
+      if (error || !data?.success) {
+        showError(data?.error || error?.message || 'Erreur lors de la mise à jour');
+      } else {
+        // Refresh delivery data immediately (don't wait for realtime)
+        const { data: updated } = await supabase
+          .from('logitrack_deliveries')
+          .select('*')
+          .eq('id', delivery.id)
+          .single();
+        if (updated) setDelivery(updated as Delivery);
+
+        if (newStatus === 'delivered') {
+          refreshDriver();
+          setDeliveryCompleted(true);
+          setShowRatingModal(true);
+        }
       }
+    } catch (err) {
+      showError('Erreur réseau. Vérifiez votre connexion.');
+    } finally {
+      setUpdating(false);
     }
-
-    setUpdating(false);
   }
 
   // Take photo for proof
