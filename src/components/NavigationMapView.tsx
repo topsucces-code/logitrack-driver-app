@@ -244,7 +244,7 @@ export function NavigationMapView({
         </div>
       )}
 
-      {/* Info bar: distance + ETA + controls (shown when no step or loading) */}
+      {/* Info bar: shown when no step guidance (loading, error, or fallback) */}
       {(!currentStep || isLoading) && (
         <div className="bg-white dark:bg-gray-800 safe-top px-3 py-2.5 flex items-center gap-2 shadow-md z-10">
           <button
@@ -260,17 +260,28 @@ export function NavigationMapView({
                 Calcul de l'itinéraire...
               </div>
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                {destinationLabel}
-              </p>
-            )}
-            {error && (
-              <div className="flex items-center gap-1 text-xs text-amber-600 mt-0.5">
-                <AlertTriangle className="w-3 h-3" />
-                {error}
-              </div>
+              <>
+                <p className="text-sm text-gray-700 dark:text-gray-300 truncate font-medium">
+                  {destinationLabel}
+                </p>
+                {error && (
+                  <div className="flex items-center gap-1 text-xs text-amber-600 mt-0.5">
+                    <AlertTriangle className="w-3 h-3" />
+                    {error}
+                  </div>
+                )}
+              </>
             )}
           </div>
+          {!isLoading && (
+            <button
+              onClick={refetchRoute}
+              className="px-3 py-1.5 bg-primary-500 text-white rounded-lg text-xs font-medium flex items-center gap-1 flex-shrink-0"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Calculer
+            </button>
+          )}
         </div>
       )}
 

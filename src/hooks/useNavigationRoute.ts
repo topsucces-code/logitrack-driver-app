@@ -29,14 +29,14 @@ export function useNavigationRoute({
 }: UseNavigationRouteOptions): UseNavigationRouteReturn {
   const { position, getCurrentPosition } = useLocation();
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
   const [remainingDistanceKm, setRemainingDistanceKm] = useState<number | null>(null);
   const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const destRef = useRef(destination);
   destRef.current = destination;
-  const fetchedRef = useRef(false);
+  const hasFetchedRef = useRef(false);
 
   const doFetchRoute = useCallback(async (origin: { lat: number; lng: number }) => {
     setIsLoading(true);
@@ -45,8 +45,9 @@ export function useNavigationRoute({
       const result = await fetchDirections(origin, destRef.current);
       setDirections(result);
       setIsFallback(false);
-    } catch (err) {
-      // Fallback: no directions, just show straight line
+      setError(null);
+    } catch (err: any) {
+      console.error('[Navigation] Directions error:', err?.message || err);
       setDirections(null);
       setIsFallback(true);
       setError('Itinéraire indisponible, ligne directe affichée');
@@ -55,24 +56,44 @@ export function useNavigationRoute({
     }
   }, []);
 
-  // Initial fetch when enabled - try to get position if not available
+  // Fetch route when enabled and we have (or can get) a position
   useEffect(() => {
-    if (!enabled || fetchedRef.current) return;
+    if (!enabled) return;
+    // Already fetched successfully
+    if (hasFetchedRef.current && directions) return;
+
+    let cancelled = false;
 
     async function init() {
       let pos = position;
+
+      // If no cached position, request one on-demand
       if (!pos) {
-        // Try to get GPS position on demand
-        pos = await getCurrentPosition();
+        try {
+          pos = await getCurrentPosition();
+        } catch {
+          // GPS failed
+        }
       }
+
+      if (cancelled) return;
+
       if (pos) {
-        fetchedRef.current = true;
-        doFetchRoute(pos);
+        hasFetchedRef.current = true;
+        await doFetchRoute(pos);
+      } else {
+        setIsLoading(false);
+        setError('Position GPS indisponible. Activez la localisation.');
       }
     }
 
     init();
-    return () => { clearRouteCache(); fetchedRef.current = false; };
+
+    return () => {
+      cancelled = true;
+      clearRouteCache();
+      hasFetchedRef.current = false;
+    };
   }, [enabled, !!position]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update remaining distance/ETA on position changes
@@ -90,11 +111,17 @@ export function useNavigationRoute({
   }, [enabled, position?.lat, position?.lng, directions, doFetchRoute]);
 
   const refetchRoute = useCallback(() => {
+    clearRouteCache();
+    hasFetchedRef.current = false;
     if (position) {
-      clearRouteCache();
       doFetchRoute(position);
+    } else {
+      // Try to get position first
+      getCurrentPosition().then((pos) => {
+        if (pos) doFetchRoute(pos);
+      });
     }
-  }, [position, doFetchRoute]);
+  }, [position, doFetchRoute, getCurrentPosition]);
 
   return {
     directions,

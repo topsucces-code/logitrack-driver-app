@@ -1,6 +1,6 @@
 /**
  * Google Directions Service — replaces osrmRouteService.
- * Uses the Google Maps JS DirectionsService (loaded via @react-google-maps/api).
+ * Uses the Google Maps JS DirectionsService (callback API for max compatibility).
  */
 
 // In-memory cache
@@ -28,25 +28,39 @@ function haversineMeters(
 
 /**
  * Fetch driving directions via google.maps.DirectionsService.
+ * Uses callback API (not promise) for maximum browser compatibility.
  * Must be called AFTER the Google Maps JS API is loaded.
  */
-export async function fetchDirections(
+export function fetchDirections(
   origin: { lat: number; lng: number },
   destination: { lat: number; lng: number },
 ): Promise<google.maps.DirectionsResult> {
-  const service = new google.maps.DirectionsService();
+  return new Promise((resolve, reject) => {
+    if (typeof google === 'undefined' || !google.maps) {
+      reject(new Error('Google Maps non chargé'));
+      return;
+    }
 
-  const result = await service.route({
-    origin,
-    destination,
-    travelMode: google.maps.TravelMode.DRIVING,
+    const service = new google.maps.DirectionsService();
+
+    service.route(
+      {
+        origin: new google.maps.LatLng(origin.lat, origin.lng),
+        destination: new google.maps.LatLng(destination.lat, destination.lng),
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === google.maps.DirectionsStatus.OK && result) {
+          cachedResult = result;
+          cachedOrigin = origin;
+          lastFetchTime = Date.now();
+          resolve(result);
+        } else {
+          reject(new Error(`Directions: ${status}`));
+        }
+      },
+    );
   });
-
-  cachedResult = result;
-  cachedOrigin = origin;
-  lastFetchTime = Date.now();
-
-  return result;
 }
 
 /** Get remaining distance from driver to destination in km (haversine). */
