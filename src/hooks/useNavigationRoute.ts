@@ -27,7 +27,7 @@ export function useNavigationRoute({
   destination,
   enabled,
 }: UseNavigationRouteOptions): UseNavigationRouteReturn {
-  const { position } = useLocation();
+  const { position, getCurrentPosition } = useLocation();
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +36,7 @@ export function useNavigationRoute({
   const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const destRef = useRef(destination);
   destRef.current = destination;
+  const fetchedRef = useRef(false);
 
   const doFetchRoute = useCallback(async (origin: { lat: number; lng: number }) => {
     setIsLoading(true);
@@ -54,11 +55,24 @@ export function useNavigationRoute({
     }
   }, []);
 
-  // Initial fetch when enabled + position available
+  // Initial fetch when enabled - try to get position if not available
   useEffect(() => {
-    if (!enabled || !position) return;
-    doFetchRoute(position);
-    return () => { clearRouteCache(); };
+    if (!enabled || fetchedRef.current) return;
+
+    async function init() {
+      let pos = position;
+      if (!pos) {
+        // Try to get GPS position on demand
+        pos = await getCurrentPosition();
+      }
+      if (pos) {
+        fetchedRef.current = true;
+        doFetchRoute(pos);
+      }
+    }
+
+    init();
+    return () => { clearRouteCache(); fetchedRef.current = false; };
   }, [enabled, !!position]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update remaining distance/ETA on position changes

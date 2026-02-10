@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { GoogleMap, DirectionsRenderer, MarkerF, PolylineF } from '@react-google-maps/api';
-import { X, Navigation, RefreshCw, Crosshair, Loader2, AlertTriangle } from 'lucide-react';
+import { X, Navigation, ExternalLink, RefreshCw, Crosshair, Loader2, AlertTriangle } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
 import { useGoogleMaps } from './GoogleMapsProvider';
 import { useNavigationRoute } from '../hooks/useNavigationRoute';
@@ -11,7 +11,7 @@ import {
   MARKER_SIZE,
   MARKER_ANCHOR,
 } from '../config/mapIcons';
-import { formatDistance, formatTravelTime } from '../services/navigationService';
+import { formatDistance, formatTravelTime, openGoogleMaps } from '../services/navigationService';
 
 interface NavigationMapViewProps {
   destination: { lat: number; lng: number };
@@ -59,10 +59,13 @@ export function NavigationMapView({
     mapRef.current.fitBounds(bounds, 50);
   }, [destination, position]);
 
-  const handleNavigate = useCallback(() => {
-    refetchRoute();
-    handleRecenter();
-  }, [refetchRoute, handleRecenter]);
+  const handleOpenExternal = useCallback(() => {
+    openGoogleMaps({
+      latitude: destination.lat,
+      longitude: destination.lng,
+      label: destinationLabel,
+    });
+  }, [destination, destinationLabel]);
 
   const destMarkerUrl = destinationType === 'pickup' ? PICKUP_MARKER_URL : DELIVERY_MARKER_URL;
 
@@ -215,11 +218,12 @@ export function NavigationMapView({
           Fermer
         </button>
         <button
-          onClick={handleNavigate}
+          onClick={handleOpenExternal}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary-500 hover:bg-primary-600 rounded-lg text-sm font-medium text-white transition-colors"
         >
           <Navigation className="w-4 h-4" />
           Naviguer
+          <ExternalLink className="w-3 h-3 opacity-70" />
         </button>
       </div>
     </div>
