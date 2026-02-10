@@ -35,8 +35,10 @@ function openUrl(url: string): void {
 
 // Open Google Maps
 export function openGoogleMaps(destination: NavigationDestination): void {
-  const { latitude, longitude } = destination;
-  const url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&travelmode=driving`;
+  const { latitude, longitude, label } = destination;
+  // Use address name if available, coordinates as fallback
+  const dest = label ? encodeURIComponent(label) : `${latitude},${longitude}`;
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${dest}&destination_place_id=&travelmode=driving`;
   openUrl(url);
 }
 
