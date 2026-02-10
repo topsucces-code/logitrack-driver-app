@@ -132,10 +132,17 @@ export default function DeliveryDetailPage() {
 
   // Update delivery status
   async function updateStatus(newStatus: string, extraData?: Record<string, any>) {
-    if (!delivery || !position) return;
+    if (!delivery) return;
 
-    // GPS proximity validation for picked_up (must be near pickup) and delivered (must be near delivery)
-    if (newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
+    // GPS proximity validation only for picked_up and delivered
+    const needsGps = ['picked_up', 'delivered'].includes(newStatus);
+
+    if (needsGps && !position) {
+      showError('Position GPS non disponible. Activez la localisation.');
+      return;
+    }
+
+    if (needsGps && position && newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
       const dist = getDistanceMeters(
         position.lat, position.lng,
         Number(delivery.pickup_latitude), Number(delivery.pickup_longitude)
@@ -146,7 +153,7 @@ export default function DeliveryDetailPage() {
       }
     }
 
-    if (newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
+    if (needsGps && position && newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
       const dist = getDistanceMeters(
         position.lat, position.lng,
         Number(delivery.delivery_latitude), Number(delivery.delivery_longitude)
@@ -162,8 +169,8 @@ export default function DeliveryDetailPage() {
     const { data, error } = await supabase.rpc('update_delivery_status', {
       p_delivery_id: delivery.id,
       p_status: newStatus,
-      p_lat: position.lat,
-      p_lng: position.lng,
+      p_lat: position?.lat || 0,
+      p_lng: position?.lng || 0,
       ...extraData,
     });
 
