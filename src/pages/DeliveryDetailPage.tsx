@@ -83,7 +83,7 @@ export default function DeliveryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { refreshDriver } = useAuth();
-  const { position } = useLocation();
+  const { position, getCurrentPosition } = useLocation();
   const { showError } = useToast();
 
   const [delivery, setDelivery] = useState<Delivery | null>(null);
@@ -137,14 +137,24 @@ export default function DeliveryDetailPage() {
     // GPS proximity validation only for picked_up and delivered
     const needsGps = ['picked_up', 'delivered'].includes(newStatus);
 
-    if (needsGps && !position) {
+    // Try to get position: use cached position or fetch fresh one
+    let currentPos = position;
+    if (needsGps && !currentPos) {
+      try {
+        currentPos = await getCurrentPosition();
+      } catch {
+        // GPS fetch failed
+      }
+    }
+
+    if (needsGps && !currentPos) {
       showError('Position GPS non disponible. Activez la localisation.');
       return;
     }
 
-    if (needsGps && position && newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
+    if (needsGps && currentPos && newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
       const dist = getDistanceMeters(
-        position.lat, position.lng,
+        currentPos.lat, currentPos.lng,
         Number(delivery.pickup_latitude), Number(delivery.pickup_longitude)
       );
       if (dist > GPS_PROXIMITY_RADIUS_M) {
@@ -153,9 +163,9 @@ export default function DeliveryDetailPage() {
       }
     }
 
-    if (needsGps && position && newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
+    if (needsGps && currentPos && newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
       const dist = getDistanceMeters(
-        position.lat, position.lng,
+        currentPos.lat, currentPos.lng,
         Number(delivery.delivery_latitude), Number(delivery.delivery_longitude)
       );
       if (dist > GPS_PROXIMITY_RADIUS_M) {
@@ -170,8 +180,8 @@ export default function DeliveryDetailPage() {
       const { data, error } = await supabase.rpc('update_delivery_status', {
         p_delivery_id: delivery.id,
         p_status: newStatus,
-        p_lat: position?.lat || 0,
-        p_lng: position?.lng || 0,
+        p_lat: currentPos?.lat || 0,
+        p_lng: currentPos?.lng || 0,
         ...extraData,
       });
 
