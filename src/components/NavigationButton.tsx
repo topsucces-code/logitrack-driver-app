@@ -19,6 +19,8 @@ interface NavigationButtonProps {
   label?: string;
   variant?: 'default' | 'compact' | 'inline';
   vehicleType?: string;
+  /** If provided, clicking the inline button opens in-app navigation instead of the external app modal */
+  onInAppNavigate?: () => void;
 }
 
 export function NavigationButton({
@@ -26,6 +28,7 @@ export function NavigationButton({
   label,
   variant = 'default',
   vehicleType = 'moto',
+  onInAppNavigate,
 }: NavigationButtonProps) {
   const { position } = useLocation();
   const [showModal, setShowModal] = useState(false);
@@ -73,7 +76,14 @@ export function NavigationButton({
   } else if (variant === 'inline') {
     triggerButton = (
       <button
-        onClick={() => setShowModal(true)}
+        onClick={() => {
+          if (onInAppNavigate) {
+            try { hapticLight(); } catch { /* ignore */ }
+            onInAppNavigate();
+          } else {
+            setShowModal(true);
+          }
+        }}
         className="flex items-center gap-2 px-3 py-2 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-lg text-sm font-medium transition-colors"
       >
         <Navigation className="w-4 h-4" />

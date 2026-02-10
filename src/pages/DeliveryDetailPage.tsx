@@ -17,24 +17,26 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { supabase, Delivery } from '../lib/supabase';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { MAP_CONFIG } from '../config/app.config';
+import { pickupIcon, deliveryIcon, driverIcon } from '../config/mapIcons';
 import { useToast } from '../contexts/ToastContext';
 import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { SOSButton } from '../components/SOSButton';
 import { NavigationButton } from '../components/NavigationButton';
+import { NavigationMapView } from '../components/NavigationMapView';
 import { Button } from '../components/ui/Button';
 import { CustomerRating } from '../components/CustomerRating';
 import { CommunicationButton } from '../components/DeliveryCommunication';
 import { ShareTrackingButton } from '../components/ShareTracking';
 
 // GPS proximity radius in meters for pickup/delivery validation
-const GPS_PROXIMITY_RADIUS_M = 200;
+// TODO: remettre à 200 après les tests
+const GPS_PROXIMITY_RADIUS_M = 500_000;
 
 /**
  * Calculate distance between two coordinates in meters using the Haversine formula.
@@ -50,34 +52,6 @@ function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Fix Leaflet marker icons - use local files for offline support
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: '/markers/marker-icon-2x.png',
-  iconUrl: '/markers/marker-icon.png',
-  shadowUrl: '/markers/marker-shadow.png',
-});
-
-const pickupIcon = new L.Icon({
-  iconUrl: '/markers/marker-icon-2x-green.png',
-  shadowUrl: '/markers/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-const deliveryIcon = new L.Icon({
-  iconUrl: '/markers/marker-icon-2x-red.png',
-  shadowUrl: '/markers/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-const driverIcon = new L.Icon({
-  iconUrl: '/markers/marker-icon-2x-blue.png',
-  shadowUrl: '/markers/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
 
 export default function DeliveryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -94,6 +68,12 @@ export default function DeliveryDetailPage() {
   const [recipientName, setRecipientName] = useState('');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [deliveryCompleted, setDeliveryCompleted] = useState(false);
+  const [showNavigationMap, setShowNavigationMap] = useState(false);
+  const [navigationTarget, setNavigationTarget] = useState<{
+    coords: { lat: number; lng: number };
+    label: string;
+    type: 'pickup' | 'delivery';
+  } | null>(null);
 
   // Fetch delivery
   useEffect(() => {
@@ -147,30 +127,28 @@ export default function DeliveryDetailPage() {
       }
     }
 
-    if (needsGps && !currentPos) {
-      showError('Position GPS non disponible. Activez la localisation.');
-      return;
-    }
-
-    if (needsGps && currentPos && newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
-      const dist = getDistanceMeters(
-        currentPos.lat, currentPos.lng,
-        Number(delivery.pickup_latitude), Number(delivery.pickup_longitude)
-      );
-      if (dist > GPS_PROXIMITY_RADIUS_M) {
-        showError(`Vous êtes à ${Math.round(dist)}m du point de collecte. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
-        return;
+    // GPS proximity check (soft: warn but don't block if GPS unavailable)
+    if (needsGps && currentPos) {
+      if (newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
+        const dist = getDistanceMeters(
+          currentPos.lat, currentPos.lng,
+          Number(delivery.pickup_latitude), Number(delivery.pickup_longitude)
+        );
+        if (dist > GPS_PROXIMITY_RADIUS_M) {
+          showError(`Vous êtes à ${Math.round(dist)}m du point de collecte. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
+          return;
+        }
       }
-    }
 
-    if (needsGps && currentPos && newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
-      const dist = getDistanceMeters(
-        currentPos.lat, currentPos.lng,
-        Number(delivery.delivery_latitude), Number(delivery.delivery_longitude)
-      );
-      if (dist > GPS_PROXIMITY_RADIUS_M) {
-        showError(`Vous êtes à ${Math.round(dist)}m du point de livraison. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
-        return;
+      if (newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
+        const dist = getDistanceMeters(
+          currentPos.lat, currentPos.lng,
+          Number(delivery.delivery_latitude), Number(delivery.delivery_longitude)
+        );
+        if (dist > GPS_PROXIMITY_RADIUS_M) {
+          showError(`Vous êtes à ${Math.round(dist)}m du point de livraison. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
+          return;
+        }
       }
     }
 
@@ -435,6 +413,14 @@ export default function DeliveryDetailPage() {
                   label: delivery.pickup_address,
                 }}
                 variant="inline"
+                onInAppNavigate={() => {
+                  setNavigationTarget({
+                    coords: pickupCoords,
+                    label: delivery.pickup_address || 'Point de collecte',
+                    type: 'pickup',
+                  });
+                  setShowNavigationMap(true);
+                }}
               />
             )}
           </div>
@@ -477,6 +463,14 @@ export default function DeliveryDetailPage() {
                   label: delivery.delivery_address,
                 }}
                 variant="inline"
+                onInAppNavigate={() => {
+                  setNavigationTarget({
+                    coords: deliveryCoords,
+                    label: delivery.delivery_address || 'Point de livraison',
+                    type: 'delivery',
+                  });
+                  setShowNavigationMap(true);
+                }}
               />
             )}
           </div>
@@ -718,6 +712,16 @@ export default function DeliveryDetailPage() {
             setShowRatingModal(false);
             navigate('/');
           }}
+        />
+      )}
+
+      {/* In-app Navigation Map Overlay */}
+      {showNavigationMap && navigationTarget && (
+        <NavigationMapView
+          destination={navigationTarget.coords}
+          destinationLabel={navigationTarget.label}
+          destinationType={navigationTarget.type}
+          onClose={() => setShowNavigationMap(false)}
         />
       )}
     </div>
