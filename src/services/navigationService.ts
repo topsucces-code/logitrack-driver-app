@@ -20,42 +20,33 @@ function getPlatform(): 'ios' | 'android' | 'web' {
   return 'web';
 }
 
+// Open a URL reliably on all platforms (mobile browsers, PWA, native)
+function openUrl(url: string): void {
+  // window.open is most reliable in user gesture context
+  const win = window.open(url, '_blank');
+  if (!win) {
+    // Fallback: navigate current page (always works)
+    window.location.href = url;
+  }
+}
+
 // Open Google Maps
 export function openGoogleMaps(destination: NavigationDestination): void {
-  const { latitude, longitude, label } = destination;
+  const { latitude, longitude } = destination;
   const platform = getPlatform();
 
-  let url: string;
-
-  if (platform === 'ios') {
-    // iOS: Use comgooglemaps URL scheme, fallback to web
-    url = `comgooglemaps://?daddr=${latitude},${longitude}&directionsmode=driving`;
-
-    // Try to open app, fallback to web
-    const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.click();
-
-    // Fallback after short delay
+  if (platform === 'android') {
+    // Native Android: Use geo intent
+    window.location.href = `google.navigation:q=${latitude},${longitude}`;
+  } else if (platform === 'ios') {
+    // Native iOS: Try Google Maps app, fallback to web
+    window.location.href = `comgooglemaps://?daddr=${latitude},${longitude}&directionsmode=driving`;
     setTimeout(() => {
-      window.open(webUrl, '_blank');
+      openUrl(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`);
     }, 500);
-  } else if (platform === 'android') {
-    // Android: Use geo intent
-    url = `google.navigation:q=${latitude},${longitude}`;
-    window.location.href = url;
   } else {
-    // Web: Open in new tab (use link click to avoid popup blocker)
-    url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Web/PWA: Open Google Maps web
+    openUrl(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`);
   }
 }
 
@@ -68,25 +59,14 @@ export function openWaze(destination: NavigationDestination): void {
 
   if (platform === 'ios' || platform === 'android') {
     // Native: Use Waze deep link
-    url = `waze://?ll=${latitude},${longitude}&navigate=yes`;
-
-    // Try to open app
-    window.location.href = url;
-
+    window.location.href = `waze://?ll=${latitude},${longitude}&navigate=yes`;
     // Fallback to web after delay
     setTimeout(() => {
-      window.open(`https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`, '_blank');
+      openUrl(`https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`);
     }, 500);
   } else {
-    // Web: use link click to avoid popup blocker
-    url = `https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Web/PWA
+    openUrl(`https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`);
   }
 }
 
