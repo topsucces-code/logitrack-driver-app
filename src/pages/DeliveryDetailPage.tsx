@@ -316,6 +316,7 @@ export default function DeliveryDetailPage() {
         <div className="flex-1">
           <h1 className="font-semibold text-gray-900 dark:text-white text-sm">Course #{delivery.id.slice(0, 8)}</h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+            {delivery.status === 'assigned' && 'Nouvelle course assignée'}
             {delivery.status === 'accepted' && 'Assignée - En route vers pickup'}
             {delivery.status === 'picking_up' && 'En route vers le point de collecte'}
             {delivery.status === 'picked_up' && 'Colis récupéré'}
@@ -370,7 +371,7 @@ export default function DeliveryDetailPage() {
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {/* Pickup */}
         <div className={`bg-white dark:bg-gray-800 rounded-lg p-3 ${
-          ['accepted', 'picking_up'].includes(delivery.status)
+          ['assigned', 'accepted', 'picking_up'].includes(delivery.status)
             ? 'border-2 border-green-500'
             : ''
         }`}>
@@ -500,6 +501,19 @@ export default function DeliveryDetailPage() {
 
       {/* Action Button */}
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-3 safe-bottom">
+        {delivery.status === 'assigned' && (
+          <Button
+            onClick={() => updateStatus('accepted')}
+            loading={updating}
+            fullWidth
+            size="lg"
+            icon={<CheckCircle className="w-5 h-5" />}
+            className="bg-primary-500 hover:bg-primary-600"
+          >
+            Accepter la course
+          </Button>
+        )}
+
         {delivery.status === 'accepted' && (
           <Button
             onClick={() => updateStatus('picking_up')}

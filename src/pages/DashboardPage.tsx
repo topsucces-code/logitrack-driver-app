@@ -87,7 +87,7 @@ export default function DashboardPage() {
         .from('logitrack_deliveries')
         .select('*')
         .eq('driver_id', driver.id)
-        .in('status', ['accepted', 'picking_up', 'picked_up', 'in_transit', 'arriving'])
+        .in('status', ['assigned', 'accepted', 'picking_up', 'picked_up', 'in_transit', 'arriving'])
         .maybeSingle();
 
       setCurrentDelivery(current as Delivery | null);
@@ -438,6 +438,7 @@ export default function DashboardPage() {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="px-2.5 py-0.5 bg-primary-500 text-white text-[10px] font-medium rounded-full">
+                  {currentDelivery.status === 'assigned' && '📍 Nouvelle course'}
                   {currentDelivery.status === 'accepted' && '📍 Assignée'}
                   {currentDelivery.status === 'picking_up' && '🚀 En route pickup'}
                   {currentDelivery.status === 'picked_up' && '📦 Colis récupéré'}
