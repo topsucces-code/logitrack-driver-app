@@ -82,14 +82,16 @@ export default function DashboardPage() {
     if (!driver) return;
 
     try {
-      // Get current delivery (assigned to driver)
-      const { data: current } = await supabase
+      // Get current delivery (assigned to driver) — use limit(1) to avoid crash if multiple active
+      const { data: currentArr } = await supabase
         .from('logitrack_deliveries')
         .select('*')
         .eq('driver_id', driver.id)
         .in('status', ['assigned', 'accepted', 'picking_up', 'picked_up', 'in_transit', 'arriving'])
-        .maybeSingle();
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
+      const current = currentArr?.[0] || null;
       setCurrentDelivery(current as Delivery | null);
 
       // Get pending deliveries (available for pickup)
