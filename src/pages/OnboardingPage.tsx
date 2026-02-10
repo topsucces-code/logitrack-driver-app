@@ -233,14 +233,24 @@ export default function OnboardingPage() {
         data.licensePhoto ? uploadPhoto(data.licensePhoto, 'driver-documents', `${userId}/license.jpg`) : null,
       ]);
 
-      // Convert zone names to UUIDs if zones were loaded from database (real UUIDs, not fallback)
-      // If using fallback zones (id starts with 'fallback-'), we skip secondary_zones
+      // Convert zone names to UUIDs
+      // If zones were loaded from DB, use their IDs directly
+      // If using fallback zones, try to resolve names to real IDs from DB
       let zoneIds: string[] = [];
       const hasRealZones = availableZones.length > 0 && !availableZones[0]?.id.startsWith('fallback-');
       if (hasRealZones) {
         zoneIds = data.zones
           .map(zoneName => availableZones.find(z => z.name === zoneName)?.id)
           .filter((id): id is string => id !== undefined && !id.startsWith('fallback-'));
+      } else {
+        // Fallback zones: resolve names to real UUIDs from logitrack_zones
+        const { data: dbZones } = await supabase
+          .from('logitrack_zones')
+          .select('id, name')
+          .in('name', data.zones);
+        if (dbZones && dbZones.length > 0) {
+          zoneIds = dbZones.map(z => z.id);
+        }
       }
 
       const driverData: Record<string, unknown> = {
@@ -479,7 +489,7 @@ export default function OnboardingPage() {
                 <p className="text-xs font-medium text-gray-700 mb-1.5">Recto CNI</p>
                 <button
                   onClick={() => handlePhotoCapture('cniFront')}
-                  className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
+                  className="w-full aspect-[1.6] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.cniFront ? (
                     <img src={data.cniFront} alt="CNI Front" loading="lazy" className="w-full h-full object-cover" />
@@ -495,7 +505,7 @@ export default function OnboardingPage() {
                 <p className="text-xs font-medium text-gray-700 mb-1.5">Verso CNI</p>
                 <button
                   onClick={() => handlePhotoCapture('cniBack')}
-                  className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
+                  className="w-full aspect-[1.6] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.cniBack ? (
                     <img src={data.cniBack} alt="CNI Back" loading="lazy" className="w-full h-full object-cover" />
@@ -535,7 +545,7 @@ export default function OnboardingPage() {
                   <button
                     key={v.type}
                     onClick={() => setData(prev => ({ ...prev, vehicleType: v.type }))}
-                    className={`p-2.5 rounded-xl border-2 text-center transition-colors ${
+                    className={`p-2.5 rounded-lg border-2 text-center transition-colors ${
                       data.vehicleType === v.type
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
@@ -586,7 +596,7 @@ export default function OnboardingPage() {
                 <p className="text-xs font-medium text-gray-700 mb-1.5">Permis de conduire</p>
                 <button
                   onClick={() => handlePhotoCapture('licensePhoto')}
-                  className="w-full aspect-[1.6] bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
+                  className="w-full aspect-[1.6] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.licensePhoto ? (
                     <img src={data.licensePhoto} alt="License" loading="lazy" className="w-full h-full object-cover" />

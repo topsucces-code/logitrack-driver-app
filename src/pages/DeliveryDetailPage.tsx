@@ -42,8 +42,7 @@ import { CommunicationButton } from '../components/DeliveryCommunication';
 import { ShareTrackingButton } from '../components/ShareTracking';
 
 // GPS proximity radius in meters for pickup/delivery validation
-// TODO: remettre à 200 après les tests
-const GPS_PROXIMITY_RADIUS_M = 500_000;
+const GPS_PROXIMITY_RADIUS_M = 200;
 
 /**
  * Calculate distance between two coordinates in meters using the Haversine formula.
@@ -681,8 +680,8 @@ export default function DeliveryDetailPage() {
       {/* Proof Modal */}
       {showProofModal && !deliveryCompleted && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-4 safe-bottom">
-            <h2 className="text-base font-bold text-gray-900 mb-3">Preuve de livraison</h2>
+          <div className="bg-white dark:bg-gray-800 w-full rounded-t-xl p-3 safe-bottom">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white mb-3">Preuve de livraison</h2>
 
             {/* Photo */}
             <div className="mb-3">
@@ -694,6 +693,8 @@ export default function DeliveryDetailPage() {
                     className="w-full h-40 object-cover rounded-lg"
                   />
                   <button
+                    type="button"
+                    onTouchEnd={(e) => { e.preventDefault(); setProofPhoto(null); }}
                     onClick={() => setProofPhoto(null)}
                     className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full"
                   >
@@ -702,8 +703,10 @@ export default function DeliveryDetailPage() {
                 </div>
               ) : (
                 <button
+                  type="button"
+                  onTouchEnd={(e) => { e.preventDefault(); takePhoto(); }}
                   onClick={takePhoto}
-                  className="w-full h-40 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-1.5 text-gray-500 hover:border-primary-500 hover:text-primary-500"
+                  className="w-full h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center gap-1.5 text-gray-500 dark:text-gray-400 hover:border-primary-500 hover:text-primary-500"
                 >
                   <Camera className="w-8 h-8" />
                   <span className="text-sm">Prendre une photo</span>
@@ -712,8 +715,8 @@ export default function DeliveryDetailPage() {
             </div>
 
             {/* Recipient name */}
-            <div className="mb-4">
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Nom du destinataire (optionnel)
               </label>
               <input
@@ -721,27 +724,31 @@ export default function DeliveryDetailPage() {
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
                 placeholder="Qui a reçu le colis ?"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             {/* Actions */}
             <div className="flex gap-3">
               <button
+                type="button"
+                onTouchEnd={(e) => { e.preventDefault(); setShowProofModal(false); }}
                 onClick={() => setShowProofModal(false)}
-                className="flex-1 py-3 border border-gray-300 rounded-xl font-medium text-gray-700"
+                className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-sm text-gray-700 dark:text-gray-300"
               >
                 Annuler
               </button>
               <button
+                type="button"
+                onTouchEnd={(e) => { e.preventDefault(); if (proofPhoto && !updating) completeDelivery(); }}
                 onClick={completeDelivery}
                 disabled={!proofPhoto || updating}
-                className="flex-1 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium text-sm rounded-lg disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {updating ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                  <CheckCircle className="w-5 h-5" />
+                  <CheckCircle className="w-4 h-4" />
                 )}
                 Confirmer
               </button>
@@ -782,14 +789,13 @@ export default function DeliveryDetailPage() {
 
 // Helper function to decode base64
 function decode(base64: string): Uint8Array {
-  try {
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-  } catch {
-    return new Uint8Array(0);
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
   }
+  if (bytes.length === 0) {
+    throw new Error('Photo invalide : données vides');
+  }
+  return bytes;
 }

@@ -233,7 +233,15 @@ function NavigationMapInner({
             mapRef.current.fitBounds(bounds, 50);
           }
         } else {
-          setRouteError(`Erreur: ${status}`);
+          const errorMessages: Record<string, string> = {
+            'ZERO_RESULTS': 'Aucun itinéraire trouvé vers cette destination',
+            'NOT_FOUND': 'Adresse introuvable, vérifiez la destination',
+            'MAX_WAYPOINTS_EXCEEDED': 'Trop de points de passage',
+            'OVER_QUERY_LIMIT': 'Trop de requêtes, réessayez dans un instant',
+            'REQUEST_DENIED': 'Requête refusée par Google Maps',
+            'UNKNOWN_ERROR': 'Erreur réseau, vérifiez votre connexion',
+          };
+          setRouteError(errorMessages[status] || `Erreur de calcul d'itinéraire (${status})`);
         }
       },
     );
@@ -439,7 +447,7 @@ function NavigationMapInner({
         /* TOP BAR — turn-by-turn instructions */
         <div className="bg-primary-600 safe-top px-3 py-3 z-10 shadow-lg">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
               <ManeuverIcon maneuver={currentStep.maneuver} className="w-7 h-7 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -514,7 +522,7 @@ function NavigationMapInner({
       {/* REROUTING OVERLAY */}
       {isRerouting && (
         <div className="absolute z-30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="bg-black/70 rounded-xl px-5 py-3 flex items-center gap-2">
+          <div className="bg-black/70 rounded-lg px-5 py-3 flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin text-white" />
             <span className="text-white text-sm font-medium">Recalcul en cours...</span>
           </div>
