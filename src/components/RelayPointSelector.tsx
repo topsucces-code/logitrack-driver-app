@@ -104,7 +104,7 @@ export function RelayPointSelector({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un point relais..."
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm"
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm"
           />
         </div>
 
@@ -235,7 +235,7 @@ function RelayPointCard({
   return (
     <button
       onClick={onClick}
-      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
         isSelected
           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
           : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
@@ -336,7 +336,7 @@ export function RelayPointBadge({
   const isOpen = isRelayPointOpen(relayPoint);
 
   return (
-    <div className="inline-flex items-center gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-xl">
+    <div className="inline-flex items-center gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg">
       <span className="text-lg">{category?.icon}</span>
       <div className="flex-1">
         <p className="text-sm font-medium text-gray-900 dark:text-white">

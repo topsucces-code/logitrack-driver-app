@@ -269,7 +269,7 @@ export default function EarningsPage() {
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-4 flex items-center gap-3">
+              <div key={i} className="bg-white rounded-lg p-4 flex items-center gap-3">
                 <Skeleton variant="circular" width={40} height={40} />
                 <div className="flex-1">
                   <Skeleton width={120} height={16} className="mb-2" />

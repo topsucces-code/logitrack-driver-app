@@ -261,7 +261,7 @@ export function DeliveryProofCapture({
             <div className="flex-1 flex items-center justify-center">
               {packagePreview ? (
                 <div className="relative w-full max-w-sm">
-                  <img src={packagePreview} alt="Colis" loading="lazy" className="w-full rounded-2xl" />
+                  <img src={packagePreview} alt="Colis" loading="lazy" className="w-full rounded-lg" />
                   <button
                     onClick={() => {
                       setPackagePhoto(null);
@@ -275,7 +275,7 @@ export function DeliveryProofCapture({
               ) : (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full max-w-sm aspect-[4/3] rounded-2xl border-2 border-dashed border-white/30 flex flex-col items-center justify-center gap-4"
+                  className="w-full max-w-sm aspect-[4/3] rounded-lg border-2 border-dashed border-white/30 flex flex-col items-center justify-center gap-4"
                 >
                   <div className="w-20 h-20 rounded-full bg-primary-500/20 flex items-center justify-center">
                     <Package className="w-10 h-10 text-primary-400" />
@@ -307,7 +307,7 @@ export function DeliveryProofCapture({
             <button
               onClick={goToNextStep}
               disabled={!packagePhoto}
-              className="w-full py-4 bg-primary-500 text-white font-semibold rounded-xl disabled:opacity-50"
+              className="w-full py-4 bg-primary-500 text-white font-semibold rounded-lg disabled:opacity-50"
             >
               Continuer
             </button>
@@ -320,7 +320,7 @@ export function DeliveryProofCapture({
             <div className="flex-1 flex items-center justify-center">
               {recipientPreview ? (
                 <div className="relative w-full max-w-sm">
-                  <img src={recipientPreview} alt="Destinataire" loading="lazy" className="w-full rounded-2xl" />
+                  <img src={recipientPreview} alt="Destinataire" loading="lazy" className="w-full rounded-lg" />
                   <button
                     onClick={() => {
                       setRecipientPhoto(null);
@@ -334,7 +334,7 @@ export function DeliveryProofCapture({
               ) : (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full max-w-sm aspect-[4/3] rounded-2xl border-2 border-dashed border-white/30 flex flex-col items-center justify-center gap-4"
+                  className="w-full max-w-sm aspect-[4/3] rounded-lg border-2 border-dashed border-white/30 flex flex-col items-center justify-center gap-4"
                 >
                   <div className="w-20 h-20 rounded-full bg-blue-500/20 flex items-center justify-center">
                     <User className="w-10 h-10 text-blue-400" />
@@ -359,14 +359,14 @@ export function DeliveryProofCapture({
             <div className="flex gap-3">
               <button
                 onClick={goToPrevStep}
-                className="flex-1 py-4 border border-white/30 text-white font-medium rounded-xl"
+                className="flex-1 py-4 border border-white/30 text-white font-medium rounded-lg"
               >
                 Retour
               </button>
               <button
                 onClick={goToNextStep}
                 disabled={!recipientPhoto}
-                className="flex-1 py-4 bg-primary-500 text-white font-semibold rounded-xl disabled:opacity-50"
+                className="flex-1 py-4 bg-primary-500 text-white font-semibold rounded-lg disabled:opacity-50"
               >
                 Continuer
               </button>
@@ -384,13 +384,13 @@ export function DeliveryProofCapture({
                 value={signerName}
                 onChange={(e) => setSignerName(e.target.value)}
                 placeholder="Nom complet"
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white"
               />
             </div>
 
             <div className="flex-1">
               <label className="block text-white text-sm mb-2">Signature</label>
-              <div className="relative bg-white rounded-xl overflow-hidden" style={{ height: '200px' }}>
+              <div className="relative bg-white rounded-lg overflow-hidden" style={{ height: '200px' }}>
                 <canvas
                   ref={canvasRef}
                   width={350}
@@ -422,14 +422,14 @@ export function DeliveryProofCapture({
             <div className="flex gap-3 mt-4">
               <button
                 onClick={goToPrevStep}
-                className="flex-1 py-4 border border-white/30 text-white font-medium rounded-xl"
+                className="flex-1 py-4 border border-white/30 text-white font-medium rounded-lg"
               >
                 Retour
               </button>
               <button
                 onClick={goToNextStep}
                 disabled={!signatureData || !signerName}
-                className="flex-1 py-4 bg-primary-500 text-white font-semibold rounded-xl disabled:opacity-50"
+                className="flex-1 py-4 bg-primary-500 text-white font-semibold rounded-lg disabled:opacity-50"
               >
                 Continuer
               </button>
@@ -442,7 +442,7 @@ export function DeliveryProofCapture({
           <div className="space-y-4">
             <h3 className="text-white font-medium mb-4">Vérifiez les preuves</h3>
 
-            <div className="bg-gray-800 rounded-xl p-3">
+            <div className="bg-gray-800 rounded-lg p-3">
               <div className="flex items-center gap-3 mb-2">
                 <Package className="w-5 h-5 text-primary-400" />
                 <span className="text-white text-sm">Photo du colis</span>
@@ -454,7 +454,7 @@ export function DeliveryProofCapture({
             </div>
 
             {recipientPreview && (
-              <div className="bg-gray-800 rounded-xl p-3">
+              <div className="bg-gray-800 rounded-lg p-3">
                 <div className="flex items-center gap-3 mb-2">
                   <User className="w-5 h-5 text-blue-400" />
                   <span className="text-white text-sm">Photo destinataire</span>
@@ -465,7 +465,7 @@ export function DeliveryProofCapture({
             )}
 
             {signatureData && (
-              <div className="bg-gray-800 rounded-xl p-3">
+              <div className="bg-gray-800 rounded-lg p-3">
                 <div className="flex items-center gap-3 mb-2">
                   <Pencil className="w-5 h-5 text-purple-400" />
                   <span className="text-white text-sm">Signature de {signerName}</span>
@@ -476,7 +476,7 @@ export function DeliveryProofCapture({
             )}
 
             {location && (
-              <div className="bg-gray-800 rounded-xl p-3 flex items-center gap-3">
+              <div className="bg-gray-800 rounded-lg p-3 flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-green-400" />
                 <span className="text-white text-sm">Position GPS enregistrée</span>
                 <CheckCircle2 className="w-4 h-4 text-green-500 ml-auto" />
@@ -484,7 +484,7 @@ export function DeliveryProofCapture({
             )}
 
             {error && (
-              <div className="bg-red-500/20 border border-red-500 rounded-xl p-3 flex items-center gap-2">
+              <div className="bg-red-500/20 border border-red-500 rounded-lg p-3 flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-red-400" />
                 <span className="text-red-400 text-sm">{error}</span>
               </div>
@@ -493,14 +493,14 @@ export function DeliveryProofCapture({
             <div className="flex gap-3 pt-4">
               <button
                 onClick={goToPrevStep}
-                className="flex-1 py-4 border border-white/30 text-white font-medium rounded-xl"
+                className="flex-1 py-4 border border-white/30 text-white font-medium rounded-lg"
               >
                 Modifier
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 py-4 bg-green-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+                className="flex-1 py-4 bg-green-500 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
               >
                 <Send className="w-5 h-5" />
                 Confirmer

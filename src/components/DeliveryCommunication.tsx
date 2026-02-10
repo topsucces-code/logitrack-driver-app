@@ -55,7 +55,7 @@ export function DeliveryCommunication({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-hidden animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[85vh] overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-3">
@@ -71,7 +71,7 @@ export function DeliveryCommunication({
           </div>
 
           {/* Recipient Info */}
-          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl mb-3">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg mb-3">
             <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
               <span className="text-lg">👤</span>
             </div>
@@ -92,7 +92,7 @@ export function DeliveryCommunication({
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
+          <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <TabButton
               active={activeTab === 'quick'}
               onClick={() => setActiveTab('quick')}
@@ -118,7 +118,7 @@ export function DeliveryCommunication({
         <div className="p-4 overflow-y-auto max-h-[60vh]">
           {/* Success Toast */}
           {sentMessage && (
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl flex items-center gap-2">
+            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center gap-2">
               <Send className="w-5 h-5 text-green-500" />
               <p className="text-sm text-green-700 dark:text-green-400 flex-1">
                 {sentMessage}
@@ -157,7 +157,7 @@ export function DeliveryCommunication({
                 Partagez le lien de suivi en temps réel avec le client
               </p>
 
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
                     <Share2 className="w-6 h-6 text-primary-600" />
@@ -237,7 +237,7 @@ export function CommunicationButton({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-xl text-sm font-medium"
+        className="flex items-center gap-2 px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 rounded-lg text-sm font-medium"
       >
         <MessageCircle className="w-4 h-4" />
         Contacter

@@ -8,10 +8,10 @@ export function PWAInstallPrompt() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-40 animate-slide-up">
-      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4">
+      <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-4">
         <div className="flex items-start gap-3">
           {/* Icon */}
-          <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0">
             <Download className="w-6 h-6 text-primary-600" />
           </div>
 
@@ -37,13 +37,13 @@ export function PWAInstallPrompt() {
         <div className="flex gap-3 mt-4">
           <button
             onClick={dismiss}
-            className="flex-1 py-2.5 text-gray-600 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+            className="flex-1 py-2.5 text-gray-600 font-medium rounded-lg hover:bg-gray-50 transition-colors"
           >
             Plus tard
           </button>
           <button
             onClick={install}
-            className="flex-1 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
           >
             <Download className="w-4 h-4" />
             Installer

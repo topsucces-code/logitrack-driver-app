@@ -81,7 +81,7 @@ export function TrustBadge({ driverId, size = 'md', showDetails = false, onClick
   return (
     <div
       onClick={onClick}
-      className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-xl transition-all"
+      className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-100 dark:border-gray-700 cursor-pointer hover:shadow-xl transition-all"
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">

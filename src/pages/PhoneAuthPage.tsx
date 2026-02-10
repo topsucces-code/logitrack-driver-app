@@ -165,7 +165,7 @@ export default function PhoneAuthPage() {
         {step === 'otp' && (
           <button
             onClick={() => setStep('phone')}
-            className="w-11 h-11 glass rounded-2xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
+            className="w-11 h-11 glass rounded-lg flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
@@ -197,7 +197,7 @@ export default function PhoneAuthPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-3">
                 Numéro de téléphone
               </label>
-              <div className="flex shadow-sm rounded-2xl overflow-hidden border-2 border-gray-100 focus-within:border-primary-500 focus-within:shadow-lg focus-within:shadow-primary-500/10 transition-all duration-300">
+              <div className="flex shadow-sm rounded-lg overflow-hidden border-2 border-gray-100 focus-within:border-primary-500 focus-within:shadow-lg focus-within:shadow-primary-500/10 transition-all duration-300">
                 <div className="inline-flex items-center gap-2 px-4 py-4 bg-gradient-to-b from-gray-50 to-gray-100 border-r border-gray-200 text-gray-700 font-semibold">
                   <span className="text-xl">🇨🇮</span>
                   <span>+225</span>
@@ -214,7 +214,7 @@ export default function PhoneAuthPage() {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
+              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg animate-scale-in">
                 <p className="text-red-600 text-sm font-medium">{error}</p>
               </div>
             )}
@@ -222,7 +222,7 @@ export default function PhoneAuthPage() {
             <button
               onClick={sendOTP}
               disabled={loading || phone.replace(/\D/g, '').length < 8}
-              className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
+              className="w-full py-4 btn-gradient text-white font-bold rounded-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -291,7 +291,7 @@ export default function PhoneAuthPage() {
                         prev?.focus();
                       }
                     }}
-                    className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl otp-input focus:outline-none transition-all duration-200 ${
+                    className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-lg otp-input focus:outline-none transition-all duration-200 ${
                       otp[i]
                         ? 'border-primary-500 bg-primary-50 text-primary-700'
                         : 'border-gray-200 bg-gray-50 hover:border-gray-300'
@@ -302,7 +302,7 @@ export default function PhoneAuthPage() {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl animate-scale-in">
+              <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg animate-scale-in">
                 <p className="text-red-600 text-sm font-medium">{error}</p>
               </div>
             )}
@@ -310,7 +310,7 @@ export default function PhoneAuthPage() {
             <button
               onClick={verifyOTP}
               disabled={loading || otp.length !== 6}
-              className="w-full py-4 btn-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
+              className="w-full py-4 btn-gradient text-white font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30"
             >
               {loading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />

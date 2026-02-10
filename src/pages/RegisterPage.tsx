@@ -111,7 +111,7 @@ export default function RegisterPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => (step === 1 ? navigate('/login') : setStep(1))}
-            className="w-9 h-9 glass rounded-xl flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
+            className="w-9 h-9 glass rounded-lg flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
@@ -150,7 +150,7 @@ export default function RegisterPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Kouamé Jean"
-                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                 </div>
               </div>
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="07 00 00 00 00"
-                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                 </div>
               </div>
@@ -185,7 +185,7 @@ export default function RegisterPage() {
                       key={option.value}
                       type="button"
                       onClick={() => setVehicleType(option.value)}
-                      className={`p-2.5 rounded-xl border-2 transition-all flex flex-col items-center gap-1 relative ${
+                      className={`p-2.5 rounded-lg border-2 transition-all flex flex-col items-center gap-1 relative ${
                         vehicleType === option.value
                           ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
                           : 'border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
@@ -211,7 +211,7 @@ export default function RegisterPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 btn-gradient text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary-500/30 text-sm"
+                className="w-full py-3 btn-gradient text-white font-bold rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-primary-500/30 text-sm"
               >
                 Continuer
                 <ArrowRight className="w-4 h-4" />
@@ -238,7 +238,7 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Min. 6 caractères"
-                    className="w-full pl-14 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                    className="w-full pl-14 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                   <button
                     type="button"
@@ -264,13 +264,13 @@ export default function RegisterPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Répétez le mot de passe"
-                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                    className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                 </div>
               </div>
 
               {/* Password Strength Indicator */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-[10px] font-semibold text-gray-600 dark:text-gray-400">Sécurité</p>
                   <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">
@@ -308,7 +308,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 btn-gradient text-white font-bold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 text-sm"
+                className="w-full py-3 btn-gradient text-white font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 text-sm"
               >
                 {loading ? (
                   <>

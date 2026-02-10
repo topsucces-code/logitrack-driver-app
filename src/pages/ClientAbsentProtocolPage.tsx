@@ -272,7 +272,7 @@ export default function ClientAbsentProtocolPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {/* Info client */}
-        <div className="bg-white rounded-xl p-4 shadow-sm">
+        <div className="bg-white rounded-lg p-4 shadow-sm">
           <p className="text-sm text-gray-500 mb-1">Client</p>
           <p className="font-semibold text-gray-900">{delivery.delivery_contact_name || 'Client'}</p>
           <p className="text-sm text-gray-600">{delivery.delivery_address}</p>
@@ -281,7 +281,7 @@ export default function ClientAbsentProtocolPage() {
 
         {/* État du protocole */}
         {!protocolStarted ? (
-          <div className="bg-white rounded-xl p-6 shadow-sm text-center">
+          <div className="bg-white rounded-lg p-6 shadow-sm text-center">
             <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <AlertTriangle className="w-8 h-8 text-amber-600" />
             </div>
@@ -293,7 +293,7 @@ export default function ClientAbsentProtocolPage() {
             </p>
             <button
               onClick={startProtocol}
-              className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+              className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
             >
               <Phone className="w-5 h-5" />
               Démarrer le protocole
@@ -302,7 +302,7 @@ export default function ClientAbsentProtocolPage() {
         ) : (
           <>
             {/* Compteur d'appels */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Phone className="w-5 h-5 text-gray-500" />
@@ -328,7 +328,7 @@ export default function ClientAbsentProtocolPage() {
               {callAttempts.length < PROTOCOL_CONFIG.maxCalls && (
                 <button
                   onClick={makeCall}
-                  className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
                   Appeler à nouveau ({callAttempts.length + 1}/{PROTOCOL_CONFIG.maxCalls})
@@ -344,7 +344,7 @@ export default function ClientAbsentProtocolPage() {
             </div>
 
             {/* Timer */}
-            <div className="bg-white rounded-xl p-4 shadow-sm">
+            <div className="bg-white rounded-lg p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-5 h-5 text-gray-500" />
                 <span className="font-medium text-gray-900">Temps d'attente</span>
@@ -379,7 +379,7 @@ export default function ClientAbsentProtocolPage() {
             </div>
 
             {/* Informations */}
-            <div className="bg-blue-50 rounded-xl p-4">
+            <div className="bg-blue-50 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-blue-500 mt-0.5" />
                 <div className="text-sm text-blue-800">
@@ -400,7 +400,7 @@ export default function ClientAbsentProtocolPage() {
 
             {/* Historique des appels */}
             {callAttempts.length > 0 && (
-              <div className="bg-white rounded-xl p-4 shadow-sm">
+              <div className="bg-white rounded-lg p-4 shadow-sm">
                 <p className="font-medium text-gray-900 mb-3">Historique des appels</p>
                 <div className="space-y-2">
                   {callAttempts.map((attempt, index) => (
@@ -433,7 +433,7 @@ export default function ClientAbsentProtocolPage() {
             <button
               onClick={returnPackage}
               disabled={returning}
-              className="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {returning ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -445,7 +445,7 @@ export default function ClientAbsentProtocolPage() {
           ) : (
             <button
               disabled
-              className="w-full py-4 bg-gray-300 text-gray-500 font-semibold rounded-xl flex items-center justify-center gap-2"
+              className="w-full py-4 bg-gray-300 text-gray-500 font-semibold rounded-lg flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-5 h-5" />
               {callAttempts.length < PROTOCOL_CONFIG.maxCalls
@@ -456,7 +456,7 @@ export default function ClientAbsentProtocolPage() {
 
           <button
             onClick={cancelProtocol}
-            className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl flex items-center justify-center gap-2"
+            className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg flex items-center justify-center gap-2"
           >
             <CheckCircle className="w-5 h-5 text-green-500" />
             Le client a répondu

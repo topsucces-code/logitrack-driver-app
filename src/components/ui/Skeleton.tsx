@@ -24,7 +24,7 @@ export const Skeleton = forwardRef<HTMLDivElement, SkeletonProps>(
       text: 'rounded h-4',
       circular: 'rounded-full',
       rectangular: '',
-      rounded: 'rounded-xl',
+      rounded: 'rounded-lg',
     };
 
     const animationStyles = {
@@ -58,7 +58,7 @@ Skeleton.displayName = 'Skeleton';
 // Preset skeleton for delivery cards
 export function DeliveryCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-4 space-y-3">
+    <div className="bg-white rounded-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
         <Skeleton width={120} height={20} variant="rounded" />
         <Skeleton width={60} height={20} variant="rounded" />
@@ -76,14 +76,14 @@ export function DeliveryCardSkeleton() {
 // Preset skeleton for stats cards
 export function StatsCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl p-4">
+    <div className="bg-white rounded-lg p-4">
       <Skeleton width={100} height={14} className="mb-4" />
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-gray-50 rounded-xl p-4 text-center">
+        <div className="bg-gray-50 rounded-lg p-4 text-center">
           <Skeleton width={80} height={32} className="mx-auto mb-2" />
           <Skeleton width={40} height={14} className="mx-auto" />
         </div>
-        <div className="bg-gray-50 rounded-xl p-4 text-center">
+        <div className="bg-gray-50 rounded-lg p-4 text-center">
           <Skeleton width={40} height={32} className="mx-auto mb-2" />
           <Skeleton width={50} height={14} className="mx-auto" />
         </div>

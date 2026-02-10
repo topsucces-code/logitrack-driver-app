@@ -25,7 +25,7 @@ export default function NotFoundPage() {
         <div className="space-y-3">
           <Link
             to="/"
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-xl transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white font-semibold rounded-lg transition-colors"
           >
             <Home className="w-5 h-5" />
             Retour à l'accueil
@@ -33,7 +33,7 @@ export default function NotFoundPage() {
 
           <button
             onClick={() => window.history.back()}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             Page précédente

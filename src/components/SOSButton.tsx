@@ -162,7 +162,7 @@ export function SOSButton({ deliveryId, compact = false }: SOSButtonProps) {
           onTouchStart={handlePressStart}
           onTouchEnd={handlePressEnd}
           className={`
-            relative w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl
+            relative w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg
             flex items-center justify-center gap-3 shadow-lg
             active:scale-[0.98] transition-all overflow-hidden
             ${isHolding ? 'animate-pulse' : ''}
@@ -254,7 +254,7 @@ function SOSModal({
         </div>
 
         {/* Emergency Call Banner */}
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-red-700 font-medium mb-3">
             En cas d'urgence vitale, appelez immédiatement :
           </p>
@@ -288,7 +288,7 @@ function SOSModal({
               <button
                 key={alertType.type}
                 onClick={() => setSelectedType(alertType.type)}
-                className={`p-4 rounded-xl border-2 text-left transition-all ${
+                className={`p-4 rounded-lg border-2 text-left transition-all ${
                   selectedType === alertType.type
                     ? 'border-red-500 bg-red-50'
                     : 'border-gray-200 hover:border-gray-300'
@@ -313,7 +313,7 @@ function SOSModal({
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Décrivez brièvement la situation..."
             rows={3}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
           />
         </div>
 

@@ -58,7 +58,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
             {/* Icon */}
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertTriangle className="w-8 h-8 text-red-500" />
@@ -91,7 +91,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="space-y-3">
               <button
                 onClick={this.handleReload}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-lg transition-colors"
               >
                 <RefreshCw className="w-5 h-5" />
                 Recharger l'application
@@ -99,7 +99,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <button
                 onClick={this.handleGoHome}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
               >
                 <Home className="w-5 h-5" />
                 Retour à l'accueil

@@ -123,7 +123,7 @@ export function MobileMoneyPayment({
         return (
           <div className="space-y-4">
             {/* Montant */}
-            <div className="bg-primary-50 dark:bg-primary-900/30 rounded-xl p-4 text-center">
+            <div className="bg-primary-50 dark:bg-primary-900/30 rounded-lg p-4 text-center">
               <p className="text-sm text-primary-600 dark:text-primary-400 mb-1">
                 Montant à payer
               </p>
@@ -149,10 +149,10 @@ export function MobileMoneyPayment({
                       <button
                         key={prov.id}
                         onClick={() => handleSelectProvider(prov.id)}
-                        className="w-full flex items-center gap-4 p-4 bg-white dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-600 transition-colors"
+                        className="w-full flex items-center gap-4 p-4 bg-white dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-600 transition-colors"
                       >
                         <div
-                          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                          className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
                           style={{ backgroundColor: prov.color + '20' }}
                         >
                           {prov.icon}
@@ -185,7 +185,7 @@ export function MobileMoneyPayment({
           <div className="space-y-4">
             {/* Provider selected */}
             {provider && (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
                   style={{ backgroundColor: provider.color + '20' }}
@@ -218,7 +218,7 @@ export function MobileMoneyPayment({
                     setError('');
                   }}
                   placeholder="+225 07 07 12 34 56"
-                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white text-lg"
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-lg"
                 />
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -236,14 +236,14 @@ export function MobileMoneyPayment({
             <div className="flex gap-3">
               <button
                 onClick={() => setStep('provider')}
-                className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Retour
               </button>
               <button
                 onClick={handlePhoneSubmit}
                 disabled={!phoneNumber}
-                className="flex-1 py-3 btn-gradient text-white font-medium rounded-xl disabled:opacity-50"
+                className="flex-1 py-3 btn-gradient text-white font-medium rounded-lg disabled:opacity-50"
               >
                 Continuer
               </button>
@@ -255,7 +255,7 @@ export function MobileMoneyPayment({
         return (
           <div className="space-y-4">
             {/* Récapitulatif */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-500 dark:text-gray-400">Montant</span>
                 <span className="text-gray-900 dark:text-white font-medium">
@@ -279,7 +279,7 @@ export function MobileMoneyPayment({
             {/* Détails paiement */}
             {provider && (
               <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
                     style={{ backgroundColor: provider.color + '20' }}
@@ -317,13 +317,13 @@ export function MobileMoneyPayment({
             <div className="flex gap-3">
               <button
                 onClick={() => setStep(recipientPhone ? 'provider' : 'phone')}
-                className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Retour
               </button>
               <button
                 onClick={handleInitiatePayment}
-                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-xl"
+                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-lg"
               >
                 Payer {formatCurrency(totalAmount)}
               </button>
@@ -367,7 +367,7 @@ export function MobileMoneyPayment({
               {formatCurrency(totalAmount)} payé avec succès
             </p>
             {result?.transaction && (
-              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 text-left mb-6">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-left mb-6">
                 <div className="flex justify-between text-sm mb-2">
                   <span className="text-gray-500">Référence</span>
                   <span className="font-mono text-gray-900 dark:text-white">
@@ -384,7 +384,7 @@ export function MobileMoneyPayment({
             )}
             <button
               onClick={onClose}
-              className="w-full py-3 btn-gradient text-white font-semibold rounded-xl"
+              className="w-full py-3 btn-gradient text-white font-semibold rounded-lg"
             >
               Terminé
             </button>
@@ -406,7 +406,7 @@ export function MobileMoneyPayment({
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Annuler
               </button>
@@ -415,7 +415,7 @@ export function MobileMoneyPayment({
                   setStep('provider');
                   setError('');
                 }}
-                className="flex-1 py-3 btn-gradient text-white font-medium rounded-xl"
+                className="flex-1 py-3 btn-gradient text-white font-medium rounded-lg"
               >
                 Réessayer
               </button>
@@ -430,7 +430,7 @@ export function MobileMoneyPayment({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-slide-up">
         {/* Header */}
         {step !== 'processing' && step !== 'success' && step !== 'failed' && (
           <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
@@ -479,7 +479,7 @@ export function PayWithMobileMoneyButton({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className={`flex items-center justify-center gap-2 px-4 py-3 btn-gradient text-white font-medium rounded-xl ${className}`}
+        className={`flex items-center justify-center gap-2 px-4 py-3 btn-gradient text-white font-medium rounded-lg ${className}`}
       >
         <CreditCard className="w-5 h-5" />
         Payer {formatCurrency(amount)}

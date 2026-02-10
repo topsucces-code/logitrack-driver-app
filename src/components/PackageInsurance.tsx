@@ -88,7 +88,7 @@ export function PackageInsurance({
                   type="number"
                   value={declaredValue}
                   onChange={(e) => setDeclaredValue(Math.max(1000, parseInt(e.target.value) || 0))}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-lg font-semibold"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-lg font-semibold"
                 />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
                   FCFA
@@ -117,7 +117,7 @@ export function PackageInsurance({
                     <button
                       key={key}
                       onClick={() => setSelectedPlan(key)}
-                      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
                         isSelected
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
                           : 'border-gray-200 dark:border-gray-700'
@@ -163,7 +163,7 @@ export function PackageInsurance({
             </div>
 
             {/* Info box */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6 flex gap-3">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6 flex gap-3">
               <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-blue-700 dark:text-blue-300">
                 <p className="font-medium mb-1">Protection incluse:</p>
@@ -178,7 +178,7 @@ export function PackageInsurance({
 
             <button
               onClick={() => setStep('confirm')}
-              className="w-full py-3 btn-gradient text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+              className="w-full py-3 btn-gradient text-white font-semibold rounded-lg flex items-center justify-center gap-2"
             >
               Continuer
               <ChevronRight className="w-5 h-5" />
@@ -200,7 +200,7 @@ export function PackageInsurance({
               Confirmation
             </h2>
 
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 mb-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-600 dark:text-gray-400">Plan</span>
                 <span className="font-semibold text-gray-900 dark:text-white">
@@ -230,7 +230,7 @@ export function PackageInsurance({
             </div>
 
             {/* Avertissement */}
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 mb-6 flex gap-3">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 mb-6 flex gap-3">
               <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
               <p className="text-sm text-yellow-700 dark:text-yellow-300">
                 En cas de réclamation, vous devrez fournir des preuves (photos, témoignages).
@@ -239,7 +239,7 @@ export function PackageInsurance({
             </div>
 
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 mb-4">
+              <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 mb-4">
                 <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
               </div>
             )}
@@ -247,14 +247,14 @@ export function PackageInsurance({
             <div className="flex gap-3">
               <button
                 onClick={() => setStep('select')}
-                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Modifier
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={loading}
-                className="flex-1 py-3 bg-blue-500 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+                className="flex-1 py-3 bg-blue-500 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -291,7 +291,7 @@ export function PackageInsurance({
             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
               Votre colis est maintenant protégé
             </p>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 inline-block">
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 inline-block">
               <p className="text-green-700 dark:text-green-400 text-sm">
                 Couverture: <strong>{formatCurrency(coverage)}</strong>
               </p>

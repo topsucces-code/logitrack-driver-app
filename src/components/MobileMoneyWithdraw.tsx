@@ -139,7 +139,7 @@ export function MobileMoneyWithdraw({
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-8">
           <Loader2 className="w-8 h-8 text-primary-500 animate-spin mx-auto" />
         </div>
       </div>
@@ -149,7 +149,7 @@ export function MobileMoneyWithdraw({
   if (success) {
     return (
       <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center max-w-sm w-full animate-scale-up">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center max-w-sm w-full animate-scale-up">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
             <CheckCircle2 className="w-10 h-10 text-green-500" />
           </div>
@@ -169,7 +169,7 @@ export function MobileMoneyWithdraw({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -188,7 +188,7 @@ export function MobileMoneyWithdraw({
 
         <div className="p-4 space-y-6">
           {/* Solde disponible */}
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 text-center">
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 text-center">
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
               Solde disponible
             </p>
@@ -204,7 +204,7 @@ export function MobileMoneyWithdraw({
             </label>
             <button
               onClick={() => setShowWalletPicker(true)}
-              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600"
+              className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
             >
               {selectedWallet && provider ? (
                 <div className="flex items-center gap-3">
@@ -242,7 +242,7 @@ export function MobileMoneyWithdraw({
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder="0"
-                className="w-full py-4 px-4 text-3xl font-bold text-center bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white"
+                className="w-full py-4 px-4 text-3xl font-bold text-center bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">
                 FCFA
@@ -278,7 +278,7 @@ export function MobileMoneyWithdraw({
 
           {/* Détails */}
           {amountNum > 0 && (
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-3">
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">Montant</span>
                 <span className="text-gray-900 dark:text-white font-medium">
@@ -344,7 +344,7 @@ export function MobileMoneyWithdraw({
           <button
             onClick={() => handleWithdraw(false)}
             disabled={processing || amountNum <= 0 || !selectedWallet}
-            className="w-full py-4 btn-gradient text-white font-semibold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-4 btn-gradient text-white font-semibold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {processing ? (
               <>
@@ -410,14 +410,14 @@ function WalletPickerModal({
               <button
                 key={wallet.id}
                 onClick={() => onSelect(wallet)}
-                className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                className={`w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
                   isSelected
                     ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                     : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800'
                 }`}
               >
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                  className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
                   style={{ backgroundColor: provider.color + '20' }}
                 >
                   {provider.icon}

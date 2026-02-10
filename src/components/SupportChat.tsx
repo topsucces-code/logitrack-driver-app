@@ -237,7 +237,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
                 }`}
               >
                 <div
-                  className={`max-w-[85%] rounded-xl px-3 py-2 ${
+                  className={`max-w-[85%] rounded-lg px-3 py-2 ${
                     msg.sender_type === 'driver'
                       ? 'bg-primary-500 text-white rounded-br-sm'
                       : msg.sender_type === 'system'

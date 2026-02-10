@@ -417,7 +417,7 @@ export default function HistoryPage() {
           {loading ? (
           <div className="space-y-3">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="bg-white rounded-xl p-4 animate-pulse">
+              <div key={i} className="bg-white rounded-lg p-4 animate-pulse">
                 <div className="h-4 bg-gray-200 rounded w-24 mb-3" />
                 <div className="h-3 bg-gray-200 rounded w-full mb-2" />
                 <div className="h-3 bg-gray-200 rounded w-3/4" />

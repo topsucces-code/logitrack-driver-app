@@ -203,7 +203,7 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
                 <button
                   key={doc.value}
                   onClick={() => setDocumentType(doc.value)}
-                  className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                  className={`w-full p-4 rounded-lg border-2 transition-all flex items-center gap-3 ${
                     documentType === doc.value
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30'
                       : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
@@ -223,7 +223,7 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
 
             <button
               onClick={() => setStep('front')}
-              className="w-full mt-6 py-3 btn-gradient text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+              className="w-full mt-6 py-3 btn-gradient text-white font-semibold rounded-lg flex items-center justify-center gap-2"
             >
               Continuer
               <ChevronRight className="w-5 h-5" />
@@ -259,14 +259,14 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setStep('select')}
-                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Retour
               </button>
               <button
                 onClick={() => setStep(needsBackImage ? 'back' : 'selfie')}
                 disabled={!frontImage}
-                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-xl disabled:opacity-50"
+                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-lg disabled:opacity-50"
               >
                 Continuer
               </button>
@@ -293,14 +293,14 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setStep('front')}
-                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Retour
               </button>
               <button
                 onClick={() => setStep('selfie')}
                 disabled={!backImage}
-                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-xl disabled:opacity-50"
+                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-lg disabled:opacity-50"
               >
                 Continuer
               </button>
@@ -334,14 +334,14 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setStep(needsBackImage ? 'back' : 'front')}
-                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                className="flex-1 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Retour
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={!selfieImage || loading}
-                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-xl disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 py-3 btn-gradient text-white font-semibold rounded-lg disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -395,7 +395,7 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
                   Score de vérification: <strong>{verificationResult.score}%</strong>
                 </p>
 
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 mb-6">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 mb-6">
                   <p className="text-green-700 dark:text-green-400 text-sm">
                     ✓ Badge "Identité Vérifiée" obtenu<br />
                     ✓ +10 points de fiabilité
@@ -432,7 +432,7 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
 
             <button
               onClick={onComplete}
-              className="w-full py-3 btn-gradient text-white font-semibold rounded-xl"
+              className="w-full py-3 btn-gradient text-white font-semibold rounded-lg"
             >
               Continuer
             </button>
@@ -448,7 +448,7 @@ export function IdentityVerification({ onComplete, onSkip }: IdentityVerificatio
                   setBackPreview('');
                   setSelfiePreview('');
                 }}
-                className="w-full mt-3 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl flex items-center justify-center gap-2"
+                className="w-full mt-3 py-3 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg flex items-center justify-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 Réessayer
@@ -478,7 +478,7 @@ function ImageCapture({
   return (
     <div className="relative">
       {preview ? (
-        <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
           <img src={preview} alt="Preview" className="w-full h-full object-cover" />
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -490,7 +490,7 @@ function ImageCapture({
       ) : (
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center gap-3 hover:border-primary-500 transition-colors"
+          className="w-full aspect-[4/3] rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex flex-col items-center justify-center gap-3 hover:border-primary-500 transition-colors"
         >
           <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
             <Camera className="w-8 h-8 text-gray-400" />

@@ -133,7 +133,7 @@ export function CustomerRating({
 
         {/* Address Preview */}
         {address && (
-          <div className="bg-gray-50 rounded-xl p-3 mb-6 flex items-start gap-2">
+          <div className="bg-gray-50 rounded-lg p-3 mb-6 flex items-start gap-2">
             <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-gray-600 line-clamp-2">{address}</p>
           </div>
@@ -211,7 +211,7 @@ export function CustomerRating({
               onChange={(e) => setComment(e.target.value)}
               placeholder="Ajoutez un commentaire sur cette livraison..."
               rows={3}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
             />
           </div>
         )}

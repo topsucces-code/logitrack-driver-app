@@ -92,7 +92,7 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
   return (
     <div className="space-y-6">
       {/* Solde Total */}
-      <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-2xl p-6 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg p-6 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
@@ -148,14 +148,14 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={onWithdraw}
-          className="flex items-center justify-center gap-2 py-4 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium rounded-xl"
+          className="flex items-center justify-center gap-2 py-4 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 font-medium rounded-lg"
         >
           <ArrowUpRight className="w-5 h-5" />
           Retirer
         </button>
         <button
           onClick={() => setShowAddWallet(true)}
-          className="flex items-center justify-center gap-2 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+          className="flex items-center justify-center gap-2 py-4 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
         >
           <Plus className="w-5 h-5" />
           Ajouter compte
@@ -241,10 +241,10 @@ function WalletCard({
   const provider = MOBILE_MONEY_PROVIDERS[wallet.provider];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700 relative">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-100 dark:border-gray-700 relative">
       <div className="flex items-center gap-3">
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+          className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
           style={{ backgroundColor: provider.color + '20' }}
         >
           {provider.icon}
@@ -359,7 +359,7 @@ function TransactionItem({ transaction }: { transaction: MobileMoneyTransaction 
   const date = new Date(transaction.createdAt);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
       <div className="flex items-center gap-3">
         <div className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center ${typeInfo.color}`}>
           {typeInfo.icon}
@@ -437,7 +437,7 @@ function AddWalletModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md max-h-[80vh] overflow-y-auto animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[80vh] overflow-y-auto animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -460,10 +460,10 @@ function AddWalletModal({
                   <button
                     key={provider.id}
                     onClick={() => handleSelectProvider(provider.id)}
-                    className="w-full flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="w-full flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl"
+                      className="w-14 h-14 rounded-lg flex items-center justify-center text-3xl"
                       style={{ backgroundColor: provider.color + '20' }}
                     >
                       {provider.icon}
@@ -485,7 +485,7 @@ function AddWalletModal({
           ) : (
             <div className="space-y-4">
               {selectedProvider && (
-                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
                     style={{ backgroundColor: MOBILE_MONEY_PROVIDERS[selectedProvider].color + '20' }}
@@ -515,7 +515,7 @@ function AddWalletModal({
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="+225 07 07 12 34 56"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -532,7 +532,7 @@ function AddWalletModal({
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
                     placeholder="Konan Yao"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -547,14 +547,14 @@ function AddWalletModal({
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setStep('provider')}
-                  className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl"
+                  className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
                 >
                   Retour
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={loading || !phoneNumber || !accountName}
-                  className="flex-1 py-3 btn-gradient text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-3 btn-gradient text-white font-medium rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />

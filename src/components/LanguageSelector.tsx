@@ -55,7 +55,7 @@ export function LanguageSelector({ variant = 'list', showLabel = true }: Languag
             hapticLight();
             setIsOpen(!isOpen);
           }}
-          className="flex items-center justify-between gap-3 w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-xl"
+          className="flex items-center justify-between gap-3 w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-lg"
         >
           <div className="flex items-center gap-3">
             <Globe className="w-5 h-5 text-gray-500 dark:text-gray-400" />
@@ -76,7 +76,7 @@ export function LanguageSelector({ variant = 'list', showLabel = true }: Languag
             />
 
             {/* Dropdown menu */}
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-20">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-20">
               {availableLanguages.map((lang) => (
                 <button
                   key={lang}
@@ -121,7 +121,7 @@ export function LanguageSelector({ variant = 'list', showLabel = true }: Languag
           <button
             key={lang}
             onClick={() => handleSelect(lang)}
-            className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-colors ${
+            className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 transition-colors ${
               lang === language
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                 : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'

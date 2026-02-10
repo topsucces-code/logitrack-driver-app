@@ -110,7 +110,7 @@ export default function WalletPage() {
 
               {/* Notifications Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 top-12 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+                <div className="absolute right-0 top-12 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                   <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
                     <p className="font-semibold text-sm text-gray-900 dark:text-white">Notifications</p>
                     <button onClick={() => setShowNotifications(false)}>
@@ -640,7 +640,7 @@ function TransactionCard({ transaction }: { transaction: MobileMoneyTransaction 
   });
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-4 flex items-center gap-3">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 flex items-center gap-3">
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center ${
           isEarning
@@ -739,7 +739,7 @@ function EarningsAnalytics() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
             Total période
           </p>
@@ -747,7 +747,7 @@ function EarningsAnalytics() {
             {formatCurrency(totalEarnings)}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
             Moyenne/jour
           </p>
@@ -758,7 +758,7 @@ function EarningsAnalytics() {
       </div>
 
       {/* Chart */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
           Évolution des gains
         </h3>
@@ -785,7 +785,7 @@ function EarningsAnalytics() {
       </div>
 
       {/* Daily Breakdown */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
           Détail par jour
         </h3>

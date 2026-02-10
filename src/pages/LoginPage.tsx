@@ -83,7 +83,7 @@ export default function LoginPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="07 00 00 00 00"
-                  className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                  className="w-full pl-14 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                 />
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-14 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
+                  className="w-full pl-14 pr-12 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm font-medium placeholder-gray-400 focus:outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-gray-800 transition-all"
                 />
                 <button
                   type="button"
@@ -125,7 +125,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 btn-gradient text-white font-bold rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 text-sm"
+              className="w-full py-3 btn-gradient text-white font-bold rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-500/30 text-sm"
             >
               {loading ? (
                 <>
@@ -152,7 +152,7 @@ export default function LoginPage() {
           </div>
 
           {/* Demo Info */}
-          <div className="mt-4 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800 rounded-xl">
+          <div className="mt-4 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800 rounded-lg">
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center font-medium">
               LogiTrack Africa - Application pour livreurs indépendants
             </p>

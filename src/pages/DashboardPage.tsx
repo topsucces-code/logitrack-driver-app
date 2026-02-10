@@ -383,7 +383,7 @@ export default function DashboardPage() {
         <PullToRefreshIndicator pullDistance={pullDistance} pullState={pullState} />
         <div className="px-3 -mt-1">
         {/* Earnings Card */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 mb-3">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 mb-3">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-gray-900 dark:text-white text-sm">Aujourd'hui</h2>
             <div className="flex items-center gap-2">
@@ -437,7 +437,7 @@ export default function DashboardPage() {
             </h2>
             <button
               onClick={() => navigate(`/delivery/${currentDelivery.id}`)}
-              className="w-full bg-primary-50 border-2 border-primary-500 rounded-xl p-3 text-left"
+              className="w-full bg-primary-50 border-2 border-primary-500 rounded-lg p-3 text-left"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="px-2.5 py-0.5 bg-primary-500 text-white text-[10px] font-medium rounded-full">
@@ -505,7 +505,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : pendingDeliveries.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-6 text-center">
                 <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Package className="w-6 h-6 text-gray-300 dark:text-gray-500" />
                 </div>
@@ -543,7 +543,7 @@ export default function DashboardPage() {
 
         {/* Not verified warning */}
         {!isVerified && (
-          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-yellow-800 font-medium text-sm">⏳ Compte en attente de vérification</p>
             <p className="text-xs text-yellow-700 mt-1">
               Votre compte est en cours de vérification. Vous pourrez accepter des courses une fois vérifié.
@@ -659,7 +659,7 @@ const DeliveryCard = memo(function DeliveryCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl transition-all ${
+      className={`relative overflow-hidden rounded-lg transition-all ${
         isDismissed ? 'max-h-0 opacity-0 mb-0 mt-0' : 'max-h-96'
       }`}
       style={{
@@ -668,10 +668,10 @@ const DeliveryCard = memo(function DeliveryCard({
       }}
     >
       {/* Background action indicators */}
-      <div className="absolute inset-0 flex items-center rounded-xl overflow-hidden">
+      <div className="absolute inset-0 flex items-center rounded-lg overflow-hidden">
         {/* Right swipe background (Accept - green) */}
         <div
-          className="absolute inset-0 bg-green-500 flex items-center pl-4 rounded-xl"
+          className="absolute inset-0 bg-green-500 flex items-center pl-4 rounded-lg"
           style={{ opacity: isSwipingRight ? swipeProgress : 0 }}
         >
           <div className="flex items-center gap-1.5 text-white">
@@ -681,7 +681,7 @@ const DeliveryCard = memo(function DeliveryCard({
         </div>
         {/* Left swipe background (Dismiss - red) */}
         <div
-          className="absolute inset-0 bg-red-500 flex items-center justify-end pr-4 rounded-xl"
+          className="absolute inset-0 bg-red-500 flex items-center justify-end pr-4 rounded-lg"
           style={{ opacity: isSwipingLeft ? swipeProgress : 0 }}
         >
           <div className="flex items-center gap-1.5 text-white">
@@ -694,7 +694,7 @@ const DeliveryCard = memo(function DeliveryCard({
       {/* Swipeable card */}
       <div
         {...swipeProps}
-        className={`relative bg-white dark:bg-gray-800 rounded-xl p-3 shadow-sm border border-gray-100 dark:border-gray-700 ${
+        className={`relative bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700 ${
           expired ? 'opacity-50' : ''
         } ${isSwiping ? '' : 'transition-transform duration-200'}`}
         style={{

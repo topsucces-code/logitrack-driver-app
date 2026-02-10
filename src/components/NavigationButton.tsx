@@ -141,7 +141,7 @@ export function NavigationButton({
 
             {/* Distance & ETA Info */}
             {(distance || eta) && (
-              <div className="bg-gray-50 rounded-xl p-4 mb-6 flex items-center justify-around">
+              <div className="bg-gray-50 rounded-lg p-4 mb-6 flex items-center justify-around">
                 {distance && (
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1 text-gray-500 mb-1">
@@ -167,7 +167,7 @@ export function NavigationButton({
             )}
 
             {/* Destination Preview */}
-            <div className="bg-gray-50 rounded-xl p-4 mb-6">
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
@@ -188,7 +188,7 @@ export function NavigationButton({
                   <button
                     key={app.id}
                     onClick={() => handleNavigate(app.id)}
-                    className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-primary-300 hover:bg-primary-50 transition-colors"
+                    className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-colors"
                   >
                     <span className="text-2xl">{app.icon}</span>
                     <span className="font-medium text-gray-900">{app.name}</span>

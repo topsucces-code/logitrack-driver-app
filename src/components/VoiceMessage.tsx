@@ -133,7 +133,7 @@ export function VoiceMessageRecorder({
 
   if (!support.recording) {
     return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl text-center">
+      <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg text-center">
         <MicOff className="w-8 h-8 text-red-500 mx-auto mb-2" />
         <p className="text-red-600 dark:text-red-400 text-sm">
           L'enregistrement audio n'est pas supporté sur cet appareil
@@ -143,7 +143,7 @@ export function VoiceMessageRecorder({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg">
       {/* Recording State */}
       {recording && (
         <div className="text-center">
@@ -170,14 +170,14 @@ export function VoiceMessageRecorder({
           <div className="flex gap-3">
             <button
               onClick={handleCancelRecording}
-              className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg flex items-center justify-center gap-2"
             >
               <X className="w-5 h-5" />
               Annuler
             </button>
             <button
               onClick={handleStopRecording}
-              className="flex-1 py-3 bg-red-500 text-white font-medium rounded-xl flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-red-500 text-white font-medium rounded-lg flex items-center justify-center gap-2"
             >
               <Square className="w-5 h-5" />
               Arrêter
@@ -230,7 +230,7 @@ export function VoiceMessageRecorder({
           <div className="flex gap-3">
             <button
               onClick={handleCancelRecording}
-              className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-xl flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg flex items-center justify-center gap-2"
             >
               <X className="w-5 h-5" />
               Supprimer
@@ -238,7 +238,7 @@ export function VoiceMessageRecorder({
             <button
               onClick={handleSend}
               disabled={sending}
-              className="flex-1 py-3 bg-primary-500 text-white font-medium rounded-xl flex items-center justify-center gap-2 disabled:opacity-50"
+              className="flex-1 py-3 bg-primary-500 text-white font-medium rounded-lg flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {sending ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -321,7 +321,7 @@ export function PresetMessages({ type, onSelect }: PresetMessagesProps) {
         <button
           key={key}
           onClick={() => onSelect(message, key)}
-          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative group"
+          className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative group"
         >
           <p className="text-sm font-medium text-gray-900 dark:text-white">
             {labels[key] || key}
@@ -388,7 +388,7 @@ export function VoiceMessagePlayer({
 
   return (
     <div
-      className={`p-3 rounded-2xl max-w-[80%] ${
+      className={`p-3 rounded-lg max-w-[80%] ${
         isOwn
           ? 'bg-primary-500 text-white ml-auto'
           : 'bg-gray-100 dark:bg-gray-800'

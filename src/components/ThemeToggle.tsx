@@ -90,7 +90,7 @@ export function ThemeToggle({ variant = 'switch', showLabel = true }: ThemeToggl
       <div className="grid grid-cols-3 gap-2">
         <button
           onClick={() => handleSelect('light')}
-          className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-colors ${
+          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
             theme === 'light'
               ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
               : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -110,7 +110,7 @@ export function ThemeToggle({ variant = 'switch', showLabel = true }: ThemeToggl
 
         <button
           onClick={() => handleSelect('dark')}
-          className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-colors ${
+          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
             theme === 'dark'
               ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
               : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -130,7 +130,7 @@ export function ThemeToggle({ variant = 'switch', showLabel = true }: ThemeToggl
 
         <button
           onClick={() => handleSelect('system')}
-          className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-colors ${
+          className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
             theme === 'system'
               ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
               : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'

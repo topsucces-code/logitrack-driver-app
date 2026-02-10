@@ -117,7 +117,7 @@ export default function PublicTrackingPage() {
           <p className="text-gray-500 mb-6">{error}</p>
           <a
             href="/"
-            className="inline-block px-6 py-3 bg-primary-500 text-white font-medium rounded-xl"
+            className="inline-block px-6 py-3 bg-primary-500 text-white font-medium rounded-lg"
           >
             Retour à l'accueil
           </a>
@@ -156,7 +156,7 @@ export default function PublicTrackingPage() {
 
       <div className="max-w-lg mx-auto px-4 py-6 -mt-4">
         {/* Status Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-4 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
           <div className="flex items-center gap-4 mb-4">
             <div className={`w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center ${statusInfo.color}`}>
               {statusInfo.icon}
@@ -171,7 +171,7 @@ export default function PublicTrackingPage() {
 
           {/* ETA */}
           {tracking?.show_eta && latestUpdate?.eta_minutes && delivery?.status !== 'delivered' && (
-            <div className="bg-primary-50 rounded-xl p-3 flex items-center gap-3">
+            <div className="bg-primary-50 rounded-lg p-3 flex items-center gap-3">
               <Clock className="w-5 h-5 text-primary-500" />
               <div>
                 <p className="text-xs text-primary-600">Arrivée estimée</p>
@@ -184,7 +184,7 @@ export default function PublicTrackingPage() {
 
           {/* Delivered success */}
           {delivery?.status === 'delivered' && (
-            <div className="bg-green-50 rounded-xl p-3 flex items-center gap-3">
+            <div className="bg-green-50 rounded-lg p-3 flex items-center gap-3">
               <CheckCircle2 className="w-5 h-5 text-green-500" />
               <div>
                 <p className="text-xs text-green-600">Livraison effectuée</p>
@@ -198,7 +198,7 @@ export default function PublicTrackingPage() {
 
         {/* Driver Card */}
         {driver && delivery?.status !== 'pending' && (
-          <div className="bg-white rounded-2xl shadow-lg p-4 mb-4">
+          <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
             <p className="text-sm text-gray-500 mb-3">Votre livreur</p>
 
             <div className="flex items-center gap-3">
@@ -240,7 +240,7 @@ export default function PublicTrackingPage() {
               {tracking?.show_driver_phone && driver.phone && (
                 <a
                   href={`tel:${driver.phone}`}
-                  className="p-3 bg-green-500 text-white rounded-xl"
+                  className="p-3 bg-green-500 text-white rounded-lg"
                 >
                   <Phone className="w-5 h-5" />
                 </a>
@@ -250,7 +250,7 @@ export default function PublicTrackingPage() {
         )}
 
         {/* Delivery Details */}
-        <div className="bg-white rounded-2xl shadow-lg p-4 mb-4">
+        <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
           <p className="text-sm text-gray-500 mb-3">Détails de la livraison</p>
 
           <div className="space-y-3">
@@ -292,7 +292,7 @@ export default function PublicTrackingPage() {
 
         {/* Live Map */}
         {delivery?.status === 'in_transit' && latestUpdate && mapsLoaded && (
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-4">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-4">
             <GoogleMap
               mapContainerStyle={{ height: '12rem', width: '100%' }}
               center={{ lat: latestUpdate.latitude, lng: latestUpdate.longitude }}
@@ -323,7 +323,7 @@ export default function PublicTrackingPage() {
 
         {/* Timeline */}
         {updates.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-4">
+          <div className="bg-white rounded-lg shadow-lg p-4">
             <p className="text-sm text-gray-500 mb-3">Historique</p>
 
             <div className="space-y-4">

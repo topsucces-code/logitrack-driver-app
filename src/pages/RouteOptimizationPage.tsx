@@ -358,7 +358,7 @@ export default function RouteOptimizationPage() {
 
           {/* Modal */}
           <div
-            className="relative w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom"
+            className="relative w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-lg max-h-[85vh] flex flex-col animate-in slide-in-from-bottom"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

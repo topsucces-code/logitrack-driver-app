@@ -77,7 +77,7 @@ export function ZoneSelector({
               setSelectedCommune(null);
             }}
             placeholder="Rechercher un quartier..."
-            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white text-sm"
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white text-sm"
           />
         </div>
       </div>
@@ -109,7 +109,7 @@ export function ZoneSelector({
                 <button
                   key={zone.id}
                   onClick={() => handleSelectZone(zone)}
-                  className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl text-left hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
+                  className="p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg text-left hover:bg-primary-100 dark:hover:bg-primary-900/30 transition-colors"
                 >
                   <p className="text-sm font-medium text-primary-700 dark:text-primary-300 truncate">
                     {zone.name}
@@ -134,7 +134,7 @@ export function ZoneSelector({
                 <button
                   key={commune.id}
                   onClick={() => setSelectedCommune(commune.id)}
-                  className="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-xl flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="w-full p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
@@ -180,7 +180,7 @@ export function ZoneSelector({
 
       {/* Current Location Button */}
       <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 p-4">
-        <button className="w-full py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-xl flex items-center justify-center gap-2">
+        <button className="w-full py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg flex items-center justify-center gap-2">
           <Navigation className="w-5 h-5" />
           Utiliser ma position actuelle
         </button>
@@ -203,7 +203,7 @@ function ZoneCard({ zone, onClick }: { zone: Zone; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl text-left hover:border-primary-500 transition-colors"
+      className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg text-left hover:border-primary-500 transition-colors"
     >
       <div className="flex items-start justify-between mb-2">
         <div>

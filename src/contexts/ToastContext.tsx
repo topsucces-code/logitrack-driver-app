@@ -102,7 +102,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           return (
             <div
               key={toast.id}
-              className={`${style.bg} ${style.border} border rounded-xl p-4 shadow-lg flex items-start gap-3 pointer-events-auto animate-slide-down`}
+              className={`${style.bg} ${style.border} border rounded-lg p-4 shadow-lg flex items-start gap-3 pointer-events-auto animate-slide-down`}
             >
               {style.icon}
               <p className={`flex-1 text-sm font-medium ${style.text}`}>{toast.message}</p>
