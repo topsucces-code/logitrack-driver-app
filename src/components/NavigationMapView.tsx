@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type ErrorInfo } from 'react';
 import { GoogleMap, DirectionsRenderer, MarkerF } from '@react-google-maps/api';
 import {
   X, RefreshCw, Locate, Loader2, AlertTriangle,
@@ -15,6 +15,32 @@ import {
   MARKER_ANCHOR,
 } from '../config/mapIcons';
 
+// ==================== ERROR BOUNDARY ====================
+interface EBProps { children: ReactNode; onClose: () => void; }
+interface EBState { error: string | null; }
+
+class NavErrorBoundary extends Component<EBProps, EBState> {
+  state: EBState = { error: null };
+  static getDerivedStateFromError(err: Error) { return { error: err.message }; }
+  componentDidCatch(err: Error, info: ErrorInfo) { console.error('[NavMap] crash:', err, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="fixed inset-0 z-[9999] bg-gray-900 flex flex-col items-center justify-center p-6">
+          <AlertTriangle className="w-12 h-12 text-red-400 mb-4" />
+          <p className="text-white text-center mb-2 font-semibold">Erreur de navigation</p>
+          <p className="text-gray-400 text-sm text-center mb-6">{this.state.error}</p>
+          <button onClick={this.props.onClose} className="px-6 py-3 bg-primary-500 text-white rounded-lg font-medium">
+            Fermer
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// ==================== TYPES ====================
 interface NavigationMapViewProps {
   destination: { lat: number; lng: number };
   destinationLabel: string;
@@ -22,22 +48,11 @@ interface NavigationMapViewProps {
   onClose: () => void;
 }
 
-const mapContainerStyle = { width: '100%', height: '100%' };
-
-const mapOptions: google.maps.MapOptions = {
-  disableDefaultUI: true,
-  zoomControl: false,
-  mapTypeControl: false,
-  streetViewControl: false,
-  fullscreenControl: false,
-};
-
-/** Strip HTML tags */
+// ==================== HELPERS ====================
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '');
 }
 
-/** Haversine distance in meters */
 function distM(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371000;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -50,12 +65,6 @@ function formatDist(m: number): string {
   return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`;
 }
 
-function formatTime(min: number): string {
-  if (min < 60) return `${min} min`;
-  return `${Math.floor(min / 60)}h${min % 60 > 0 ? ` ${min % 60}min` : ''}`;
-}
-
-/** Maneuver icon */
 function ManeuverIcon({ maneuver, className }: { maneuver?: string; className?: string }) {
   const c = className || 'w-6 h-6';
   switch (maneuver) {
@@ -70,7 +79,8 @@ function ManeuverIcon({ maneuver, className }: { maneuver?: string; className?: 
   }
 }
 
-export function NavigationMapView({
+// ==================== INNER COMPONENT ====================
+function NavigationMapInner({
   destination,
   destinationLabel,
   destinationType,
@@ -85,19 +95,17 @@ export function NavigationMapView({
   const [loading, setLoading] = useState(true);
   const [followDriver, setFollowDriver] = useState(true);
 
-  // Total distance & time from Google Directions response
+  // Route info from Google
   const routeInfo = useMemo(() => {
     if (!directions?.routes?.[0]?.legs?.[0]) return null;
     const leg = directions.routes[0].legs[0];
     return {
       distanceText: leg.distance?.text || '',
-      distanceValue: leg.distance?.value || 0,
       durationText: leg.duration?.text || '',
-      durationMin: Math.ceil((leg.duration?.value || 0) / 60),
     };
   }, [directions]);
 
-  // --- Call DirectionsService directly ---
+  // Call DirectionsService
   const calculateRoute = useCallback((origin: { lat: number; lng: number }) => {
     if (typeof google === 'undefined' || !google.maps) {
       setRouteError('Google Maps non chargé');
@@ -120,7 +128,6 @@ export function NavigationMapView({
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
           setRouteError(null);
-          // Fit bounds to show full route
           if (mapRef.current) {
             const bounds = new google.maps.LatLngBounds();
             bounds.extend(origin);
@@ -128,65 +135,52 @@ export function NavigationMapView({
             mapRef.current.fitBounds(bounds, 50);
           }
         } else {
-          console.error('[Navigation] DirectionsService status:', status);
-          setRouteError(`Erreur itinéraire (${status})`);
+          setRouteError(`Erreur: ${status}`);
         }
       },
     );
   }, [destination]);
 
-  // Get position and calculate route on mount
+  // Init on mount
   useEffect(() => {
     if (!isLoaded) return;
 
-    async function init() {
+    (async () => {
       let pos = position;
       if (!pos) {
-        try {
-          pos = await getCurrentPosition();
-        } catch { /* ignore */ }
+        try { pos = await getCurrentPosition(); } catch { /* */ }
       }
-
       if (pos) {
         calculateRoute(pos);
       } else {
         setLoading(false);
         setRouteError('GPS indisponible. Activez la localisation.');
       }
-    }
-
-    init();
+    })();
   }, [isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-follow driver
+  // Auto-follow
   useEffect(() => {
     if (!followDriver || !mapRef.current || !position) return;
     mapRef.current.panTo(position);
-    if (mapRef.current.getZoom()! < 15) mapRef.current.setZoom(16);
+    if ((mapRef.current.getZoom() ?? 0) < 15) mapRef.current.setZoom(16);
   }, [followDriver, position?.lat, position?.lng]);
 
-  // --- Current turn-by-turn step ---
+  // Current step
   const currentStep = useMemo(() => {
     if (!directions?.routes?.[0]?.legs?.[0]?.steps || !position) return null;
     const steps = directions.routes[0].legs[0].steps;
-
     for (let i = 0; i < steps.length; i++) {
       const end = steps[i].end_location;
       const d = distM(position.lat, position.lng, end.lat(), end.lng());
       if (d > 40) {
-        return {
-          index: i,
-          instruction: stripHtml(steps[i].instructions || ''),
-          distToEnd: d,
-          maneuver: steps[i].maneuver,
-          total: steps.length,
-        };
+        return { index: i, instruction: stripHtml(steps[i].instructions || ''), distToEnd: d, maneuver: steps[i].maneuver, total: steps.length };
       }
     }
-
     return { index: steps.length - 1, instruction: 'Vous êtes arrivé à destination', distToEnd: 0, maneuver: undefined, total: steps.length };
   }, [directions, position?.lat, position?.lng]);
 
+  // Next step
   const nextStep = useMemo(() => {
     if (!directions?.routes?.[0]?.legs?.[0]?.steps || !currentStep) return null;
     const steps = directions.routes[0].legs[0].steps;
@@ -197,12 +191,6 @@ export function NavigationMapView({
 
   const destMarkerUrl = destinationType === 'pickup' ? PICKUP_MARKER_URL : DELIVERY_MARKER_URL;
 
-  const markerIcon = useCallback((url: string) => ({
-    url,
-    scaledSize: new google.maps.Size(MARKER_SIZE.width, MARKER_SIZE.height),
-    anchor: new google.maps.Point(MARKER_ANCHOR.x, MARKER_ANCHOR.y),
-  }), []);
-
   const handleRetry = useCallback(() => {
     if (position) {
       calculateRoute(position);
@@ -211,21 +199,21 @@ export function NavigationMapView({
     }
   }, [position, calculateRoute, getCurrentPosition]);
 
-  // --- Not loaded yet ---
-  if (!isLoaded) {
-    return (
-      <div className="fixed inset-0 z-40 flex items-center justify-center bg-gray-900">
-        <Loader2 className="w-10 h-10 animate-spin text-white" />
-      </div>
-    );
-  }
+  // Build marker icon only when google is available
+  const getIcon = useCallback((url: string) => {
+    if (typeof google === 'undefined' || !google.maps) return undefined;
+    return {
+      url,
+      scaledSize: new google.maps.Size(MARKER_SIZE.width, MARKER_SIZE.height),
+      anchor: new google.maps.Point(MARKER_ANCHOR.x, MARKER_ANCHOR.y),
+    };
+  }, []);
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col bg-gray-900">
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-gray-900">
 
-      {/* === TOP BAR: Turn-by-turn OR loading/error === */}
+      {/* TOP BAR */}
       {currentStep && !loading ? (
-        // Turn-by-turn guidance banner
         <div className="bg-primary-600 safe-top px-3 py-3 z-10 shadow-lg">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -233,19 +221,14 @@ export function NavigationMapView({
             </div>
             <div className="flex-1 min-w-0">
               {currentStep.distToEnd > 0 && (
-                <p className="text-white/80 text-xs font-medium">
-                  dans {formatDist(currentStep.distToEnd)}
-                </p>
+                <p className="text-white/80 text-xs font-medium">dans {formatDist(currentStep.distToEnd)}</p>
               )}
-              <p className="text-white font-semibold text-sm leading-tight line-clamp-2">
-                {currentStep.instruction}
-              </p>
+              <p className="text-white font-semibold text-sm leading-tight line-clamp-2">{currentStep.instruction}</p>
             </div>
             <button onClick={onClose} className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
               <X className="w-4 h-4 text-white" />
             </button>
           </div>
-
           {nextStep && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-white/20">
               <ManeuverIcon maneuver={nextStep.maneuver} className="w-4 h-4 text-white/60" />
@@ -255,7 +238,6 @@ export function NavigationMapView({
           )}
         </div>
       ) : (
-        // Loading / error bar
         <div className="bg-white dark:bg-gray-800 safe-top px-3 py-2.5 flex items-center gap-2 shadow-md z-10">
           <button onClick={onClose} className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
             <X className="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -285,71 +267,82 @@ export function NavigationMapView({
         </div>
       )}
 
-      {/* === FLOATING: distance + ETA pill === */}
+      {/* ROUTE INFO PILL */}
       {routeInfo && !loading && (
-        <div className="absolute z-20 left-3 right-3" style={{ top: currentStep && nextStep ? '135px' : currentStep ? '105px' : '60px' }}>
+        <div className="absolute z-20 left-3 right-3" style={{ top: currentStep && nextStep ? '140px' : currentStep ? '110px' : '65px' }}>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md px-3 py-2 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="font-bold text-gray-900 dark:text-white text-sm">{routeInfo.distanceText}</span>
               <span className="text-xs text-gray-500">{routeInfo.durationText}</span>
             </div>
-            <div className="flex items-center gap-1">
-              <button onClick={handleRetry} className="w-7 h-7 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <RefreshCw className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
-              </button>
-            </div>
+            <button onClick={handleRetry} className="w-7 h-7 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <RefreshCw className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
+            </button>
           </div>
         </div>
       )}
 
-      {/* === MAP === */}
+      {/* MAP */}
       <div className="flex-1 relative">
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={destination}
-          zoom={14}
-          options={mapOptions}
-          onLoad={(map) => { mapRef.current = map; }}
-          onDragStart={() => setFollowDriver(false)}
-        >
-          {directions && (
-            <DirectionsRenderer
-              directions={directions}
-              options={{
-                suppressMarkers: true,
-                polylineOptions: {
-                  strokeColor: '#4285F4',
-                  strokeWeight: 6,
-                  strokeOpacity: 0.9,
-                },
-              }}
-            />
-          )}
-
-          <MarkerF position={destination} icon={markerIcon(destMarkerUrl)} title={destinationLabel} />
-
-          {position && (
-            <MarkerF position={position} icon={markerIcon(DRIVER_MARKER_URL)} title="Vous" />
-          )}
-        </GoogleMap>
+        {isLoaded ? (
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '100%' }}
+            center={destination}
+            zoom={14}
+            options={{
+              disableDefaultUI: true,
+              zoomControl: false,
+              mapTypeControl: false,
+              streetViewControl: false,
+              fullscreenControl: false,
+            }}
+            onLoad={(map) => { mapRef.current = map; }}
+            onDragStart={() => setFollowDriver(false)}
+          >
+            {directions && (
+              <DirectionsRenderer
+                directions={directions}
+                options={{
+                  suppressMarkers: true,
+                  polylineOptions: { strokeColor: '#4285F4', strokeWeight: 6, strokeOpacity: 0.9 },
+                }}
+              />
+            )}
+            <MarkerF position={destination} icon={getIcon(destMarkerUrl)} title={destinationLabel} />
+            {position && <MarkerF position={position} icon={getIcon(DRIVER_MARKER_URL)} title="Vous" />}
+          </GoogleMap>
+        ) : (
+          <div className="h-full w-full flex items-center justify-center bg-gray-200">
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          </div>
+        )}
       </div>
 
-      {/* === FLOATING: follow-me button === */}
+      {/* FOLLOW BUTTON */}
       {!followDriver && position && (
         <button
           onClick={() => { setFollowDriver(true); if (mapRef.current && position) { mapRef.current.panTo(position); mapRef.current.setZoom(16); } }}
-          className="absolute bottom-20 right-3 z-20 w-12 h-12 bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center border border-gray-200 active:scale-95 transition-transform"
+          className="absolute bottom-20 right-3 z-20 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-200 active:scale-95 transition-transform"
         >
           <Locate className="w-5 h-5 text-primary-500" />
         </button>
       )}
 
-      {/* === BOTTOM BAR === */}
+      {/* BOTTOM BAR */}
       <div className="bg-white dark:bg-gray-800 safe-bottom px-3 py-3 shadow-up z-10">
-        <button onClick={onClose} className="w-full py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 transition-colors">
+        <button onClick={onClose} className="w-full py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200">
           Fermer
         </button>
       </div>
     </div>
+  );
+}
+
+// ==================== EXPORTED WRAPPER WITH ERROR BOUNDARY ====================
+export function NavigationMapView(props: NavigationMapViewProps) {
+  return (
+    <NavErrorBoundary onClose={props.onClose}>
+      <NavigationMapInner {...props} />
+    </NavErrorBoundary>
   );
 }
