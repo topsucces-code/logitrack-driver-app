@@ -3,7 +3,7 @@ import { GoogleMap, DirectionsRenderer, MarkerF } from '@react-google-maps/api';
 import {
   X, RefreshCw, Locate, Loader2, AlertTriangle,
   ArrowUp, ArrowLeft, ArrowRight, CornerDownLeft, CornerDownRight,
-  RotateCcw, RotateCw, Navigation, Volume2, VolumeX, CheckCircle,
+  RotateCcw, RotateCw, Navigation, Volume2, VolumeX, CheckCircle, Compass,
 } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
 import { useGoogleMaps } from './GoogleMapsProvider';
@@ -561,7 +561,34 @@ function NavigationMapInner({
         </MapErrorBoundary>
       </div>
 
-      {/* MAP OVERLAY BUTTONS */}
+      {/* COMPASS — below route info pill, tap to reset north */}
+      <div className="absolute z-20 left-3" style={{ top: currentStep && nextStep ? '190px' : currentStep ? '160px' : '115px' }}>
+        <button
+          onClick={() => {
+            if (mapRef.current) {
+              if (typeof mapRef.current.setHeading === 'function') mapRef.current.setHeading(0);
+              if (typeof mapRef.current.setTilt === 'function') mapRef.current.setTilt(0);
+            }
+          }}
+          className="w-11 h-11 bg-white rounded-full shadow-lg flex items-center justify-center border border-gray-200 active:scale-95 transition-transform"
+        >
+          <div
+            className="relative w-8 h-8 flex items-center justify-center transition-transform duration-300"
+            style={{ transform: `rotate(${-(heading ?? 0)}deg)` }}
+          >
+            {/* North indicator (red triangle) */}
+            <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-0 h-0"
+              style={{ borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderBottom: '6px solid #ef4444' }}
+            />
+            {/* N label */}
+            <span className="absolute top-0.5 left-1/2 -translate-x-1/2 text-[7px] font-bold text-red-500 leading-none">N</span>
+            {/* Compass icon */}
+            <Compass className="w-5 h-5 text-gray-500" />
+          </div>
+        </button>
+      </div>
+
+      {/* MAP OVERLAY BUTTONS — right side */}
       <div className="absolute bottom-20 right-3 z-20 flex flex-col gap-2">
         {/* Voice mute/unmute */}
         <button

@@ -1,6 +1,8 @@
 // Service de messages vocaux - LogiTrack Africa
 // Utilise Web Speech API pour la reconnaissance et synthèse vocale
 
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { logger } from '../utils/logger';
 
 export interface VoiceMessage {
@@ -220,9 +222,11 @@ export function stopSpeechRecognition(): void {
 // ============================================
 
 let currentUtterance: SpeechSynthesisUtterance | null = null;
+const isNative = Capacitor.isNativePlatform();
 
 /**
  * Lit un texte à voix haute
+ * Utilise le plugin natif Capacitor sur Android/iOS, Web Speech API sur le web
  */
 export function speak(
   text: string,
@@ -235,6 +239,25 @@ export function speak(
     onError?: (error: string) => void;
   }
 ): void {
+  if (isNative) {
+    // Native: Capacitor TTS plugin
+    TextToSpeech.speak({
+      text,
+      lang: options?.lang || 'fr-FR',
+      rate: options?.rate || 1.0,
+      pitch: options?.pitch || 1.0,
+      volume: options?.volume || 1.0,
+      category: 'playback',
+    })
+      .then(() => options?.onEnd?.())
+      .catch((err) => {
+        logger.error('Native TTS error', { error: err });
+        options?.onError?.(String(err));
+      });
+    return;
+  }
+
+  // Web fallback: Web Speech API
   if (!('speechSynthesis' in window)) {
     options?.onError?.('Synthèse vocale non supportée');
     return;
@@ -273,7 +296,11 @@ export function speak(
  * Arrête la lecture en cours
  */
 export function stopSpeaking(): void {
-  if (speechSynthesis.speaking) {
+  if (isNative) {
+    TextToSpeech.stop().catch(() => {});
+    return;
+  }
+  if ('speechSynthesis' in window && speechSynthesis.speaking) {
     speechSynthesis.cancel();
   }
   currentUtterance = null;

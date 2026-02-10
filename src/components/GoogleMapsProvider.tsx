@@ -16,6 +16,8 @@ export function useGoogleMaps() {
 export function GoogleMapsProvider({ children }: { children: ReactNode }) {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: GOOGLE_MAPS_KEY,
+    language: 'fr',
+    region: 'FR',
   });
 
   return (
