@@ -582,26 +582,36 @@ export default function DeliveryDetailPage() {
           </div>
         </div>
 
-        {/* Secondary actions (in scrollable area) */}
+        {/* All actions for arriving status - together in scrollable area */}
         {delivery.status === 'arriving' && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium transition-colors"
+          <>
+            <Button
+              onClick={() => setShowProofModal(true)}
+              disabled={updating}
+              fullWidth
+              icon={<CheckCircle className="w-5 h-5" />}
             >
-              <UserX className="w-4 h-4" />
-              Client absent
-            </button>
-            <button
-              onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
-                state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
-              })}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
-            >
-              <AlertTriangle className="w-4 h-4" />
-              Signaler
-            </button>
-          </div>
+              Confirmer la livraison
+            </Button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium transition-colors"
+              >
+                <UserX className="w-4 h-4" />
+                Client absent
+              </button>
+              <button
+                onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
+                  state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
+                })}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
+              >
+                <AlertTriangle className="w-4 h-4" />
+                Signaler
+              </button>
+            </div>
+          </>
         )}
 
         {delivery.status !== 'arriving' && (
@@ -617,7 +627,8 @@ export default function DeliveryDetailPage() {
         )}
       </div>
 
-      {/* Action Button - fixed bottom */}
+      {/* Action Button - fixed bottom (non-arriving statuses only) */}
+      {delivery.status !== 'arriving' && (
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 py-2 safe-bottom">
         {delivery.status === 'assigned' && (
           <Button
@@ -678,18 +689,8 @@ export default function DeliveryDetailPage() {
             Arrivé sur place
           </Button>
         )}
-
-        {delivery.status === 'arriving' && (
-          <Button
-            onClick={() => setShowProofModal(true)}
-            disabled={updating}
-            fullWidth
-            icon={<CheckCircle className="w-5 h-5" />}
-          >
-            Confirmer la livraison
-          </Button>
-        )}
       </div>
+      )}
 
       {/* Proof Modal */}
       {showProofModal && !deliveryCompleted && (
