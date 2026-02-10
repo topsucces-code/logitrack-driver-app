@@ -1,13 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useLocation } from '../contexts/LocationContext';
 import {
-  fetchRoute,
-  buildFallbackRoute,
-  shouldRefetchRoute,
+  fetchDirections,
   getRemainingDistanceKm,
+  shouldRefetchRoute,
   clearRouteCache,
-  type RouteResult,
-} from '../services/osrmRouteService';
+} from '../services/googleDirectionsService';
 import { estimateTravelTime } from '../services/navigationService';
 
 interface UseNavigationRouteOptions {
@@ -16,7 +14,7 @@ interface UseNavigationRouteOptions {
 }
 
 interface UseNavigationRouteReturn {
-  route: RouteResult | null;
+  directions: google.maps.DirectionsResult | null;
   isLoading: boolean;
   error: string | null;
   remainingDistanceKm: number | null;
@@ -30,7 +28,7 @@ export function useNavigationRoute({
   enabled,
 }: UseNavigationRouteOptions): UseNavigationRouteReturn {
   const { position } = useLocation();
-  const [route, setRoute] = useState<RouteResult | null>(null);
+  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFallback, setIsFallback] = useState(false);
@@ -43,13 +41,12 @@ export function useNavigationRoute({
     setIsLoading(true);
     setError(null);
     try {
-      const result = await fetchRoute(origin, destRef.current);
-      setRoute(result);
+      const result = await fetchDirections(origin, destRef.current);
+      setDirections(result);
       setIsFallback(false);
     } catch (err) {
-      // Fallback to straight line
-      const fallback = buildFallbackRoute(origin, destRef.current);
-      setRoute(fallback);
+      // Fallback: no directions, just show straight line
+      setDirections(null);
       setIsFallback(true);
       setError('Itinéraire indisponible, ligne directe affichée');
     } finally {
@@ -62,11 +59,11 @@ export function useNavigationRoute({
     if (!enabled || !position) return;
     doFetchRoute(position);
     return () => { clearRouteCache(); };
-  }, [enabled, !!position]); // Only re-run when enabled toggles or position first appears
+  }, [enabled, !!position]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Update remaining distance/ETA on position changes
   useEffect(() => {
-    if (!enabled || !position || !route) return;
+    if (!enabled || !position) return;
 
     const dist = getRemainingDistanceKm(position, destRef.current);
     setRemainingDistanceKm(dist);
@@ -76,7 +73,7 @@ export function useNavigationRoute({
     if (shouldRefetchRoute(position)) {
       doFetchRoute(position);
     }
-  }, [enabled, position?.lat, position?.lng, route, doFetchRoute]);
+  }, [enabled, position?.lat, position?.lng, directions, doFetchRoute]);
 
   const refetchRoute = useCallback(() => {
     if (position) {
@@ -86,7 +83,7 @@ export function useNavigationRoute({
   }, [position, doFetchRoute]);
 
   return {
-    route,
+    directions,
     isLoading,
     error,
     remainingDistanceKm,

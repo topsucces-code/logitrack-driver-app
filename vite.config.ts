@@ -93,11 +93,11 @@ export default defineConfig({
             },
           },
           {
-            // Cache Leaflet tiles
-            urlPattern: /^https:\/\/.*\.tile\.openstreetmap\.org\/.*/i,
+            // Cache Google Maps tiles
+            urlPattern: /^https:\/\/maps\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'map-tiles-cache',
+              cacheName: 'google-maps-cache',
               expiration: {
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
@@ -142,7 +142,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom', 'react-router-dom'],
           'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-map': ['leaflet', 'react-leaflet'],
+          'vendor-map': ['@react-google-maps/api'],
           'vendor-date': ['date-fns'],
           'vendor-icons': ['lucide-react'],
         },

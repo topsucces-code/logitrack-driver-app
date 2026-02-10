@@ -5,6 +5,7 @@ import { LocationProvider } from './contexts/LocationContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { GoogleMapsProvider } from './components/GoogleMapsProvider';
 import { OfflineBanner } from './components/OfflineBanner';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { initOfflineQueue } from './services/offlineQueue';
@@ -282,13 +283,15 @@ export default function App() {
         <LanguageProvider>
           <AuthProvider>
             <LocationProvider>
-              <ToastProvider>
-                <OfflineBanner />
-                <PWAInstallPrompt />
-                <div className="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-                  <AppRoutes />
-                </div>
-              </ToastProvider>
+              <GoogleMapsProvider>
+                <ToastProvider>
+                  <OfflineBanner />
+                  <PWAInstallPrompt />
+                  <div className="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+                    <AppRoutes />
+                  </div>
+                </ToastProvider>
+              </GoogleMapsProvider>
             </LocationProvider>
           </AuthProvider>
         </LanguageProvider>

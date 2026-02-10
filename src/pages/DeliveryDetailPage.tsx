@@ -16,14 +16,20 @@ import {
   UserX,
   ChevronRight,
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { GoogleMap, MarkerF } from '@react-google-maps/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { supabase, Delivery } from '../lib/supabase';
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { MAP_CONFIG } from '../config/app.config';
-import { pickupIcon, deliveryIcon, driverIcon } from '../config/mapIcons';
+import {
+  PICKUP_MARKER_URL,
+  DELIVERY_MARKER_URL,
+  DRIVER_MARKER_URL,
+  MARKER_SIZE,
+  MARKER_ANCHOR,
+} from '../config/mapIcons';
 import { useToast } from '../contexts/ToastContext';
 import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
 import { SOSButton } from '../components/SOSButton';
@@ -52,6 +58,76 @@ function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+
+function makeMarkerIcon(url: string) {
+  return {
+    url,
+    scaledSize: new google.maps.Size(MARKER_SIZE.width, MARKER_SIZE.height),
+    anchor: new google.maps.Point(MARKER_ANCHOR.x, MARKER_ANCHOR.y),
+  };
+}
+
+function MiniMap({
+  pickupCoords,
+  deliveryCoords,
+  driverPos,
+  delivery,
+}: {
+  pickupCoords: { lat: number; lng: number } | null;
+  deliveryCoords: { lat: number; lng: number } | null;
+  driverPos: { lat: number; lng: number } | null;
+  delivery: Delivery;
+}) {
+  const center = pickupCoords || deliveryCoords || MAP_CONFIG.defaultCenter;
+
+  const onLoad = useCallback((map: google.maps.Map) => {
+    const bounds = new google.maps.LatLngBounds();
+    if (pickupCoords) bounds.extend(pickupCoords);
+    if (deliveryCoords) bounds.extend(deliveryCoords);
+    if (driverPos) bounds.extend(driverPos);
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, 30);
+    }
+  }, [pickupCoords, deliveryCoords, driverPos]);
+
+  return (
+    <div className="h-36 relative">
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '100%' }}
+        center={center}
+        zoom={MAP_CONFIG.defaultZoom}
+        options={{
+          disableDefaultUI: true,
+          zoomControl: false,
+          gestureHandling: 'none',
+        }}
+        onLoad={onLoad}
+      >
+        {pickupCoords && (
+          <MarkerF
+            position={pickupCoords}
+            icon={makeMarkerIcon(PICKUP_MARKER_URL)}
+            title={delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}
+          />
+        )}
+        {deliveryCoords && (
+          <MarkerF
+            position={deliveryCoords}
+            icon={makeMarkerIcon(DELIVERY_MARKER_URL)}
+            title={delivery.delivery_contact_name || 'Livraison'}
+          />
+        )}
+        {driverPos && (
+          <MarkerF
+            position={driverPos}
+            icon={makeMarkerIcon(DRIVER_MARKER_URL)}
+            title="Votre position"
+          />
+        )}
+      </GoogleMap>
+    </div>
+  );
+}
 
 export default function DeliveryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -342,37 +418,12 @@ export default function DeliveryDetailPage() {
       </header>
 
       {/* Map */}
-      <div className="h-36 relative">
-        <MapContainer
-          center={[
-            pickupCoords?.lat || MAP_CONFIG.defaultCenter.lat,
-            pickupCoords?.lng || MAP_CONFIG.defaultCenter.lng,
-          ]}
-          zoom={MAP_CONFIG.defaultZoom}
-          className="h-full w-full"
-          zoomControl={false}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution=""
-          />
-          {pickupCoords && (
-            <Marker position={[pickupCoords.lat, pickupCoords.lng]} icon={pickupIcon}>
-              <Popup>Pickup: {delivery.pickup_contact_name || delivery.vendor_name}</Popup>
-            </Marker>
-          )}
-          {deliveryCoords && (
-            <Marker position={[deliveryCoords.lat, deliveryCoords.lng]} icon={deliveryIcon}>
-              <Popup>Livraison: {delivery.delivery_contact_name}</Popup>
-            </Marker>
-          )}
-          {position && (
-            <Marker position={[position.lat, position.lng]} icon={driverIcon}>
-              <Popup>Votre position</Popup>
-            </Marker>
-          )}
-        </MapContainer>
-      </div>
+      <MiniMap
+        pickupCoords={pickupCoords}
+        deliveryCoords={deliveryCoords}
+        driverPos={position}
+        delivery={delivery}
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">

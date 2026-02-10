@@ -13,26 +13,24 @@ import {
   AlertCircle,
   ShieldCheck,
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
+import { GoogleMap, MarkerF } from '@react-google-maps/api';
 import { getTrackingByCode } from '../services/trustService';
 import { SharedTracking, TrackingUpdate } from '../types/trust';
 import { TRUST_LEVELS } from '../types/trust';
+import {
+  DRIVER_MARKER_URL,
+  DELIVERY_MARKER_URL,
+  MARKER_SIZE,
+  MARKER_ANCHOR,
+} from '../config/mapIcons';
 
-// Marker icons for the public tracking map
-const driverMarkerIcon = new L.Icon({
-  iconUrl: '/markers/marker-icon-2x-blue.png',
-  shadowUrl: '/markers/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-const destinationMarkerIcon = new L.Icon({
-  iconUrl: '/markers/marker-icon-2x-red.png',
-  shadowUrl: '/markers/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
+function makeMarkerIcon(url: string) {
+  return {
+    url,
+    scaledSize: new google.maps.Size(MARKER_SIZE.width, MARKER_SIZE.height),
+    anchor: new google.maps.Point(MARKER_ANCHOR.x, MARKER_ANCHOR.y),
+  };
+}
 
 export default function PublicTrackingPage() {
   const { code } = useParams<{ code: string }>();
@@ -293,34 +291,31 @@ export default function PublicTrackingPage() {
         {/* Live Map */}
         {delivery?.status === 'in_transit' && latestUpdate && (
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-4">
-            <MapContainer
-              center={[latestUpdate.latitude, latestUpdate.longitude]}
+            <GoogleMap
+              mapContainerStyle={{ height: '12rem', width: '100%' }}
+              center={{ lat: latestUpdate.latitude, lng: latestUpdate.longitude }}
               zoom={14}
-              style={{ height: '12rem', width: '100%' }}
-              scrollWheelZoom={false}
-              zoomControl={false}
+              options={{
+                disableDefaultUI: true,
+                zoomControl: false,
+                gestureHandling: 'cooperative',
+              }}
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap'
-              />
               {/* Driver position */}
-              <Marker
-                position={[latestUpdate.latitude, latestUpdate.longitude]}
-                icon={driverMarkerIcon}
-              >
-                <Popup>Position du livreur</Popup>
-              </Marker>
+              <MarkerF
+                position={{ lat: latestUpdate.latitude, lng: latestUpdate.longitude }}
+                icon={makeMarkerIcon(DRIVER_MARKER_URL)}
+                title="Position du livreur"
+              />
               {/* Destination */}
               {delivery.delivery_lat && delivery.delivery_lng && (
-                <Marker
-                  position={[delivery.delivery_lat, delivery.delivery_lng]}
-                  icon={destinationMarkerIcon}
-                >
-                  <Popup>Destination</Popup>
-                </Marker>
+                <MarkerF
+                  position={{ lat: delivery.delivery_lat, lng: delivery.delivery_lng }}
+                  icon={makeMarkerIcon(DELIVERY_MARKER_URL)}
+                  title="Destination"
+                />
               )}
-            </MapContainer>
+            </GoogleMap>
           </div>
         )}
 

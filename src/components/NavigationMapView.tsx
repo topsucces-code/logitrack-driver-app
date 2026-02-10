@@ -1,57 +1,34 @@
-import { useState, useEffect, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
+import { useCallback, useRef } from 'react';
+import { GoogleMap, DirectionsRenderer, MarkerF, PolylineF } from '@react-google-maps/api';
 import { X, Navigation, RefreshCw, Crosshair, Loader2, AlertTriangle } from 'lucide-react';
 import { useLocation } from '../contexts/LocationContext';
 import { useNavigationRoute } from '../hooks/useNavigationRoute';
-import { pickupIcon, deliveryIcon, driverIcon } from '../config/mapIcons';
+import {
+  PICKUP_MARKER_URL,
+  DELIVERY_MARKER_URL,
+  DRIVER_MARKER_URL,
+  MARKER_SIZE,
+  MARKER_ANCHOR,
+} from '../config/mapIcons';
 import { openGoogleMaps } from '../services/navigationService';
 import { formatDistance, formatTravelTime } from '../services/navigationService';
 
 interface NavigationMapViewProps {
   destination: { lat: number; lng: number };
   destinationLabel: string;
-  /** 'pickup' uses green marker, 'delivery' uses red marker */
   destinationType: 'pickup' | 'delivery';
   onClose: () => void;
 }
 
-/** Sub-component that controls map bounds (needs useMap inside MapContainer) */
-function MapBoundsController({
-  driverPos,
-  destination,
-  recenterFlag,
-}: {
-  driverPos: { lat: number; lng: number } | null;
-  destination: { lat: number; lng: number };
-  recenterFlag: number;
-}) {
-  const map = useMap();
+const mapContainerStyle = { width: '100%', height: '100%' };
 
-  // Fit bounds on mount and when recenter is requested
-  useEffect(() => {
-    const points: [number, number][] = [[destination.lat, destination.lng]];
-    if (driverPos) {
-      points.push([driverPos.lat, driverPos.lng]);
-    }
-    if (points.length >= 2) {
-      map.fitBounds(points as L.LatLngBoundsExpression, { padding: [50, 50] });
-    } else {
-      map.setView([destination.lat, destination.lng], 15);
-    }
-  }, [recenterFlag]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return null;
-}
-
-/** Update driver marker position without re-rendering the whole map */
-function DriverMarkerUpdater({ position }: { position: { lat: number; lng: number } | null }) {
-  if (!position) return null;
-  return (
-    <Marker position={[position.lat, position.lng]} icon={driverIcon}>
-      <Popup>Votre position</Popup>
-    </Marker>
-  );
-}
+const mapOptions: google.maps.MapOptions = {
+  disableDefaultUI: true,
+  zoomControl: false,
+  mapTypeControl: false,
+  streetViewControl: false,
+  fullscreenControl: false,
+};
 
 export function NavigationMapView({
   destination,
@@ -62,7 +39,7 @@ export function NavigationMapView({
   const { position } = useLocation();
 
   const {
-    route,
+    directions,
     isLoading,
     error,
     remainingDistanceKm,
@@ -71,11 +48,15 @@ export function NavigationMapView({
     refetchRoute,
   } = useNavigationRoute({ destination, enabled: true });
 
-  const [recenterFlag, setRecenterFlag] = useState(0);
+  const mapRef = useRef<google.maps.Map | null>(null);
 
   const handleRecenter = useCallback(() => {
-    setRecenterFlag((f) => f + 1);
-  }, []);
+    if (!mapRef.current) return;
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(destination);
+    if (position) bounds.extend(position);
+    mapRef.current.fitBounds(bounds, 50);
+  }, [destination, position]);
 
   const handleOpenGoogleMaps = useCallback(() => {
     openGoogleMaps({
@@ -85,7 +66,22 @@ export function NavigationMapView({
     });
   }, [destination, destinationLabel]);
 
-  const destMarkerIcon = destinationType === 'pickup' ? pickupIcon : deliveryIcon;
+  const destMarkerUrl = destinationType === 'pickup' ? PICKUP_MARKER_URL : DELIVERY_MARKER_URL;
+
+  const onMapLoad = useCallback((map: google.maps.Map) => {
+    mapRef.current = map;
+    // Fit bounds on load
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(destination);
+    if (position) bounds.extend(position);
+    map.fitBounds(bounds, 50);
+  }, [destination, position]);
+
+  const markerIcon = useCallback((url: string) => ({
+    url,
+    scaledSize: new google.maps.Size(MARKER_SIZE.width, MARKER_SIZE.height),
+    anchor: new google.maps.Point(MARKER_ANCHOR.x, MARKER_ANCHOR.y),
+  }), []);
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-gray-900">
@@ -149,45 +145,61 @@ export function NavigationMapView({
 
       {/* Map */}
       <div className="flex-1 relative">
-        <MapContainer
-          center={[destination.lat, destination.lng]}
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={destination}
           zoom={14}
-          className="h-full w-full"
-          zoomControl={false}
+          options={mapOptions}
+          onLoad={onMapLoad}
         >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution=""
-          />
+          {/* Route via DirectionsRenderer */}
+          {directions && !isFallback && (
+            <DirectionsRenderer
+              directions={directions}
+              options={{
+                suppressMarkers: true,
+                polylineOptions: {
+                  strokeColor: '#3B82F6',
+                  strokeWeight: 5,
+                  strokeOpacity: 0.8,
+                },
+              }}
+            />
+          )}
 
-          {/* Route polyline */}
-          {route && (
-            <Polyline
-              positions={route.coordinates}
-              pathOptions={{
-                color: isFallback ? '#9CA3AF' : '#3B82F6',
-                weight: 5,
-                opacity: 0.8,
-                dashArray: isFallback ? '10, 10' : undefined,
+          {/* Fallback straight line when Directions fails */}
+          {isFallback && position && (
+            <PolylineF
+              path={[position, destination]}
+              options={{
+                strokeColor: '#9CA3AF',
+                strokeWeight: 5,
+                strokeOpacity: 0,
+                icons: [{
+                  icon: { path: 'M 0,-1 0,1', strokeOpacity: 1, scale: 3 },
+                  offset: '0',
+                  repeat: '15px',
+                }],
               }}
             />
           )}
 
           {/* Destination marker */}
-          <Marker position={[destination.lat, destination.lng]} icon={destMarkerIcon}>
-            <Popup>{destinationLabel}</Popup>
-          </Marker>
+          <MarkerF
+            position={destination}
+            icon={markerIcon(destMarkerUrl)}
+            title={destinationLabel}
+          />
 
           {/* Driver marker (updates in real-time) */}
-          <DriverMarkerUpdater position={position} />
-
-          {/* Bounds controller */}
-          <MapBoundsController
-            driverPos={position}
-            destination={destination}
-            recenterFlag={recenterFlag}
-          />
-        </MapContainer>
+          {position && (
+            <MarkerF
+              position={position}
+              icon={markerIcon(DRIVER_MARKER_URL)}
+              title="Votre position"
+            />
+          )}
+        </GoogleMap>
       </div>
 
       {/* Bottom bar */}
