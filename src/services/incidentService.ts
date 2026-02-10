@@ -13,6 +13,7 @@ class IncidentService {
    */
   async createIncident(
     data: CreateIncidentData,
+    userId: string,
     driverId: string,
     driverName?: string,
     driverPhone?: string
@@ -26,9 +27,10 @@ class IncidentService {
         delivery_id: data.delivery_id,
         tracking_code: data.tracking_code || null,
         reporter_type: 'driver',
-        reporter_id: driverId,
+        reporter_id: userId,
         reporter_name: driverName,
         reporter_phone: driverPhone,
+        driver_id: driverId,
         category: 'driver',
         incident_type: data.incident_type,
         title: data.title,
@@ -54,7 +56,7 @@ class IncidentService {
       await supabase.from('logitrack_incident_history').insert({
         incident_id: incident.id,
         action: 'created',
-        action_by: driverId,
+        action_by: userId,
         action_by_name: driverName,
         new_status: 'open',
         notes: 'Incident créé par le livreur',
