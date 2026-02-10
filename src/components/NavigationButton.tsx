@@ -44,15 +44,18 @@ export function NavigationButton({
 
   const eta = distance ? estimateTravelTime(distance, vehicleType) : null;
 
+  // Use explicit label prop or destination.label
+  const displayLabel = label || destination.label;
+
   const handleNavigate = (app: NavigationApp) => {
     try { hapticLight(); } catch { /* ignore */ }
-    navigateTo({ ...destination, label }, app);
+    navigateTo({ ...destination, label: displayLabel }, app);
     setShowModal(false);
   };
 
   const handleQuickNavigate = () => {
     try { hapticLight(); } catch { /* ignore */ }
-    navigateTo({ ...destination, label }, 'default');
+    navigateTo({ ...destination, label: displayLabel }, 'default');
   };
 
   // Render the trigger button based on variant
@@ -113,8 +116,8 @@ export function NavigationButton({
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Navigation</h2>
-                  {label && (
-                    <p className="text-sm text-gray-500 line-clamp-1">{label}</p>
+                  {displayLabel && (
+                    <p className="text-sm text-gray-500 line-clamp-1">{displayLabel}</p>
                   )}
                 </div>
               </div>
@@ -160,7 +163,7 @@ export function NavigationButton({
                 <div>
                   <p className="text-sm text-gray-500">Destination</p>
                   <p className="font-medium text-gray-900 line-clamp-2">
-                    {label || `${destination.latitude.toFixed(6)}, ${destination.longitude.toFixed(6)}`}
+                    {displayLabel || `${destination.latitude.toFixed(6)}, ${destination.longitude.toFixed(6)}`}
                   </p>
                 </div>
               </div>
