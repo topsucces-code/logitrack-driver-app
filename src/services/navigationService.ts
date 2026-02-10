@@ -47,12 +47,15 @@ export function openGoogleMaps(destination: NavigationDestination): void {
     url = `google.navigation:q=${latitude},${longitude}`;
     window.location.href = url;
   } else {
-    // Web: Open in new tab
+    // Web: Open in new tab (use link click to avoid popup blocker)
     url = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-    if (label) {
-      url += `&destination_place_id=${encodeURIComponent(label)}`;
-    }
-    window.open(url, '_blank');
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
 
@@ -75,9 +78,15 @@ export function openWaze(destination: NavigationDestination): void {
       window.open(`https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`, '_blank');
     }, 500);
   } else {
-    // Web
+    // Web: use link click to avoid popup blocker
     url = `https://waze.com/ul?ll=${latitude},${longitude}&navigate=yes`;
-    window.open(url, '_blank');
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
 
