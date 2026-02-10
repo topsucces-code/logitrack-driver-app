@@ -99,50 +99,50 @@ export default function AnalyticsPage() {
       }
 
       // Fetch deliveries for current period
+      // Use completed_at OR delivered_at OR accepted_at as date reference (some completed deliveries have null delivered_at)
       const { data: deliveries } = await supabase
         .from('logitrack_deliveries')
-        .select('driver_earnings, delivered_at, delivery_zone, status, accepted_at, delivered_at')
+        .select('driver_earnings, delivered_at, completed_at, accepted_at, delivery_zone_id, status')
         .eq('driver_id', driver.id)
-        .gte('delivered_at', startDate.toISOString())
         .in('status', ['delivered', 'completed']);
+
+      // Filter by date in JS (because the date could be in delivered_at, completed_at, or accepted_at)
+      const getDeliveryDate = (d: any): string | null => d.delivered_at || d.completed_at || d.accepted_at;
+      const currentDeliveriesFiltered = (deliveries || []).filter(d => {
+        const date = getDeliveryDate(d);
+        return date && new Date(date) >= startDate;
+      });
 
       // Fetch deliveries for comparison period (previous week/month)
-      const { data: previousDeliveries } = await supabase
-        .from('logitrack_deliveries')
-        .select('driver_earnings, status')
-        .eq('driver_id', driver.id)
-        .gte('delivered_at', previousStartDate.toISOString())
-        .lt('delivered_at', startDate.toISOString())
-        .in('status', ['delivered', 'completed']);
+      const previousDeliveriesFiltered = (deliveries || []).filter(d => {
+        const date = getDeliveryDate(d);
+        return date && new Date(date) >= previousStartDate && new Date(date) < startDate;
+      });
 
-      // Fetch ALL previous period deliveries (including non-completed) for completion rate
-      const { data: previousAllDeliveries } = await supabase
+      // Fetch ALL deliveries (all statuses) for completion rate calculation
+      const { data: allDeliveries } = await supabase
         .from('logitrack_deliveries')
-        .select('status')
-        .eq('driver_id', driver.id)
-        .gte('created_at', previousStartDate.toISOString())
-        .lt('created_at', startDate.toISOString());
+        .select('status, created_at')
+        .eq('driver_id', driver.id);
 
-      // Fetch ALL current period deliveries for completion rate
-      const { data: currentAllDeliveries } = await supabase
-        .from('logitrack_deliveries')
-        .select('status')
-        .eq('driver_id', driver.id)
-        .gte('created_at', startDate.toISOString());
+      const currentAllDeliveries = (allDeliveries || []).filter(d => new Date(d.created_at) >= startDate);
+      const previousAllDeliveries = (allDeliveries || []).filter(d =>
+        new Date(d.created_at) >= previousStartDate && new Date(d.created_at) < startDate
+      );
 
       // Calculate current stats
-      const currentEarnings = (deliveries || []).reduce(
+      const currentEarnings = currentDeliveriesFiltered.reduce(
         (sum, d) => sum + (d.driver_earnings || 0),
         0
       );
-      const currentDeliveryCount = (deliveries || []).length;
+      const currentDeliveryCount = currentDeliveriesFiltered.length;
 
       // Calculate previous stats
-      const previousEarnings = (previousDeliveries || []).reduce(
+      const previousEarnings = previousDeliveriesFiltered.reduce(
         (sum, d) => sum + (d.driver_earnings || 0),
         0
       );
-      const previousDeliveryCount = (previousDeliveries || []).length;
+      const previousDeliveryCount = previousDeliveriesFiltered.length;
       const previousAvgPerDelivery = previousDeliveryCount > 0
         ? previousEarnings / previousDeliveryCount
         : 0;
@@ -151,16 +151,16 @@ export default function AnalyticsPage() {
         : 0;
 
       // Calculate completion rates for current and previous periods
-      const currentAllCount = (currentAllDeliveries || []).length;
-      const currentCompletedCount = (currentAllDeliveries || []).filter(
+      const currentAllCount = currentAllDeliveries.length;
+      const currentCompletedCount = currentAllDeliveries.filter(
         (d) => d.status === 'delivered' || d.status === 'completed'
       ).length;
       const currentCompletionRate = currentAllCount > 0
         ? (currentCompletedCount / currentAllCount) * 100
         : 0;
 
-      const previousAllCount = (previousAllDeliveries || []).length;
-      const previousCompletedCount = (previousAllDeliveries || []).filter(
+      const previousAllCount = previousAllDeliveries.length;
+      const previousCompletedCount = previousAllDeliveries.filter(
         (d) => d.status === 'delivered' || d.status === 'completed'
       ).length;
       const previousCompletionRate = previousAllCount > 0
@@ -185,11 +185,11 @@ export default function AnalyticsPage() {
       // Calculate average delivery time
       let totalDeliveryTime = 0;
       let deliveriesWithTime = 0;
-      (deliveries || []).forEach((d) => {
-        if (d.accepted_at && d.delivered_at) {
+      currentDeliveriesFiltered.forEach((d) => {
+        if (d.accepted_at && (d.delivered_at || d.completed_at)) {
           const acceptedTime = new Date(d.accepted_at).getTime();
-          const deliveredTime = new Date(d.delivered_at).getTime();
-          totalDeliveryTime += (deliveredTime - acceptedTime) / (1000 * 60); // in minutes
+          const endTime = new Date(d.delivered_at || d.completed_at).getTime();
+          totalDeliveryTime += (endTime - acceptedTime) / (1000 * 60); // in minutes
           deliveriesWithTime++;
         }
       });
@@ -203,9 +203,10 @@ export default function AnalyticsPage() {
 
       const dailyData: DayStats[] = dayInterval.map((day) => {
         const dayStr = format(day, 'yyyy-MM-dd');
-        const dayDeliveries = (deliveries || []).filter(
-          (d) => d.delivered_at && format(new Date(d.delivered_at), 'yyyy-MM-dd') === dayStr
-        );
+        const dayDeliveries = currentDeliveriesFiltered.filter((d) => {
+          const date = getDeliveryDate(d);
+          return date && format(new Date(date), 'yyyy-MM-dd') === dayStr;
+        });
         return {
           date: dayStr,
           earnings: dayDeliveries.reduce((sum, d) => sum + (d.driver_earnings || 0), 0),
@@ -213,12 +214,22 @@ export default function AnalyticsPage() {
         };
       });
 
-      // Calculate zone stats
+      // Calculate zone stats - fetch zone names
+      const zoneIds = [...new Set(currentDeliveriesFiltered.map(d => d.delivery_zone_id).filter(Boolean))];
+      let zoneNameMap: Record<string, string> = {};
+      if (zoneIds.length > 0) {
+        const { data: zones } = await supabase
+          .from('logitrack_zones')
+          .select('id, name')
+          .in('id', zoneIds);
+        (zones || []).forEach(z => { zoneNameMap[z.id] = z.name; });
+      }
+
       const zoneMap = new Map<string, { earnings: number; deliveries: number }>();
-      (deliveries || []).forEach((d) => {
-        const zone = d.delivery_zone || 'Autre';
-        const current = zoneMap.get(zone) || { earnings: 0, deliveries: 0 };
-        zoneMap.set(zone, {
+      currentDeliveriesFiltered.forEach((d) => {
+        const zoneName = d.delivery_zone_id ? (zoneNameMap[d.delivery_zone_id] || 'Zone inconnue') : 'Autre';
+        const current = zoneMap.get(zoneName) || { earnings: 0, deliveries: 0 };
+        zoneMap.set(zoneName, {
           earnings: current.earnings + (d.driver_earnings || 0),
           deliveries: current.deliveries + 1,
         });
