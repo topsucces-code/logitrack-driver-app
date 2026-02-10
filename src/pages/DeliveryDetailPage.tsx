@@ -582,36 +582,36 @@ export default function DeliveryDetailPage() {
           </div>
         </div>
 
-        {/* All actions for arriving status - together in scrollable area */}
+        {/* All actions for arriving status - compact block in scrollable area */}
         {delivery.status === 'arriving' && (
-          <>
-            <Button
-              onClick={() => setShowProofModal(true)}
-              disabled={updating}
-              fullWidth
-              icon={<CheckCircle className="w-5 h-5" />}
-            >
-              Confirmer la livraison
-            </Button>
+          <div className="space-y-1.5">
             <div className="flex gap-2">
               <button
                 onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-medium transition-colors"
               >
-                <UserX className="w-4 h-4" />
+                <UserX className="w-3.5 h-3.5" />
                 Client absent
               </button>
               <button
                 onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
                   state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
                 })}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-medium transition-colors"
               >
-                <AlertTriangle className="w-4 h-4" />
+                <AlertTriangle className="w-3.5 h-3.5" />
                 Signaler
               </button>
             </div>
-          </>
+            <button
+              onClick={() => setShowProofModal(true)}
+              disabled={updating}
+              className="w-full py-3 bg-primary-500 hover:bg-primary-600 disabled:bg-primary-300 text-white font-medium rounded-lg text-sm flex items-center justify-center gap-2 transition-colors"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Confirmer la livraison
+            </button>
+          </div>
         )}
 
         {delivery.status !== 'arriving' && (
