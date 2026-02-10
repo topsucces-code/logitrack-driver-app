@@ -37,7 +37,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const { driver, refreshDriver, isVerified } = useAuth();
   const { startTracking } = useLocation();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
 
   const [isOnline, setIsOnline] = useState(driver?.is_online ?? false);
   const [pendingDeliveries, setPendingDeliveries] = useState<Delivery[]>([]);
@@ -221,8 +221,9 @@ export default function DashboardPage() {
 
     const channel = subscribeToNotifications(driver.id, (notif: AppNotification) => {
       const notifType = (notif.data as Record<string, unknown>)?.type;
-      if (notifType === 'delivery_assigned') {
+      if (notifType === 'delivery_assigned' || notif.template === 'delivery_assigned') {
         fetchDeliveries();
+        showSuccess(notif.title || 'Nouvelle livraison assignée');
         // Play notification sound if enabled
         if (driver.notification_sound) {
           try {
