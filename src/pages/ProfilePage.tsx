@@ -141,6 +141,8 @@ export default function ProfilePage() {
               </div>
             )}
             <button
+              type="button"
+              onTouchEnd={(e) => { e.preventDefault(); handlePhotoCapture(); }}
               onClick={handlePhotoCapture}
               disabled={uploadingPhoto}
               className="absolute bottom-0 right-0 w-7 h-7 bg-primary-500 rounded-full flex items-center justify-center text-white disabled:opacity-50"
