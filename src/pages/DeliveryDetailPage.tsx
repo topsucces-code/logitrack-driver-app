@@ -662,26 +662,22 @@ export default function DeliveryDetailPage() {
               Confirmer la livraison
             </Button>
             <div className="flex gap-2 mt-2">
-              <Button
+              <button
                 onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
-                variant="outline"
-                fullWidth
-                className="bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
-                icon={<UserX className="w-4 h-4" />}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-sm font-medium transition-colors"
               >
+                <UserX className="w-4 h-4" />
                 Client absent
-              </Button>
-              <Button
+              </button>
+              <button
                 onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
                   state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
                 })}
-                variant="outline"
-                fullWidth
-                className="bg-red-50 hover:bg-red-100 text-red-600 border-red-200"
-                icon={<AlertTriangle className="w-4 h-4" />}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
               >
+                <AlertTriangle className="w-4 h-4" />
                 Signaler
-              </Button>
+              </button>
             </div>
           </>
         )}

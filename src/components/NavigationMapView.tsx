@@ -59,6 +59,11 @@ export function NavigationMapView({
     mapRef.current.fitBounds(bounds, 50);
   }, [destination, position]);
 
+  const handleNavigate = useCallback(() => {
+    refetchRoute();
+    handleRecenter();
+  }, [refetchRoute, handleRecenter]);
+
   const destMarkerUrl = destinationType === 'pickup' ? PICKUP_MARKER_URL : DELIVERY_MARKER_URL;
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
@@ -210,7 +215,7 @@ export function NavigationMapView({
           Fermer
         </button>
         <button
-          onClick={handleRecenter}
+          onClick={handleNavigate}
           className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-primary-500 hover:bg-primary-600 rounded-lg text-sm font-medium text-white transition-colors"
         >
           <Navigation className="w-4 h-4" />
