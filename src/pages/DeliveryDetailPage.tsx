@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { deliveryLogger } from '../utils/logger';
 import {
@@ -15,14 +15,15 @@ import {
   AlertTriangle,
   UserX,
   ChevronRight,
+  SwitchCamera,
+  Eraser,
+  Pencil,
 } from 'lucide-react';
 import { GoogleMap, MarkerF } from '@react-google-maps/api';
 import { useGoogleMaps } from '../components/GoogleMapsProvider';
 import { useAuth } from '../contexts/AuthContext';
 import { useLocation } from '../contexts/LocationContext';
 import { supabase, Delivery } from '../lib/supabase';
-import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Capacitor } from '@capacitor/core';
 import { MAP_CONFIG } from '../config/app.config';
 import {
   PICKUP_MARKER_URL,
@@ -143,14 +144,43 @@ export default function DeliveryDetailPage() {
   const navigate = useNavigate();
   const { refreshDriver } = useAuth();
   const { position, getCurrentPosition } = useLocation();
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
 
   const [delivery, setDelivery] = useState<Delivery | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [showProofModal, setShowProofModal] = useState(false);
+  const [showProofModal, setShowProofModal] = useState(() => {
+    // Restore proof modal state after camera killed the WebView
+    try {
+      const saved = localStorage.getItem('proof_pending');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.deliveryId === id) return true;
+      }
+    } catch { /* ignore */ }
+    return false;
+  });
   const [proofPhoto, setProofPhoto] = useState<string | null>(null);
-  const [recipientName, setRecipientName] = useState('');
+  const [recipientName, setRecipientName] = useState(() => {
+    try {
+      const saved = localStorage.getItem('proof_pending');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.deliveryId === id) return parsed.recipientName || '';
+      }
+    } catch { /* ignore */ }
+    return '';
+  });
+  const [proofRestored, setProofRestored] = useState(() => {
+    try {
+      const saved = localStorage.getItem('proof_pending');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.deliveryId === id) return true;
+      }
+    } catch { /* ignore */ }
+    return false;
+  });
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [deliveryCompleted, setDeliveryCompleted] = useState(false);
   const [showNavigationMap, setShowNavigationMap] = useState(false);
@@ -272,44 +302,146 @@ export default function DeliveryDetailPage() {
     }
   }
 
-  // Take photo for proof
-  async function takePhoto() {
+  // Save proof state to localStorage (without photo - too large for localStorage)
+  function saveProofState() {
     try {
-      if (Capacitor.isNativePlatform()) {
-        // Native: Use Capacitor Camera
-        const photo = await CapCamera.getPhoto({
-          quality: 80,
-          allowEditing: false,
-          resultType: CameraResultType.Base64,
-          source: CameraSource.Camera,
-        });
+      localStorage.setItem('proof_pending', JSON.stringify({
+        deliveryId: delivery?.id || id,
+        recipientName,
+      }));
+    } catch { /* quota exceeded or unavailable */ }
+  }
 
-        if (photo.base64String) {
-          setProofPhoto(`data:image/jpeg;base64,${photo.base64String}`);
-        }
-      } else {
-        // Web: Use file input
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.capture = 'environment';
+  // In-app camera state
+  const [showInAppCamera, setShowInAppCamera] = useState(false);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const videoNodeRef = useRef<HTMLVideoElement | null>(null);
+  const activeStreamRef = useRef<MediaStream | null>(null);
 
-        input.onchange = (e) => {
-          const file = (e.target as HTMLInputElement).files?.[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              setProofPhoto(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-          }
-        };
+  // Signature state
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const sigCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
 
-        input.click();
+  async function openCameraStream(facing: 'environment' | 'user') {
+    // Stop any existing stream
+    activeStreamRef.current?.getTracks().forEach(t => t.stop());
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } },
+        audio: false,
+      });
+      activeStreamRef.current = stream;
+      if (videoNodeRef.current) {
+        videoNodeRef.current.srcObject = stream;
+        videoNodeRef.current.play().catch(() => {});
       }
     } catch (err) {
-      showError('Erreur lors de la prise de photo');
+      deliveryLogger.error('getUserMedia error', { error: err });
+      showError('Impossible d\'accéder à la caméra');
+      setShowInAppCamera(false);
     }
+  }
+
+  function stopCameraStream() {
+    activeStreamRef.current?.getTracks().forEach(t => t.stop());
+    activeStreamRef.current = null;
+    setShowInAppCamera(false);
+  }
+
+  function switchCamera() {
+    const newFacing = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(newFacing);
+    openCameraStream(newFacing);
+  }
+
+  function captureFrame() {
+    const video = videoNodeRef.current;
+    if (!video) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    setProofPhoto(dataUrl);
+    setProofRestored(false);
+    stopCameraStream();
+  }
+
+  // Open camera (in-app to avoid Android killing WebView)
+  async function takePhoto() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+      stream.getTracks().forEach(t => t.stop());
+      setShowInAppCamera(true);
+      // Small delay to let the video element mount
+      setTimeout(() => openCameraStream(facingMode), 100);
+    } catch (err) {
+      deliveryLogger.error('Camera permission denied', { error: err });
+      showError('Autorisez l\'accès à la caméra dans les paramètres');
+    }
+  }
+
+  // Signature functions
+  function getCanvasXY(e: React.MouseEvent | React.TouchEvent) {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ('touches' in e) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top) * scaleY,
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  }
+
+  function startDrawing(e: React.MouseEvent | React.TouchEvent) {
+    e.preventDefault();
+    setIsDrawing(true);
+    const ctx = sigCanvasRef.current?.getContext('2d');
+    if (!ctx) return;
+    const { x, y } = getCanvasXY(e);
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  }
+
+  function draw(e: React.MouseEvent | React.TouchEvent) {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const ctx = sigCanvasRef.current?.getContext('2d');
+    if (!ctx) return;
+    const { x, y } = getCanvasXY(e);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+
+  function stopDrawing() {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    if (sigCanvasRef.current) {
+      setSignatureData(sigCanvasRef.current.toDataURL('image/png'));
+    }
+  }
+
+  function clearSignature() {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignatureData(null);
   }
 
   // Upload proof and complete delivery
@@ -320,29 +452,51 @@ export default function DeliveryDetailPage() {
 
     try {
       // Upload photo to storage
-      const fileName = `${delivery.id}-${Date.now()}.jpg`;
+      const photoFileName = `${delivery.id}-${Date.now()}.jpg`;
       const base64Data = proofPhoto.replace(/^data:image\/\w+;base64,/, '');
 
       const { error: uploadError } = await supabase.storage
         .from('delivery-proofs')
-        .upload(fileName, decode(base64Data), {
+        .upload(photoFileName, decode(base64Data), {
           contentType: 'image/jpeg',
         });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('delivery-proofs')
-        .getPublicUrl(fileName);
+        .getPublicUrl(photoFileName);
+
+      // Upload signature if present
+      let signatureUrl: string | null = null;
+      if (signatureData) {
+        const sigFileName = `${delivery.id}-sig-${Date.now()}.png`;
+        const sigBase64 = signatureData.replace(/^data:image\/\w+;base64,/, '');
+
+        const { error: sigError } = await supabase.storage
+          .from('delivery-proofs')
+          .upload(sigFileName, decode(sigBase64), {
+            contentType: 'image/png',
+          });
+
+        if (!sigError) {
+          const { data: sigUrl } = supabase.storage
+            .from('delivery-proofs')
+            .getPublicUrl(sigFileName);
+          signatureUrl = sigUrl.publicUrl;
+        }
+      }
 
       // Update status with proof
       await updateStatus('delivered', {
         p_confirmation_photo_url: urlData.publicUrl,
         p_recipient_name: recipientName || null,
+        ...(signatureUrl ? { p_signature_url: signatureUrl } : {}),
       });
 
+      try { localStorage.removeItem('proof_pending'); } catch { /* ignore */ }
       setShowProofModal(false);
+      setSignatureData(null);
     } catch (err) {
       deliveryLogger.error('Error completing delivery', { error: err });
       showError('Erreur lors de l\'envoi de la preuve');
@@ -677,80 +831,171 @@ export default function DeliveryDetailPage() {
         )}
       </div>
 
+      {/* In-App Camera */}
+      {showInAppCamera && (
+        <div className="fixed inset-0 z-[60] bg-black flex flex-col">
+          {/* Camera header */}
+          <div className="absolute top-0 left-0 right-0 z-10 p-3 pt-6 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
+            <button type="button" onClick={stopCameraStream} className="p-2 rounded-full bg-black/40">
+              <XCircle className="w-6 h-6 text-white" />
+            </button>
+            <span className="text-white text-sm font-medium">Photo de preuve</span>
+            <button type="button" onClick={switchCamera} className="p-2 rounded-full bg-black/40">
+              <SwitchCamera className="w-6 h-6 text-white" />
+            </button>
+          </div>
+
+          {/* Video preview */}
+          <video
+            ref={videoNodeRef}
+            autoPlay
+            playsInline
+            muted
+            className="flex-1 object-cover w-full"
+          />
+
+          {/* Capture controls */}
+          <div className="absolute bottom-0 left-0 right-0 pb-10 pt-6 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
+            <button
+              type="button"
+              onClick={captureFrame}
+              className="w-18 h-18 rounded-full border-[5px] border-white flex items-center justify-center active:scale-90 transition-transform"
+              style={{ width: 72, height: 72 }}
+            >
+              <div className="w-14 h-14 rounded-full bg-white" style={{ width: 56, height: 56 }} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Proof Modal */}
       {showProofModal && !deliveryCompleted && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-          <div className="bg-white dark:bg-gray-800 w-full rounded-t-xl p-3 safe-bottom">
-            <h2 className="text-base font-bold text-gray-900 dark:text-white mb-3">Preuve de livraison</h2>
-
-            {/* Photo */}
-            <div className="mb-3">
-              {proofPhoto ? (
-                <div className="relative">
-                  <img
-                    src={proofPhoto}
-                    alt="Proof"
-                    className="w-full h-40 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onTouchEnd={(e) => { e.preventDefault(); setProofPhoto(null); }}
-                    onClick={() => setProofPhoto(null)}
-                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full"
-                  >
-                    <XCircle className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
+          <div className="bg-white dark:bg-gray-800 w-full rounded-t-xl safe-bottom max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 px-3 pt-3 pb-2 border-b border-gray-100 dark:border-gray-700 z-10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">Preuve de livraison</h2>
                 <button
                   type="button"
-                  onTouchEnd={(e) => { e.preventDefault(); takePhoto(); }}
-                  onClick={takePhoto}
-                  className="w-full h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center gap-1.5 text-gray-500 dark:text-gray-400 hover:border-primary-500 hover:text-primary-500"
+                  onTouchEnd={(e) => { e.preventDefault(); setShowProofModal(false); }}
+                  onClick={() => setShowProofModal(false)}
+                  className="p-1.5 text-gray-400 hover:text-gray-600"
                 >
-                  <Camera className="w-8 h-8" />
-                  <span className="text-sm">Prendre une photo</span>
+                  <XCircle className="w-5 h-5" />
                 </button>
-              )}
+              </div>
             </div>
 
-            {/* Recipient name */}
-            <div className="mb-3">
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                Nom du destinataire (optionnel)
-              </label>
-              <input
-                type="text"
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="Qui a reçu le colis ?"
-                className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
+            <div className="p-3 space-y-3">
+              {/* Photo */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-1.5">
+                  <Camera className="w-3.5 h-3.5" />
+                  Photo du colis livré
+                </label>
+                {proofRestored && !proofPhoto && (
+                  <div className="mb-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-xs text-yellow-800 font-medium">Veuillez reprendre la photo</p>
+                  </div>
+                )}
+                {proofPhoto ? (
+                  <div className="relative">
+                    <img
+                      src={proofPhoto}
+                      alt="Proof"
+                      className="w-full h-44 object-cover rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onTouchEnd={(e) => { e.preventDefault(); takePhoto(); }}
+                      onClick={takePhoto}
+                      className="absolute bottom-2 right-2 px-2.5 py-1.5 bg-black/60 text-white text-xs rounded-lg flex items-center gap-1"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      Reprendre
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onTouchEnd={(e) => { e.preventDefault(); takePhoto(); }}
+                    onClick={takePhoto}
+                    className="w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center gap-1.5 text-gray-500 dark:text-gray-400 active:border-primary-500 active:text-primary-500"
+                  >
+                    <Camera className="w-7 h-7" />
+                    <span className="text-sm font-medium">Prendre une photo</span>
+                  </button>
+                )}
+              </div>
 
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onTouchEnd={(e) => { e.preventDefault(); setShowProofModal(false); }}
-                onClick={() => setShowProofModal(false)}
-                className="flex-1 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-sm text-gray-700 dark:text-gray-300"
-              >
-                Annuler
-              </button>
+              {/* Recipient name */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Nom du destinataire (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  placeholder="Qui a reçu le colis ?"
+                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+
+              {/* Signature pad */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                    <Pencil className="w-3.5 h-3.5" />
+                    Signature du client (optionnel)
+                  </label>
+                  {signatureData && (
+                    <button
+                      type="button"
+                      onClick={clearSignature}
+                      className="text-xs text-red-500 flex items-center gap-1"
+                    >
+                      <Eraser className="w-3 h-3" />
+                      Effacer
+                    </button>
+                  )}
+                </div>
+                <div className="relative bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden" style={{ height: 120 }}>
+                  <canvas
+                    ref={sigCanvasRef}
+                    width={700}
+                    height={240}
+                    className="w-full h-full touch-none"
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                  />
+                  {!signatureData && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <p className="text-gray-400 dark:text-gray-500 text-sm">Signez ici avec le doigt</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Confirm button */}
               <button
                 type="button"
                 onTouchEnd={(e) => { e.preventDefault(); if (proofPhoto && !updating) completeDelivery(); }}
                 onClick={completeDelivery}
                 disabled={!proofPhoto || updating}
-                className="flex-1 py-2.5 bg-primary-500 hover:bg-primary-600 text-white font-medium text-sm rounded-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold text-sm rounded-lg disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 {updating ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <CheckCircle className="w-4 h-4" />
                 )}
-                Confirmer
+                Confirmer la livraison
               </button>
             </div>
           </div>

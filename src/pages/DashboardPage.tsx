@@ -39,6 +39,21 @@ export default function DashboardPage() {
   const { startTracking } = useLocation();
   const { showError, showSuccess } = useToast();
 
+  // Resume delivery proof flow if Android killed the WebView during camera
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('proof_pending');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.deliveryId) {
+          navigate(`/delivery/${parsed.deliveryId}`, { replace: true });
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
+
   const [isOnline, setIsOnline] = useState(driver?.is_online ?? false);
   const [pendingDeliveries, setPendingDeliveries] = useState<Delivery[]>([]);
   const [currentDelivery, setCurrentDelivery] = useState<Delivery | null>(null);
