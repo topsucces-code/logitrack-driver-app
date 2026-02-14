@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 import {
   Mic,
   MicOff,
@@ -11,7 +11,7 @@ import {
   VolumeX,
   MessageCircle,
   Loader2,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   startRecording,
   stopRecording,
@@ -24,8 +24,8 @@ import {
   blobToBase64,
   PRESET_MESSAGES,
   isVoiceSupported,
-} from '../services/voiceService';
-import { logger } from '../utils/logger';
+} from "../services/voiceService";
+import { logger } from "../utils/logger";
 
 interface VoiceMessageRecorderProps {
   onSend: (audioBlob: Blob, duration: number, audioBase64?: string) => void;
@@ -41,12 +41,12 @@ export function VoiceMessageRecorder({
   const [recording, setRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string>('');
+  const [audioUrl, setAudioUrl] = useState<string>("");
   const [playing, setPlaying] = useState(false);
   const [sending, setSending] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const timerRef = useRef<NodeJS.Timeout>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const support = isVoiceSupported();
 
@@ -63,10 +63,10 @@ export function VoiceMessageRecorder({
       setRecording(true);
       setDuration(0);
       setAudioBlob(null);
-      setAudioUrl('');
+      setAudioUrl("");
 
       timerRef.current = setInterval(() => {
-        setDuration(d => {
+        setDuration((d) => {
           if (d >= maxDuration) {
             handleStopRecording();
             return d;
@@ -87,7 +87,7 @@ export function VoiceMessageRecorder({
       setAudioUrl(URL.createObjectURL(result.blob));
       setDuration(Math.round(result.duration));
     } catch (error) {
-      logger.error('Erreur arrêt enregistrement', { error });
+      logger.error("Erreur arrêt enregistrement", { error });
       setRecording(false);
     }
   };
@@ -97,7 +97,7 @@ export function VoiceMessageRecorder({
     cancelRecording();
     setRecording(false);
     setAudioBlob(null);
-    setAudioUrl('');
+    setAudioUrl("");
     setDuration(0);
     onCancel?.();
   };
@@ -124,7 +124,7 @@ export function VoiceMessageRecorder({
 
       // Reset
       setAudioBlob(null);
-      setAudioUrl('');
+      setAudioUrl("");
       setDuration(0);
     } finally {
       setSending(false);
@@ -276,31 +276,32 @@ export function VoiceMessageRecorder({
 
 // Composant pour les messages prédéfinis
 interface PresetMessagesProps {
-  type: 'driver' | 'customer';
+  type: "driver" | "customer";
   onSelect: (message: string, key: string) => void;
 }
 
 export function PresetMessages({ type, onSelect }: PresetMessagesProps) {
-  const messages = type === 'driver' ? PRESET_MESSAGES.driver : PRESET_MESSAGES.customer;
+  const messages =
+    type === "driver" ? PRESET_MESSAGES.driver : PRESET_MESSAGES.customer;
   const [speaking, setSpeaking] = useState<string | null>(null);
 
   const labels: Record<string, string> = {
     // Driver
     arriving: "🚗 J'arrive",
-    atLocation: '📍 Je suis arrivé',
-    waiting: '⏳ Je vous attends',
-    cantFind: '❓ Adresse introuvable',
-    noAnswer: '🔔 Pas de réponse',
-    leftPackage: '📦 Colis déposé',
-    callBack: '📞 Rappelez-moi',
-    traffic: '🚦 Embouteillages',
+    atLocation: "📍 Je suis arrivé",
+    waiting: "⏳ Je vous attends",
+    cantFind: "❓ Adresse introuvable",
+    noAnswer: "🔔 Pas de réponse",
+    leftPackage: "📦 Colis déposé",
+    callBack: "📞 Rappelez-moi",
+    traffic: "🚦 Embouteillages",
     // Customer
     onMyWay: "🏃 J'arrive",
-    notHome: '🏠 Pas à la maison',
-    neighbor: '👋 Chez le voisin',
-    callMe: '📱 Appelez-moi',
-    relayPoint: '📍 Point relais',
-    thanks: '🙏 Merci',
+    notHome: "🏠 Pas à la maison",
+    neighbor: "👋 Chez le voisin",
+    callMe: "📱 Appelez-moi",
+    relayPoint: "📍 Point relais",
+    thanks: "🙏 Merci",
   };
 
   const handlePlay = (key: string, message: string) => {
@@ -382,7 +383,9 @@ export function VoiceMessagePlayer({
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
-      setProgress((audioRef.current.currentTime / audioRef.current.duration) * 100);
+      setProgress(
+        (audioRef.current.currentTime / audioRef.current.duration) * 100,
+      );
     }
   };
 
@@ -390,8 +393,8 @@ export function VoiceMessagePlayer({
     <div
       className={`p-3 rounded-lg max-w-[80%] ${
         isOwn
-          ? 'bg-primary-500 text-white ml-auto'
-          : 'bg-gray-100 dark:bg-gray-800'
+          ? "bg-primary-500 text-white ml-auto"
+          : "bg-gray-100 dark:bg-gray-800"
       }`}
     >
       <audio
@@ -409,36 +412,44 @@ export function VoiceMessagePlayer({
         <button
           onClick={handlePlayPause}
           className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-            isOwn
-              ? 'bg-white/20'
-              : 'bg-primary-100 dark:bg-primary-900/30'
+            isOwn ? "bg-white/20" : "bg-primary-100 dark:bg-primary-900/30"
           }`}
         >
           {playing ? (
-            <Pause className={`w-5 h-5 ${isOwn ? 'text-white' : 'text-primary-600'}`} />
+            <Pause
+              className={`w-5 h-5 ${isOwn ? "text-white" : "text-primary-600"}`}
+            />
           ) : (
-            <Play className={`w-5 h-5 ml-0.5 ${isOwn ? 'text-white' : 'text-primary-600'}`} />
+            <Play
+              className={`w-5 h-5 ml-0.5 ${isOwn ? "text-white" : "text-primary-600"}`}
+            />
           )}
         </button>
 
         <div className="flex-1">
           {/* Progress bar */}
-          <div className={`h-1 rounded-full overflow-hidden ${
-            isOwn ? 'bg-white/30' : 'bg-gray-300 dark:bg-gray-600'
-          }`}>
+          <div
+            className={`h-1 rounded-full overflow-hidden ${
+              isOwn ? "bg-white/30" : "bg-gray-300 dark:bg-gray-600"
+            }`}
+          >
             <div
-              className={`h-full transition-all ${isOwn ? 'bg-white' : 'bg-primary-500'}`}
+              className={`h-full transition-all ${isOwn ? "bg-white" : "bg-primary-500"}`}
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className={`text-xs mt-1 ${isOwn ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'}`}>
+          <p
+            className={`text-xs mt-1 ${isOwn ? "text-white/70" : "text-gray-500 dark:text-gray-400"}`}
+          >
             {formatDuration(duration)}
           </p>
         </div>
       </div>
 
       {transcript && (
-        <p className={`text-xs mt-2 ${isOwn ? 'text-white/80' : 'text-gray-600 dark:text-gray-300'}`}>
+        <p
+          className={`text-xs mt-2 ${isOwn ? "text-white/80" : "text-gray-600 dark:text-gray-300"}`}
+        >
           {transcript}
         </p>
       )}

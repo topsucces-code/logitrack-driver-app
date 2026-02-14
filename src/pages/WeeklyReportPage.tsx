@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -15,12 +15,16 @@ import {
   Share2,
   Download,
   Loader2,
-} from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { getWeeklyReport, formatReportForSharing, WeeklyReport } from '../services/reportsService';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
-import { hapticLight } from '../hooks/useHapticFeedback';
+} from "lucide-react";
+import { Button } from "../components/ui/Button";
+import {
+  getWeeklyReport,
+  formatReportForSharing,
+  WeeklyReport,
+} from "../services/reportsService";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
+import { hapticLight } from "../hooks/useHapticFeedback";
 
 export default function WeeklyReportPage() {
   const navigate = useNavigate();
@@ -38,10 +42,13 @@ export default function WeeklyReportPage() {
 
     async function loadReport() {
       setLoading(true);
-      const { report: data, error } = await getWeeklyReport(driverId, weekOffset);
+      const { report: data, error } = await getWeeklyReport(
+        driverId,
+        weekOffset,
+      );
 
       if (error) {
-        showError('Erreur lors du chargement du rapport');
+        showError("Erreur lors du chargement du rapport");
       } else {
         setReport(data);
       }
@@ -72,19 +79,19 @@ export default function WeeklyReportPage() {
     if (navigator.share) {
       try {
         await navigator.share({ text });
-        showSuccess('Rapport partagé');
+        showSuccess("Rapport partagé");
       } catch {
         // User cancelled
       }
     } else {
       await navigator.clipboard.writeText(text);
-      showSuccess('Rapport copié dans le presse-papier');
+      showSuccess("Rapport copié dans le presse-papier");
     }
   };
 
   const getDayName = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { weekday: 'short' });
+    return date.toLocaleDateString("fr-FR", { weekday: "short" });
   };
 
   const maxDailyEarnings = report
@@ -98,6 +105,7 @@ export default function WeeklyReportPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate(-1)}
+            aria-label="Retour"
             className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
           >
             <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -113,6 +121,7 @@ export default function WeeklyReportPage() {
         <div className="flex items-center justify-between">
           <button
             onClick={handlePrevWeek}
+            aria-label="Semaine précédente"
             className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
           >
             <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -129,6 +138,7 @@ export default function WeeklyReportPage() {
           <button
             onClick={handleNextWeek}
             disabled={weekOffset === 0}
+            aria-label="Semaine suivante"
             className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center disabled:opacity-50"
           >
             <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -149,7 +159,9 @@ export default function WeeklyReportPage() {
               <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Package className="w-3.5 h-3.5 text-blue-500" />
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400">Livraisons</span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                    Livraisons
+                  </span>
                 </div>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {report.totalDeliveries}
@@ -158,8 +170,8 @@ export default function WeeklyReportPage() {
                   <div
                     className={`flex items-center gap-0.5 text-[10px] ${
                       report.comparison.deliveriesChange >= 0
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                        ? "text-green-600"
+                        : "text-red-600"
                     }`}
                   >
                     {report.comparison.deliveriesChange >= 0 ? (
@@ -167,7 +179,7 @@ export default function WeeklyReportPage() {
                     ) : (
                       <TrendingDown className="w-3 h-3" />
                     )}
-                    {report.comparison.deliveriesChange > 0 ? '+' : ''}
+                    {report.comparison.deliveriesChange > 0 ? "+" : ""}
                     {report.comparison.deliveriesChange}%
                   </div>
                 )}
@@ -176,7 +188,9 @@ export default function WeeklyReportPage() {
               <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Wallet className="w-3.5 h-3.5 text-green-500" />
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400">Gains</span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                    Gains
+                  </span>
                 </div>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {report.totalEarnings.toLocaleString()}
@@ -186,8 +200,8 @@ export default function WeeklyReportPage() {
                   <div
                     className={`flex items-center gap-0.5 text-[10px] ${
                       report.comparison.earningsChange >= 0
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                        ? "text-green-600"
+                        : "text-red-600"
                     }`}
                   >
                     {report.comparison.earningsChange >= 0 ? (
@@ -195,7 +209,7 @@ export default function WeeklyReportPage() {
                     ) : (
                       <TrendingDown className="w-3 h-3" />
                     )}
-                    {report.comparison.earningsChange > 0 ? '+' : ''}
+                    {report.comparison.earningsChange > 0 ? "+" : ""}
                     {report.comparison.earningsChange}%
                   </div>
                 )}
@@ -204,7 +218,9 @@ export default function WeeklyReportPage() {
               <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <MapPin className="w-3.5 h-3.5 text-red-500" />
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400">Distance</span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                    Distance
+                  </span>
                 </div>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {report.totalDistance}
@@ -215,10 +231,12 @@ export default function WeeklyReportPage() {
               <div className="bg-white dark:bg-gray-800 rounded-lg p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
                   <Star className="w-3.5 h-3.5 text-yellow-500" />
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400">Note</span>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                    Note
+                  </span>
                 </div>
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
-                  {report.avgRating || '-'}
+                  {report.avgRating || "-"}
                   <span className="text-xs font-normal ml-0.5">/5</span>
                 </p>
               </div>
@@ -231,20 +249,23 @@ export default function WeeklyReportPage() {
               </h3>
               <div className="flex items-end justify-between gap-1 h-20">
                 {report.dailyStats.map((day) => (
-                  <div key={day.date} className="flex-1 flex flex-col items-center">
+                  <div
+                    key={day.date}
+                    className="flex-1 flex flex-col items-center"
+                  >
                     <div className="w-full flex flex-col items-center">
                       <span className="text-[9px] text-gray-500 dark:text-gray-400 mb-0.5">
                         {day.earnings > 0
                           ? `${Math.round(day.earnings / 1000)}k`
-                          : ''}
+                          : ""}
                       </span>
                       <div
                         className="w-full bg-primary-500 rounded-t"
                         style={{
                           height: `${(day.earnings / maxDailyEarnings) * 50}px`,
-                          minHeight: day.earnings > 0 ? '4px' : '2px',
+                          minHeight: day.earnings > 0 ? "4px" : "2px",
                           backgroundColor:
-                            day.earnings === 0 ? '#e5e7eb' : undefined,
+                            day.earnings === 0 ? "#e5e7eb" : undefined,
                         }}
                       />
                     </div>

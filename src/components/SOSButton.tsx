@@ -1,30 +1,69 @@
-import { useState, useEffect, useRef } from 'react';
-import { AlertTriangle, Phone, X, Shield, Car, Heart, AlertCircle, MessageCircle } from 'lucide-react';
-import { Button } from './ui/Button';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
+import { useState, useEffect, useRef } from "react";
+import {
+  AlertTriangle,
+  Phone,
+  X,
+  Shield,
+  Car,
+  Heart,
+  AlertCircle,
+  MessageCircle,
+} from "lucide-react";
+import { Button } from "./ui/Button";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
 import {
   sendSOSAlert,
   callEmergencyServices,
   callSupport,
   openWhatsAppSupport,
   SOSAlert,
-} from '../services/sosService';
-import { hapticHeavy, hapticError } from '../hooks/useHapticFeedback';
+} from "../services/sosService";
+import { hapticHeavy, hapticError } from "../hooks/useHapticFeedback";
 
 interface SOSButtonProps {
   deliveryId?: string;
   compact?: boolean;
 }
 
-type AlertType = SOSAlert['alert_type'];
+type AlertType = SOSAlert["alert_type"];
 
-const ALERT_TYPES: { type: AlertType; label: string; icon: React.ReactNode; color: string }[] = [
-  { type: 'emergency', label: 'Urgence générale', icon: <AlertTriangle className="w-6 h-6" />, color: 'bg-red-500' },
-  { type: 'security', label: 'Problème de sécurité', icon: <Shield className="w-6 h-6" />, color: 'bg-orange-500' },
-  { type: 'accident', label: 'Accident', icon: <Car className="w-6 h-6" />, color: 'bg-yellow-500' },
-  { type: 'medical', label: 'Urgence médicale', icon: <Heart className="w-6 h-6" />, color: 'bg-pink-500' },
-  { type: 'vehicle_issue', label: 'Panne véhicule', icon: <AlertCircle className="w-6 h-6" />, color: 'bg-blue-500' },
+const ALERT_TYPES: {
+  type: AlertType;
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+}[] = [
+  {
+    type: "emergency",
+    label: "Urgence générale",
+    icon: <AlertTriangle className="w-6 h-6" />,
+    color: "bg-red-500",
+  },
+  {
+    type: "security",
+    label: "Problème de sécurité",
+    icon: <Shield className="w-6 h-6" />,
+    color: "bg-orange-500",
+  },
+  {
+    type: "accident",
+    label: "Accident",
+    icon: <Car className="w-6 h-6" />,
+    color: "bg-yellow-500",
+  },
+  {
+    type: "medical",
+    label: "Urgence médicale",
+    icon: <Heart className="w-6 h-6" />,
+    color: "bg-pink-500",
+  },
+  {
+    type: "vehicle_issue",
+    label: "Panne véhicule",
+    icon: <AlertCircle className="w-6 h-6" />,
+    color: "bg-blue-500",
+  },
 ];
 
 const HOLD_DURATION = 2000; // 2 seconds to activate SOS
@@ -35,13 +74,15 @@ export function SOSButton({ deliveryId, compact = false }: SOSButtonProps) {
 
   const [showModal, setShowModal] = useState(false);
   const [selectedType, setSelectedType] = useState<AlertType | null>(null);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [sending, setSending] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
 
-  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
+    null,
+  );
 
   // Handle long press for quick SOS
   const handlePressStart = () => {
@@ -102,17 +143,17 @@ export function SOSButton({ deliveryId, compact = false }: SOSButtonProps) {
       driver.id,
       selectedType,
       deliveryId,
-      description || undefined
+      description || undefined,
     );
 
     if (result.success) {
-      showSuccess('Alerte SOS envoyée ! L\'équipe support a été notifiée.');
+      showSuccess("Alerte SOS envoyée ! L'équipe support a été notifiée.");
       setShowModal(false);
       setSelectedType(null);
-      setDescription('');
+      setDescription("");
     } else {
       hapticError();
-      showError(result.error || 'Erreur lors de l\'envoi de l\'alerte');
+      showError(result.error || "Erreur lors de l'envoi de l'alerte");
     }
 
     setSending(false);
@@ -165,7 +206,7 @@ export function SOSButton({ deliveryId, compact = false }: SOSButtonProps) {
             relative w-full py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg
             flex items-center justify-center gap-3 shadow-lg
             active:scale-[0.98] transition-all overflow-hidden
-            ${isHolding ? 'animate-pulse' : ''}
+            ${isHolding ? "animate-pulse" : ""}
           `}
         >
           {/* Progress bar for hold */}
@@ -178,9 +219,7 @@ export function SOSButton({ deliveryId, compact = false }: SOSButtonProps) {
 
           <span className="relative z-10 flex items-center gap-3">
             <AlertTriangle className="w-6 h-6" />
-            <span>
-              {isHolding ? 'Maintenez...' : 'SOS - Urgence'}
-            </span>
+            <span>{isHolding ? "Maintenez..." : "SOS - Urgence"}</span>
           </span>
         </button>
 
@@ -242,7 +281,9 @@ function SOSModal({
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Alerte SOS</h2>
-              <p className="text-sm text-gray-500">Sélectionnez le type d'urgence</p>
+              <p className="text-sm text-gray-500">
+                Sélectionnez le type d'urgence
+              </p>
             </div>
           </div>
           <button
@@ -269,7 +310,7 @@ function SOSModal({
               Police (110)
             </Button>
             <Button
-              onClick={() => (window.location.href = 'tel:185')}
+              onClick={() => (window.location.href = "tel:185")}
               variant="danger"
               size="sm"
               icon={<Heart className="w-4 h-4" />}
@@ -282,7 +323,9 @@ function SOSModal({
 
         {/* Alert Type Selection */}
         <div className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">Type d'alerte</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            Type d'alerte
+          </p>
           <div className="grid grid-cols-2 gap-3">
             {ALERT_TYPES.map((alertType) => (
               <button
@@ -290,14 +333,18 @@ function SOSModal({
                 onClick={() => setSelectedType(alertType.type)}
                 className={`p-4 rounded-lg border-2 text-left transition-all ${
                   selectedType === alertType.type
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? "border-red-500 bg-red-50"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
               >
-                <div className={`w-10 h-10 ${alertType.color} rounded-full flex items-center justify-center text-white mb-2`}>
+                <div
+                  className={`w-10 h-10 ${alertType.color} rounded-full flex items-center justify-center text-white mb-2`}
+                >
                   {alertType.icon}
                 </div>
-                <p className="font-medium text-gray-900 text-sm">{alertType.label}</p>
+                <p className="font-medium text-gray-900 text-sm">
+                  {alertType.label}
+                </p>
               </button>
             ))}
           </div>
@@ -351,11 +398,7 @@ function SOSModal({
             </Button>
           </div>
 
-          <Button
-            onClick={() => setShowModal(false)}
-            variant="ghost"
-            fullWidth
-          >
+          <Button onClick={() => setShowModal(false)} variant="ghost" fullWidth>
             Annuler
           </Button>
         </div>

@@ -1,51 +1,53 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { VitePWA } from 'vite-plugin-pwa';
+/// <reference types="vitest" />
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['logo.svg', 'favicon.ico'],
+      registerType: "autoUpdate",
+      includeAssets: ["logo.svg", "favicon.ico"],
       manifest: {
-        name: 'LogiTrack Livreur',
-        short_name: 'LogiTrack',
-        description: 'Application de livraison pour les livreurs LogiTrack Africa',
-        theme_color: '#f97316',
-        background_color: '#f97316',
-        display: 'standalone',
-        orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
-        lang: 'fr',
+        name: "LogiTrack Livreur",
+        short_name: "LogiTrack",
+        description:
+          "Application de livraison pour les livreurs LogiTrack Africa",
+        theme_color: "#f97316",
+        background_color: "#f97316",
+        display: "standalone",
+        orientation: "portrait",
+        scope: "/",
+        start_url: "/",
+        lang: "fr",
         icons: [
           {
-            src: '/logo.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any',
+            src: "/logo.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
           },
           {
-            src: '/logo.svg',
-            sizes: '512x512',
-            type: 'image/svg+xml',
-            purpose: 'maskable',
+            src: "/logo.svg",
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "maskable",
           },
         ],
-        categories: ['business', 'logistics', 'delivery'],
+        categories: ["business", "logistics", "delivery"],
         shortcuts: [
           {
-            name: 'Mes courses',
-            short_name: 'Courses',
-            url: '/dashboard',
-            icons: [{ src: '/logo.svg', sizes: 'any' }],
+            name: "Mes courses",
+            short_name: "Courses",
+            url: "/dashboard",
+            icons: [{ src: "/logo.svg", sizes: "any" }],
           },
           {
-            name: 'Mes gains',
-            short_name: 'Gains',
-            url: '/earnings',
-            icons: [{ src: '/logo.svg', sizes: 'any' }],
+            name: "Mes gains",
+            short_name: "Gains",
+            url: "/earnings",
+            icons: [{ src: "/logo.svg", sizes: "any" }],
           },
         ],
       },
@@ -55,9 +57,9 @@ export default defineConfig({
           {
             // Cache API requests with network-first strategy
             urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-            handler: 'NetworkFirst',
+            handler: "NetworkFirst",
             options: {
-              cacheName: 'supabase-api-cache',
+              cacheName: "supabase-api-cache",
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60, // 1 hour
@@ -71,9 +73,9 @@ export default defineConfig({
           {
             // Cache Google Fonts
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'google-fonts-cache',
+              cacheName: "google-fonts-cache",
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
@@ -83,9 +85,9 @@ export default defineConfig({
           {
             // Cache font files
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'gstatic-fonts-cache',
+              cacheName: "gstatic-fonts-cache",
               expiration: {
                 maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
@@ -95,9 +97,9 @@ export default defineConfig({
           {
             // Cache Google Maps tiles
             urlPattern: /^https:\/\/maps\.googleapis\.com\/.*/i,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'google-maps-cache',
+              cacheName: "google-maps-cache",
               expiration: {
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
@@ -107,9 +109,9 @@ export default defineConfig({
           {
             // Cache images
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
-            handler: 'CacheFirst',
+            handler: "CacheFirst",
             options: {
-              cacheName: 'images-cache',
+              cacheName: "images-cache",
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
@@ -118,11 +120,11 @@ export default defineConfig({
           },
         ],
         // Precache app shell
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         // Clean up old caches from previous versions
         cleanupOutdatedCaches: true,
         // Navigate fallback for SPA
-        navigateFallback: 'index.html',
+        navigateFallback: "index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/track\//],
         // Skip waiting for faster updates
         skipWaiting: true,
@@ -134,27 +136,38 @@ export default defineConfig({
     }),
   ],
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: false,
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-map': ['@react-google-maps/api'],
-          'vendor-date': ['date-fns'],
-          'vendor-icons': ['lucide-react'],
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          "vendor-supabase": ["@supabase/supabase-js"],
+          "vendor-map": ["@react-google-maps/api"],
+          "vendor-date": ["date-fns"],
+          "vendor-icons": ["lucide-react"],
         },
       },
     },
-    minify: 'esbuild',
+    minify: "esbuild",
+  },
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+    exclude: ["e2e/**", "node_modules/**"],
   },
   server: {
     port: 5174,
     host: true,
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@supabase/supabase-js'],
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@supabase/supabase-js",
+    ],
   },
 });

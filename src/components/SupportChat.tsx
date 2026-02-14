@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Send,
@@ -7,7 +7,7 @@ import {
   ChevronDown,
   Headphones,
   MessageCircle,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   getOrCreateConversation,
   sendMessage,
@@ -17,10 +17,14 @@ import {
   getQuickReplies,
   ChatMessage,
   ChatConversation,
-} from '../services/chatService';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
-import { hapticLight } from '../hooks/useHapticFeedback';
+} from "../services/chatService";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
+import { hapticLight } from "../hooks/useHapticFeedback";
+import { createRateLimiter } from "../utils/rateLimit";
+
+// Rate limiter: 1 seconde entre deux messages
+const chatRateLimiter = createRateLimiter(1000);
 
 interface SupportChatProps {
   deliveryId?: string;
@@ -34,14 +38,16 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [conversation, setConversation] = useState<ChatConversation | null>(null);
+  const [conversation, setConversation] = useState<ChatConversation | null>(
+    null,
+  );
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(true);
 
-  const quickReplies = getQuickReplies(deliveryId ? 'delivery' : 'general');
+  const quickReplies = getQuickReplies(deliveryId ? "delivery" : "general");
 
   // Initialize conversation
   useEffect(() => {
@@ -52,12 +58,12 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
     async function initChat() {
       const { conversation: conv, error } = await getOrCreateConversation(
         currentDriver.id,
-        deliveryId ? 'Problème avec une livraison' : 'Support général',
-        deliveryId
+        deliveryId ? "Problème avec une livraison" : "Support général",
+        deliveryId,
       );
 
       if (error) {
-        showError('Erreur lors de l\'initialisation du chat');
+        showError("Erreur lors de l'initialisation du chat");
         return;
       }
 
@@ -85,11 +91,12 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
       setMessages((prev) => {
         if (prev.some((m) => m.id === message.id)) return prev;
         const hasTempFromSender = prev.some(
-          (m) => m.id.startsWith('temp_') && m.sender_id === message.sender_id
+          (m) => m.id.startsWith("temp_") && m.sender_id === message.sender_id,
         );
         if (hasTempFromSender) {
           const filtered = prev.filter(
-            (m) => !(m.id.startsWith('temp_') && m.sender_id === message.sender_id)
+            (m) =>
+              !(m.id.startsWith("temp_") && m.sender_id === message.sender_id),
           );
           return [...filtered, message];
         }
@@ -113,22 +120,24 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   const handleSend = useCallback(async () => {
     if (!newMessage.trim() || !conversation || !driver || sending) return;
 
+    if (!chatRateLimiter.canProceed()) return;
+
     hapticLight();
     setSending(true);
     setShowQuickReplies(false);
 
     const messageText = newMessage.trim();
-    setNewMessage('');
+    setNewMessage("");
 
     // Optimistic update
     const tempMessage: ChatMessage = {
       id: `temp_${Date.now()}`,
       conversation_id: conversation.id,
-      sender_type: 'driver',
+      sender_type: "driver",
       sender_id: driver.id,
       sender_name: driver.full_name,
       message: messageText,
-      message_type: 'text',
+      message_type: "text",
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, tempMessage]);
@@ -137,15 +146,17 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
       conversation.id,
       driver.id,
       driver.full_name,
-      messageText
+      messageText,
     );
 
     if (error) {
-      showError('Erreur lors de l\'envoi du message');
+      showError("Erreur lors de l'envoi du message");
       setMessages((prev) => prev.filter((m) => m.id !== tempMessage.id));
       setNewMessage(messageText);
     } else if (sentMessage) {
-      setMessages((prev) => prev.map((m) => m.id === tempMessage.id ? sentMessage : m));
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempMessage.id ? sentMessage : m)),
+      );
     }
 
     setSending(false);
@@ -159,9 +170,9 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
   };
 
   const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateStr).toLocaleTimeString("fr-FR", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -170,17 +181,21 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
       <div className="h-mobile-screen flex flex-col bg-gray-50 dark:bg-gray-900">
         <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-3 py-2.5 flex items-center gap-2.5">
           <button
-            onClick={() => onClose ? onClose() : navigate(-1)}
+            onClick={() => (onClose ? onClose() : navigate(-1))}
             className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
           >
             <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
           </button>
-          <h1 className="text-base font-bold text-gray-900 dark:text-white">Support LogiTrack</h1>
+          <h1 className="text-base font-bold text-gray-900 dark:text-white">
+            Support LogiTrack
+          </h1>
         </header>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary-500 mx-auto" />
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Connexion au support...</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              Connexion au support...
+            </p>
           </div>
         </div>
       </div>
@@ -192,17 +207,19 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-3 py-2.5 flex items-center gap-2.5">
         <button
-          onClick={() => onClose ? onClose() : navigate(-1)}
+          onClick={() => (onClose ? onClose() : navigate(-1))}
           className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
         >
           <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
         </button>
         <Headphones className="w-4 h-4 text-primary-500" />
-        <h1 className="text-base font-bold text-gray-900 dark:text-white">Support LogiTrack</h1>
+        <h1 className="text-base font-bold text-gray-900 dark:text-white">
+          Support LogiTrack
+        </h1>
         <div className="ml-auto flex items-center gap-1.5">
           <div className="w-2 h-2 rounded-full bg-green-400" />
           <span className="text-[10px] text-gray-500 dark:text-gray-400">
-            {conversation?.status === 'waiting' ? 'En attente...' : 'En ligne'}
+            {conversation?.status === "waiting" ? "En attente..." : "En ligne"}
           </span>
         </div>
       </header>
@@ -233,29 +250,31 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
               <div
                 key={msg.id}
                 className={`flex ${
-                  msg.sender_type === 'driver' ? 'justify-end' : 'justify-start'
+                  msg.sender_type === "driver" ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
                   className={`max-w-[85%] rounded-lg px-3 py-2 ${
-                    msg.sender_type === 'driver'
-                      ? 'bg-primary-500 text-white rounded-br-sm'
-                      : msg.sender_type === 'system'
-                      ? 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-center'
-                      : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm shadow-sm'
+                    msg.sender_type === "driver"
+                      ? "bg-primary-500 text-white rounded-br-sm"
+                      : msg.sender_type === "system"
+                        ? "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-center"
+                        : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm shadow-sm"
                   }`}
                 >
-                  {msg.sender_type === 'support' && (
+                  {msg.sender_type === "support" && (
                     <p className="text-[10px] font-medium text-primary-500 mb-0.5">
                       {msg.sender_name}
                     </p>
                   )}
-                  <p className="text-sm whitespace-pre-wrap break-words">{msg.message}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {msg.message}
+                  </p>
                   <p
                     className={`text-[10px] mt-0.5 ${
-                      msg.sender_type === 'driver'
-                        ? 'text-white/70'
-                        : 'text-gray-400'
+                      msg.sender_type === "driver"
+                        ? "text-white/70"
+                        : "text-gray-400"
                     }`}
                   >
                     {formatTime(msg.created_at)}
@@ -306,7 +325,7 @@ export function SupportChat({ deliveryId, onClose }: SupportChatProps) {
             placeholder="Écrivez votre message..."
             className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+              if (e.key === "Enter") {
                 e.preventDefault();
                 handleSend();
               }
