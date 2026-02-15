@@ -272,7 +272,7 @@ function SOSModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-end">
-      <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom max-h-[90vh] overflow-y-auto">
+      <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom max-h-[90dvh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">

@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { driverLogger } from '../utils/logger';
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { driverLogger } from "../utils/logger";
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,14 +12,18 @@ import {
   Camera,
   Check,
   Upload,
-} from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { Capacitor } from '@capacitor/core';
-import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { FALLBACK_ZONES, MOBILE_MONEY_PROVIDERS } from '../config/app.config';
-import { Button } from '../components/ui/Button';
-import { useToast } from '../contexts/ToastContext';
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { Capacitor } from "@capacitor/core";
+import {
+  Camera as CapCamera,
+  CameraResultType,
+  CameraSource,
+} from "@capacitor/camera";
+import { FALLBACK_ZONES, MOBILE_MONEY_PROVIDERS } from "../config/app.config";
+import { Button } from "../components/ui/Button";
+import { useToast } from "../contexts/ToastContext";
 import {
   onboardingPersonalInfoSchema,
   onboardingCniSchema,
@@ -27,14 +31,18 @@ import {
   onboardingZonesSchema,
   onboardingMomoSchema,
   validateForm,
-} from '../lib/validations';
+} from "../lib/validations";
 
 // Compress image before upload
-async function compressImage(base64: string, maxWidth = 1024, quality = 0.7): Promise<string> {
+async function compressImage(
+  base64: string,
+  maxWidth = 1024,
+  quality = 0.7,
+): Promise<string> {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
 
@@ -45,9 +53,9 @@ async function compressImage(base64: string, maxWidth = 1024, quality = 0.7): Pr
 
       canvas.width = width;
       canvas.height = height;
-      const ctx = canvas.getContext('2d')!;
+      const ctx = canvas.getContext("2d")!;
       ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL('image/jpeg', quality));
+      resolve(canvas.toDataURL("image/jpeg", quality));
     };
     img.onerror = () => resolve(base64); // fallback to original if compression fails
     img.src = base64;
@@ -66,7 +74,7 @@ interface OnboardingData {
   cniNumber: string;
   cniFront: string | null;
   cniBack: string | null;
-  vehicleType: 'moto' | 'tricycle' | 'voiture' | 'velo' | '';
+  vehicleType: "moto" | "tricycle" | "voiture" | "velo" | "";
   vehiclePhoto: string | null;
   vehiclePlate: string;
   licensePhoto: string | null;
@@ -83,10 +91,12 @@ export default function OnboardingPage() {
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [currentPhotoField, setCurrentPhotoField] = useState<string | null>(null);
+  const [currentPhotoField, setCurrentPhotoField] = useState<string | null>(
+    null,
+  );
   // Initialize with fallback zones immediately, then try to fetch from DB
   const [availableZones, setAvailableZones] = useState<Zone[]>(
-    FALLBACK_ZONES.map((name, idx) => ({ id: `fallback-${idx}`, name }))
+    FALLBACK_ZONES.map((name, idx) => ({ id: `fallback-${idx}`, name })),
   );
   const [zonesLoading, setZonesLoading] = useState(false);
 
@@ -95,10 +105,10 @@ export default function OnboardingPage() {
     async function loadZones() {
       try {
         const { data, error } = await supabase
-          .from('logitrack_zones')
-          .select('id, name')
-          .eq('is_active', true)
-          .order('name');
+          .from("logitrack_zones")
+          .select("id, name")
+          .eq("is_active", true)
+          .order("name");
 
         if (!error && data && data.length > 0) {
           setAvailableZones(data);
@@ -111,18 +121,18 @@ export default function OnboardingPage() {
   }, []);
 
   const [data, setData] = useState<OnboardingData>({
-    fullName: '',
+    fullName: "",
     profilePhoto: null,
-    cniNumber: '',
+    cniNumber: "",
     cniFront: null,
     cniBack: null,
-    vehicleType: '',
+    vehicleType: "",
     vehiclePhoto: null,
-    vehiclePlate: '',
+    vehiclePlate: "",
     licensePhoto: null,
     zones: [],
-    mobileMoneyProvider: '',
-    mobileMoneyNumber: '',
+    mobileMoneyProvider: "",
+    mobileMoneyNumber: "",
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -142,15 +152,17 @@ export default function OnboardingPage() {
         if (photo.base64String) {
           const raw = `data:image/jpeg;base64,${photo.base64String}`;
           const compressed = await compressImage(raw);
-          setData(prev => ({ ...prev, [field]: compressed }));
+          setData((prev) => ({ ...prev, [field]: compressed }));
         }
       } else {
         setCurrentPhotoField(field);
         fileInputRef.current?.click();
       }
     } catch (err) {
-      driverLogger.error('Photo capture error', { error: err });
-      showToastError('Impossible de capturer la photo. Vérifiez les permissions de la caméra.');
+      driverLogger.error("Photo capture error", { error: err });
+      showToastError(
+        "Impossible de capturer la photo. Vérifiez les permissions de la caméra.",
+      );
     }
   }
 
@@ -161,7 +173,7 @@ export default function OnboardingPage() {
       const reader = new FileReader();
       reader.onload = async () => {
         const compressed = await compressImage(reader.result as string);
-        setData(prev => ({
+        setData((prev) => ({
           ...prev,
           [currentPhotoField]: compressed,
         }));
@@ -173,30 +185,36 @@ export default function OnboardingPage() {
 
   // Toggle zone selection
   function toggleZone(zone: string) {
-    setData(prev => ({
+    setData((prev) => ({
       ...prev,
       zones: prev.zones.includes(zone)
-        ? prev.zones.filter(z => z !== zone)
+        ? prev.zones.filter((z) => z !== zone)
         : [...prev.zones, zone],
     }));
   }
 
   // Upload photo to storage
-  async function uploadPhoto(base64: string, bucket: string, path: string): Promise<string | null> {
+  async function uploadPhoto(
+    base64: string,
+    bucket: string,
+    path: string,
+  ): Promise<string | null> {
     try {
-      const base64Data = base64.replace(/^data:image\/\w+;base64,/, '');
-      const bytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+      const base64Data = base64.replace(/^data:image\/\w+;base64,/, "");
+      const bytes = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
       const { error } = await supabase.storage
         .from(bucket)
-        .upload(path, bytes, { contentType: 'image/jpeg', upsert: true });
+        .upload(path, bytes, { contentType: "image/jpeg", upsert: true });
 
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(path);
+      const { data: urlData } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(path);
       return urlData.publicUrl;
     } catch (err) {
-      driverLogger.error('Upload error', { error: err });
+      driverLogger.error("Upload error", { error: err });
       return null;
     }
   }
@@ -206,10 +224,10 @@ export default function OnboardingPage() {
     setSubmitError(null);
 
     if (!user) {
-      driverLogger.error('handleSubmit: No user session found');
-      setSubmitError('Session expirée. Veuillez vous reconnecter.');
+      driverLogger.error("handleSubmit: No user session found");
+      setSubmitError("Session expirée. Veuillez vous reconnecter.");
       // Redirect to auth after a short delay
-      setTimeout(() => navigate('/auth'), 2000);
+      setTimeout(() => navigate("/auth"), 2000);
       return;
     }
 
@@ -226,30 +244,67 @@ export default function OnboardingPage() {
         _vehiclePhotoUrl, // Uploaded to storage but not stored in DB yet
         licenseUrl,
       ] = await Promise.all([
-        data.profilePhoto ? uploadPhoto(data.profilePhoto, 'driver-photos', `${userId}/profile.jpg`) : null,
-        data.cniFront ? uploadPhoto(data.cniFront, 'driver-documents', `${userId}/cni-front.jpg`) : null,
-        data.cniBack ? uploadPhoto(data.cniBack, 'driver-documents', `${userId}/cni-back.jpg`) : null,
-        data.vehiclePhoto ? uploadPhoto(data.vehiclePhoto, 'driver-documents', `${userId}/vehicle.jpg`) : null,
-        data.licensePhoto ? uploadPhoto(data.licensePhoto, 'driver-documents', `${userId}/license.jpg`) : null,
+        data.profilePhoto
+          ? uploadPhoto(
+              data.profilePhoto,
+              "driver-photos",
+              `${userId}/profile.jpg`,
+            )
+          : null,
+        data.cniFront
+          ? uploadPhoto(
+              data.cniFront,
+              "driver-documents",
+              `${userId}/cni-front.jpg`,
+            )
+          : null,
+        data.cniBack
+          ? uploadPhoto(
+              data.cniBack,
+              "driver-documents",
+              `${userId}/cni-back.jpg`,
+            )
+          : null,
+        data.vehiclePhoto
+          ? uploadPhoto(
+              data.vehiclePhoto,
+              "driver-documents",
+              `${userId}/vehicle.jpg`,
+            )
+          : null,
+        data.licensePhoto
+          ? uploadPhoto(
+              data.licensePhoto,
+              "driver-documents",
+              `${userId}/license.jpg`,
+            )
+          : null,
       ]);
 
       // Convert zone names to UUIDs
       // If zones were loaded from DB, use their IDs directly
       // If using fallback zones, try to resolve names to real IDs from DB
       let zoneIds: string[] = [];
-      const hasRealZones = availableZones.length > 0 && !availableZones[0]?.id.startsWith('fallback-');
+      const hasRealZones =
+        availableZones.length > 0 &&
+        !availableZones[0]?.id.startsWith("fallback-");
       if (hasRealZones) {
         zoneIds = data.zones
-          .map(zoneName => availableZones.find(z => z.name === zoneName)?.id)
-          .filter((id): id is string => id !== undefined && !id.startsWith('fallback-'));
+          .map(
+            (zoneName) => availableZones.find((z) => z.name === zoneName)?.id,
+          )
+          .filter(
+            (id): id is string =>
+              id !== undefined && !id.startsWith("fallback-"),
+          );
       } else {
         // Fallback zones: resolve names to real UUIDs from logitrack_zones
         const { data: dbZones } = await supabase
-          .from('logitrack_zones')
-          .select('id, name')
-          .in('name', data.zones);
+          .from("logitrack_zones")
+          .select("id, name")
+          .in("name", data.zones);
         if (dbZones && dbZones.length > 0) {
-          zoneIds = dbZones.map(z => z.id);
+          zoneIds = dbZones.map((z) => z.id);
         }
       }
 
@@ -268,9 +323,9 @@ export default function OnboardingPage() {
         momo_provider: data.mobileMoneyProvider,
         momo_number: data.mobileMoneyNumber,
         // New schema defaults
-        driver_type: 'independent',
-        status: 'pending',
-        verification_status: 'pending',
+        driver_type: "independent",
+        status: "pending",
+        verification_status: "pending",
         is_online: false,
         is_available: true,
         updated_at: new Date().toISOString(),
@@ -278,8 +333,8 @@ export default function OnboardingPage() {
 
       // Update or create driver profile in logitrack_drivers
       const { error } = await supabase
-        .from('logitrack_drivers')
-        .upsert(driverData, { onConflict: 'user_id' })
+        .from("logitrack_drivers")
+        .upsert(driverData, { onConflict: "user_id" })
         .select();
 
       if (error) {
@@ -287,11 +342,14 @@ export default function OnboardingPage() {
       }
 
       await refreshDriver();
-      showSuccess('Inscription terminée !');
-      navigate('/');
+      showSuccess("Inscription terminée !");
+      navigate("/");
     } catch (err) {
-      driverLogger.error('Registration error', { error: err });
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de l\'inscription. Veuillez réessayer.';
+      driverLogger.error("Registration error", { error: err });
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Erreur lors de l'inscription. Veuillez réessayer.";
       setSubmitError(errorMessage);
     }
 
@@ -301,7 +359,10 @@ export default function OnboardingPage() {
   const [stepErrors, setStepErrors] = useState<Record<string, string>>({});
 
   // Validation for each step using Zod schemas
-  function validateStep(): { isValid: boolean; errors: Record<string, string> } {
+  function validateStep(): {
+    isValid: boolean;
+    errors: Record<string, string>;
+  } {
     let result;
     switch (step) {
       case 1:
@@ -364,7 +425,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-mobile-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Hidden file input for web */}
       <input
         ref={fileInputRef}
@@ -387,8 +448,12 @@ export default function OnboardingPage() {
             </button>
           )}
           <div className="flex-1">
-            <h1 className="text-base font-bold text-gray-900">Inscription Livreur</h1>
-            <p className="text-xs text-gray-500">Étape {step} sur {totalSteps}</p>
+            <h1 className="text-base font-bold text-gray-900">
+              Inscription Livreur
+            </h1>
+            <p className="text-xs text-gray-500">
+              Étape {step} sur {totalSteps}
+            </p>
           </div>
         </div>
 
@@ -398,7 +463,7 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`flex-1 h-1 rounded-full transition-colors ${
-                i < step ? 'bg-primary-500' : 'bg-gray-200'
+                i < step ? "bg-primary-500" : "bg-gray-200"
               }`}
             />
           ))}
@@ -414,14 +479,18 @@ export default function OnboardingPage() {
               <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <User className="w-6 h-6 text-primary-600" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Vos informations</h2>
-              <p className="text-gray-500 text-xs">Commençons par votre profil</p>
+              <h2 className="text-lg font-bold text-gray-900">
+                Vos informations
+              </h2>
+              <p className="text-gray-500 text-xs">
+                Commençons par votre profil
+              </p>
             </div>
 
             {/* Profile Photo */}
             <div className="flex justify-center">
               <button
-                onClick={() => handlePhotoCapture('profilePhoto')}
+                onClick={() => handlePhotoCapture("profilePhoto")}
                 className="relative"
               >
                 {data.profilePhoto ? (
@@ -440,7 +509,9 @@ export default function OnboardingPage() {
                 </div>
               </button>
             </div>
-            <p className="text-center text-xs text-gray-500">Prenez une photo de profil claire</p>
+            <p className="text-center text-xs text-gray-500">
+              Prenez une photo de profil claire
+            </p>
 
             {/* Full Name */}
             <div>
@@ -450,7 +521,9 @@ export default function OnboardingPage() {
               <input
                 type="text"
                 value={data.fullName}
-                onChange={(e) => setData(prev => ({ ...prev, fullName: e.target.value }))}
+                onChange={(e) =>
+                  setData((prev) => ({ ...prev, fullName: e.target.value }))
+                }
                 placeholder="Ex: Kouamé Jean-Baptiste"
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
@@ -465,8 +538,12 @@ export default function OnboardingPage() {
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <CreditCard className="w-6 h-6 text-blue-600" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Pièce d'identité</h2>
-              <p className="text-gray-500 text-xs">Pour vérifier votre identité</p>
+              <h2 className="text-lg font-bold text-gray-900">
+                Pièce d'identité
+              </h2>
+              <p className="text-gray-500 text-xs">
+                Pour vérifier votre identité
+              </p>
             </div>
 
             {/* CNI Number */}
@@ -477,7 +554,9 @@ export default function OnboardingPage() {
               <input
                 type="text"
                 value={data.cniNumber}
-                onChange={(e) => setData(prev => ({ ...prev, cniNumber: e.target.value }))}
+                onChange={(e) =>
+                  setData((prev) => ({ ...prev, cniNumber: e.target.value }))
+                }
                 placeholder="Ex: CI-1234567890"
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
@@ -486,13 +565,20 @@ export default function OnboardingPage() {
             {/* CNI Photos */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-1.5">Recto CNI</p>
+                <p className="text-xs font-medium text-gray-700 mb-1.5">
+                  Recto CNI
+                </p>
                 <button
-                  onClick={() => handlePhotoCapture('cniFront')}
+                  onClick={() => handlePhotoCapture("cniFront")}
                   className="w-full aspect-[1.6] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.cniFront ? (
-                    <img src={data.cniFront} alt="CNI Front" loading="lazy" className="w-full h-full object-cover" />
+                    <img
+                      src={data.cniFront}
+                      alt="CNI Front"
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <>
                       <Upload className="w-8 h-8 text-gray-400 mb-1" />
@@ -502,13 +588,20 @@ export default function OnboardingPage() {
                 </button>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-1.5">Verso CNI</p>
+                <p className="text-xs font-medium text-gray-700 mb-1.5">
+                  Verso CNI
+                </p>
                 <button
-                  onClick={() => handlePhotoCapture('cniBack')}
+                  onClick={() => handlePhotoCapture("cniBack")}
                   className="w-full aspect-[1.6] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.cniBack ? (
-                    <img src={data.cniBack} alt="CNI Back" loading="lazy" className="w-full h-full object-cover" />
+                    <img
+                      src={data.cniBack}
+                      alt="CNI Back"
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <>
                       <Upload className="w-8 h-8 text-gray-400 mb-1" />
@@ -528,31 +621,41 @@ export default function OnboardingPage() {
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Truck className="w-6 h-6 text-orange-600" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Votre véhicule</h2>
-              <p className="text-gray-500 text-xs">Informations sur votre moyen de transport</p>
+              <h2 className="text-lg font-bold text-gray-900">
+                Votre véhicule
+              </h2>
+              <p className="text-gray-500 text-xs">
+                Informations sur votre moyen de transport
+              </p>
             </div>
 
             {/* Vehicle Type */}
             <div>
-              <p className="text-xs font-medium text-gray-700 mb-2">Type de véhicule</p>
+              <p className="text-xs font-medium text-gray-700 mb-2">
+                Type de véhicule
+              </p>
               <div className="grid grid-cols-4 gap-2">
-                {([
-                  { type: 'moto' as const, label: 'Moto', icon: '🏍️' },
-                  { type: 'tricycle' as const, label: 'Tricycle', icon: '🛺' },
-                  { type: 'voiture' as const, label: 'Voiture', icon: '🚗' },
-                  { type: 'velo' as const, label: 'Vélo', icon: '🚲' },
-                ]).map((v) => (
+                {[
+                  { type: "moto" as const, label: "Moto", icon: "🏍️" },
+                  { type: "tricycle" as const, label: "Tricycle", icon: "🛺" },
+                  { type: "voiture" as const, label: "Voiture", icon: "🚗" },
+                  { type: "velo" as const, label: "Vélo", icon: "🚲" },
+                ].map((v) => (
                   <button
                     key={v.type}
-                    onClick={() => setData(prev => ({ ...prev, vehicleType: v.type }))}
+                    onClick={() =>
+                      setData((prev) => ({ ...prev, vehicleType: v.type }))
+                    }
                     className={`p-2.5 rounded-lg border-2 text-center transition-colors ${
                       data.vehicleType === v.type
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? "border-primary-500 bg-primary-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
                     <span className="text-xl">{v.icon}</span>
-                    <p className="font-medium text-gray-900 mt-1 text-[10px]">{v.label}</p>
+                    <p className="font-medium text-gray-900 mt-1 text-[10px]">
+                      {v.label}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -560,17 +663,26 @@ export default function OnboardingPage() {
 
             {/* Vehicle Photo */}
             <div>
-              <p className="text-xs font-medium text-gray-700 mb-1.5">Photo du véhicule</p>
+              <p className="text-xs font-medium text-gray-700 mb-1.5">
+                Photo du véhicule
+              </p>
               <button
-                onClick={() => handlePhotoCapture('vehiclePhoto')}
+                onClick={() => handlePhotoCapture("vehiclePhoto")}
                 className="w-full aspect-[2/1] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
               >
                 {data.vehiclePhoto ? (
-                  <img src={data.vehiclePhoto} alt="Vehicle" loading="lazy" className="w-full h-full object-cover" />
+                  <img
+                    src={data.vehiclePhoto}
+                    alt="Vehicle"
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <>
                     <Camera className="w-8 h-8 text-gray-400 mb-1" />
-                    <span className="text-xs text-gray-500">Prenez une photo de votre véhicule</span>
+                    <span className="text-xs text-gray-500">
+                      Prenez une photo de votre véhicule
+                    </span>
                   </>
                 )}
               </button>
@@ -584,26 +696,37 @@ export default function OnboardingPage() {
               <input
                 type="text"
                 value={data.vehiclePlate}
-                onChange={(e) => setData(prev => ({ ...prev, vehiclePlate: e.target.value }))}
+                onChange={(e) =>
+                  setData((prev) => ({ ...prev, vehiclePlate: e.target.value }))
+                }
                 placeholder="Ex: 1234 AB 01"
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             {/* License (if not vélo) */}
-            {data.vehicleType && data.vehicleType !== 'velo' && (
+            {data.vehicleType && data.vehicleType !== "velo" && (
               <div>
-                <p className="text-xs font-medium text-gray-700 mb-1.5">Permis de conduire</p>
+                <p className="text-xs font-medium text-gray-700 mb-1.5">
+                  Permis de conduire
+                </p>
                 <button
-                  onClick={() => handlePhotoCapture('licensePhoto')}
+                  onClick={() => handlePhotoCapture("licensePhoto")}
                   className="w-full aspect-[1.6] bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center overflow-hidden"
                 >
                   {data.licensePhoto ? (
-                    <img src={data.licensePhoto} alt="License" loading="lazy" className="w-full h-full object-cover" />
+                    <img
+                      src={data.licensePhoto}
+                      alt="License"
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <>
                       <Upload className="w-8 h-8 text-gray-400 mb-1" />
-                      <span className="text-sm text-gray-500">Photo du permis</span>
+                      <span className="text-sm text-gray-500">
+                        Photo du permis
+                      </span>
                     </>
                   )}
                 </button>
@@ -619,19 +742,28 @@ export default function OnboardingPage() {
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <MapPin className="w-6 h-6 text-green-600" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Zones de livraison</h2>
-              <p className="text-gray-500 text-xs">Sélectionnez vos quartiers de livraison</p>
+              <h2 className="text-lg font-bold text-gray-900">
+                Zones de livraison
+              </h2>
+              <p className="text-gray-500 text-xs">
+                Sélectionnez vos quartiers de livraison
+              </p>
             </div>
 
             <div className="bg-primary-50 rounded-lg p-2.5 text-xs text-primary-700">
-              <p>Sélectionnez au moins 1 zone. Vous recevrez uniquement les courses dans ces zones.</p>
+              <p>
+                Sélectionnez au moins 1 zone. Vous recevrez uniquement les
+                courses dans ces zones.
+              </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {zonesLoading ? (
                 <div className="w-full flex items-center justify-center py-4">
                   <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mr-2" />
-                  <span className="text-gray-500 text-sm">Chargement des zones...</span>
+                  <span className="text-gray-500 text-sm">
+                    Chargement des zones...
+                  </span>
                 </div>
               ) : availableZones.length > 0 ? (
                 availableZones.map((zone) => (
@@ -640,11 +772,13 @@ export default function OnboardingPage() {
                     onClick={() => toggleZone(zone.name)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                       data.zones.includes(zone.name)
-                        ? 'bg-primary-500 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? "bg-primary-500 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    {data.zones.includes(zone.name) && <Check className="w-4 h-4 inline mr-1" />}
+                    {data.zones.includes(zone.name) && (
+                      <Check className="w-4 h-4 inline mr-1" />
+                    )}
                     {zone.name}
                   </button>
                 ))
@@ -666,26 +800,39 @@ export default function OnboardingPage() {
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Smartphone className="w-6 h-6 text-purple-600" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Paiement Mobile Money</h2>
+              <h2 className="text-lg font-bold text-gray-900">
+                Paiement Mobile Money
+              </h2>
               <p className="text-gray-500 text-xs">Pour recevoir vos gains</p>
             </div>
 
             {/* Provider Selection */}
             <div>
-              <p className="text-xs font-medium text-gray-700 mb-2">Opérateur</p>
+              <p className="text-xs font-medium text-gray-700 mb-2">
+                Opérateur
+              </p>
               <div className="grid grid-cols-2 gap-2">
                 {MOBILE_MONEY_PROVIDERS.map((provider) => (
                   <button
                     key={provider.id}
-                    onClick={() => setData(prev => ({ ...prev, mobileMoneyProvider: provider.id }))}
+                    onClick={() =>
+                      setData((prev) => ({
+                        ...prev,
+                        mobileMoneyProvider: provider.id,
+                      }))
+                    }
                     className={`p-3 rounded-lg border-2 text-center transition-colors ${
                       data.mobileMoneyProvider === provider.id
-                        ? 'border-primary-500 bg-primary-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? "border-primary-500 bg-primary-50"
+                        : "border-gray-200 hover:border-gray-300"
                     }`}
                   >
-                    <div className={`w-8 h-8 ${provider.color} rounded-full mx-auto mb-1.5`} />
-                    <p className="font-medium text-gray-900 text-xs">{provider.name}</p>
+                    <div
+                      className={`w-8 h-8 ${provider.color} rounded-full mx-auto mb-1.5`}
+                    />
+                    <p className="font-medium text-gray-900 text-xs">
+                      {provider.name}
+                    </p>
                   </button>
                 ))}
               </div>
@@ -703,7 +850,12 @@ export default function OnboardingPage() {
                 <input
                   type="tel"
                   value={data.mobileMoneyNumber}
-                  onChange={(e) => setData(prev => ({ ...prev, mobileMoneyNumber: e.target.value.replace(/\D/g, '') }))}
+                  onChange={(e) =>
+                    setData((prev) => ({
+                      ...prev,
+                      mobileMoneyNumber: e.target.value.replace(/\D/g, ""),
+                    }))
+                  }
                   placeholder="07 XX XX XX XX"
                   className="flex-1 px-3 py-2.5 border border-gray-300 rounded-r-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   maxLength={10}
@@ -713,7 +865,9 @@ export default function OnboardingPage() {
 
             {/* Summary */}
             <div className="bg-gray-50 rounded-lg p-3 mt-4">
-              <h3 className="font-medium text-gray-900 text-sm mb-2">Récapitulatif</h3>
+              <h3 className="font-medium text-gray-900 text-sm mb-2">
+                Récapitulatif
+              </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Nom</span>
@@ -721,7 +875,9 @@ export default function OnboardingPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Véhicule</span>
-                  <span className="font-medium capitalize">{data.vehicleType}</span>
+                  <span className="font-medium capitalize">
+                    {data.vehicleType}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Zones</span>
@@ -760,10 +916,16 @@ export default function OnboardingPage() {
           loading={loading}
           fullWidth
           size="lg"
-          icon={step < totalSteps ? <ArrowRight className="w-5 h-5" /> : <Check className="w-5 h-5" />}
-          iconPosition={step < totalSteps ? 'right' : 'left'}
+          icon={
+            step < totalSteps ? (
+              <ArrowRight className="w-5 h-5" />
+            ) : (
+              <Check className="w-5 h-5" />
+            )
+          }
+          iconPosition={step < totalSteps ? "right" : "left"}
         >
-          {step < totalSteps ? 'Continuer' : "Terminer l'inscription"}
+          {step < totalSteps ? "Continuer" : "Terminer l'inscription"}
         </Button>
       </div>
     </div>

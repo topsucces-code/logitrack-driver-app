@@ -1,45 +1,51 @@
-import { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { LocationProvider } from './contexts/LocationContext';
-import { ToastProvider } from './contexts/ToastContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { GoogleMapsProvider } from './components/GoogleMapsProvider';
-import { OfflineBanner } from './components/OfflineBanner';
-import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import { initOfflineQueue } from './services/offlineQueue';
-import PageLoadingFallback from './components/PageLoadingFallback';
+import { useEffect, lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { LocationProvider } from "./contexts/LocationContext";
+import { ToastProvider } from "./contexts/ToastContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import { GoogleMapsProvider } from "./components/GoogleMapsProvider";
+import { OfflineBanner } from "./components/OfflineBanner";
+import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
+import { initOfflineQueue } from "./services/offlineQueue";
+import PageLoadingFallback from "./components/PageLoadingFallback";
 
 // Critical path pages - loaded immediately
-import SplashPage from './pages/SplashPage';
-import PhoneAuthPage from './pages/PhoneAuthPage';
-import DashboardPage from './pages/DashboardPage';
+import SplashPage from "./pages/SplashPage";
+import PhoneAuthPage from "./pages/PhoneAuthPage";
+import DashboardPage from "./pages/DashboardPage";
 
 // Lazy-loaded pages - common routes
-const DeliveryDetailPage = lazy(() => import('./pages/DeliveryDetailPage'));
-const EarningsPage = lazy(() => import('./pages/EarningsPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const DeliveryDetailPage = lazy(() => import("./pages/DeliveryDetailPage"));
+const EarningsPage = lazy(() => import("./pages/EarningsPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 
 // Lazy-loaded pages - chat
-const SupportChatPage = lazy(() => import('./components/SupportChat'));
+const SupportChatPage = lazy(() => import("./components/SupportChat"));
 
 // Lazy-loaded pages - secondary routes
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
-const PendingVerificationPage = lazy(() => import('./pages/PendingVerificationPage'));
-const HistoryPage = lazy(() => import('./pages/HistoryPage'));
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
-const WeeklyReportPage = lazy(() => import('./pages/WeeklyReportPage'));
-const ChallengesPage = lazy(() => import('./pages/ChallengesPage'));
-const RouteOptimizationPage = lazy(() => import('./pages/RouteOptimizationPage'));
-const ReportIncidentPage = lazy(() => import('./pages/ReportIncidentPage'));
-const ClientAbsentProtocolPage = lazy(() => import('./pages/ClientAbsentProtocolPage'));
-const PublicTrackingPage = lazy(() => import('./pages/PublicTrackingPage'));
-const WalletPage = lazy(() => import('./pages/WalletPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
+const PendingVerificationPage = lazy(
+  () => import("./pages/PendingVerificationPage"),
+);
+const HistoryPage = lazy(() => import("./pages/HistoryPage"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+const WeeklyReportPage = lazy(() => import("./pages/WeeklyReportPage"));
+const ChallengesPage = lazy(() => import("./pages/ChallengesPage"));
+const RouteOptimizationPage = lazy(
+  () => import("./pages/RouteOptimizationPage"),
+);
+const ReportIncidentPage = lazy(() => import("./pages/ReportIncidentPage"));
+const ClientAbsentProtocolPage = lazy(
+  () => import("./pages/ClientAbsentProtocolPage"),
+);
+const PublicTrackingPage = lazy(() => import("./pages/PublicTrackingPage"));
+const WalletPage = lazy(() => import("./pages/WalletPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -47,7 +53,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-primary-500">
+      <div className="h-mobile-screen flex items-center justify-center bg-primary-500">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-white font-medium">Chargement...</p>
@@ -69,7 +75,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-primary-500">
+      <div className="h-mobile-screen flex items-center justify-center bg-primary-500">
         <div className="w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -287,7 +293,7 @@ export default function App() {
                 <ToastProvider>
                   <OfflineBanner />
                   <PWAInstallPrompt />
-                  <div className="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+                  <div className="h-mobile-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
                     <AppRoutes />
                   </div>
                 </ToastProvider>

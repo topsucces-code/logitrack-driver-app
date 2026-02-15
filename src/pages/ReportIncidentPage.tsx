@@ -4,12 +4,19 @@
  * Uses native <form>/<select> for Capacitor WebView reliability
  */
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, AlertTriangle, Camera, X as XIcon, Loader2, CheckCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { incidentService } from '../services/incidentService';
-import { DRIVER_INCIDENT_TYPES } from '../types/incidents';
+import { useState, useEffect, useRef, FormEvent } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import {
+  ChevronLeft,
+  AlertTriangle,
+  Camera,
+  X as XIcon,
+  Loader2,
+  CheckCircle,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { incidentService } from "../services/incidentService";
+import { DRIVER_INCIDENT_TYPES } from "../types/incidents";
 
 export default function ReportIncidentPage() {
   const { id: deliveryId } = useParams<{ id: string }>();
@@ -17,7 +24,9 @@ export default function ReportIncidentPage() {
   const location = useLocation();
   const { driver, user } = useAuth();
 
-  const trackingCode = (location.state as { trackingCode?: string } | null)?.trackingCode || deliveryId?.slice(0, 8).toUpperCase();
+  const trackingCode =
+    (location.state as { trackingCode?: string } | null)?.trackingCode ||
+    deliveryId?.slice(0, 8).toUpperCase();
 
   const [photos, setPhotos] = useState<File[]>([]);
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
@@ -29,25 +38,28 @@ export default function ReportIncidentPage() {
 
   useEffect(() => {
     return () => {
-      photoPreviews.forEach(url => URL.revokeObjectURL(url));
+      photoPreviews.forEach((url) => URL.revokeObjectURL(url));
     };
   }, []);
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (photos.length + files.length > 5) {
-      setError('Maximum 5 photos');
+      setError("Maximum 5 photos");
       return;
     }
-    setPhotos(prev => [...prev, ...files]);
-    setPhotoPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
+    setPhotos((prev) => [...prev, ...files]);
+    setPhotoPreviews((prev) => [
+      ...prev,
+      ...files.map((f) => URL.createObjectURL(f)),
+    ]);
     setError(null);
   };
 
   const removePhoto = (index: number) => {
     URL.revokeObjectURL(photoPreviews[index]);
-    setPhotos(prev => prev.filter((_, i) => i !== index));
-    setPhotoPreviews(prev => prev.filter((_, i) => i !== index));
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -58,26 +70,28 @@ export default function ReportIncidentPage() {
     if (!form) return;
 
     const formData = new FormData(form);
-    const selectedType = formData.get('incident_type') as string;
-    const descValue = (formData.get('description') as string)?.trim() || '';
-    const amountValue = (formData.get('amount') as string) || '';
+    const selectedType = formData.get("incident_type") as string;
+    const descValue = (formData.get("description") as string)?.trim() || "";
+    const amountValue = (formData.get("amount") as string) || "";
 
-    const selectedIncidentType = DRIVER_INCIDENT_TYPES.find(t => t.code === selectedType);
+    const selectedIncidentType = DRIVER_INCIDENT_TYPES.find(
+      (t) => t.code === selectedType,
+    );
 
     if (!selectedType) {
-      setError('Sélectionnez un type de problème');
+      setError("Sélectionnez un type de problème");
       return;
     }
     if (!descValue) {
-      setError('Décrivez le problème');
+      setError("Décrivez le problème");
       return;
     }
     if (selectedIncidentType?.requiresPhoto && photos.length === 0) {
-      setError('Photo requise pour ce type');
+      setError("Photo requise pour ce type");
       return;
     }
     if (selectedIncidentType?.requiresAmount && !amountValue) {
-      setError('Indiquez le montant');
+      setError("Indiquez le montant");
       return;
     }
 
@@ -93,7 +107,7 @@ export default function ReportIncidentPage() {
 
       const result = await incidentService.createIncident(
         {
-          delivery_id: deliveryId || '',
+          delivery_id: deliveryId || "",
           tracking_code: trackingCode,
           incident_type: selectedType,
           title: selectedIncidentType?.label || selectedType,
@@ -101,20 +115,20 @@ export default function ReportIncidentPage() {
           photos: uploadedUrls,
           disputed_amount: amountValue ? parseFloat(amountValue) : undefined,
         },
-        user?.id || '',
-        driver?.id || '',
+        user?.id || "",
+        driver?.id || "",
         driver?.full_name,
-        driver?.phone
+        driver?.phone,
       );
 
       if (result.success) {
         setSuccess(true);
         setTimeout(() => navigate(-1), 2000);
       } else {
-        setError(result.error || 'Erreur lors de l\'envoi');
+        setError(result.error || "Erreur lors de l'envoi");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      setError(err instanceof Error ? err.message : "Erreur inconnue");
     } finally {
       setSubmitting(false);
     }
@@ -122,26 +136,37 @@ export default function ReportIncidentPage() {
 
   if (success) {
     return (
-      <div className="h-screen bg-gray-50 flex items-center justify-center p-6">
+      <div className="h-mobile-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-gray-900 mb-1">Signalement envoyé !</h2>
-          <p className="text-sm text-gray-600">Notre équipe va traiter votre demande.</p>
+          <h2 className="text-lg font-bold text-gray-900 mb-1">
+            Signalement envoyé !
+          </h2>
+          <p className="text-sm text-gray-600">
+            Notre équipe va traiter votre demande.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
+    <div className="h-mobile-screen bg-gray-50 dark:bg-gray-900 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0 bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-2.5 safe-top">
         <div className="flex items-center gap-2">
-          <button type="button" onTouchEnd={() => navigate(-1)} onClick={() => navigate(-1)} className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full">
+          <button
+            type="button"
+            onTouchEnd={() => navigate(-1)}
+            onClick={() => navigate(-1)}
+            className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-full"
+          >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <AlertTriangle className="w-4 h-4" />
-          <h1 className="text-sm font-bold uppercase tracking-wide flex-1">Signaler un problème</h1>
+          <h1 className="text-sm font-bold uppercase tracking-wide flex-1">
+            Signaler un problème
+          </h1>
         </div>
         {trackingCode && (
           <p className="text-xs text-white/80 ml-10">Course #{trackingCode}</p>
@@ -159,7 +184,10 @@ export default function ReportIncidentPage() {
           <div className="px-3 py-3 space-y-3">
             {/* Type selection - native <select> */}
             <div>
-              <label htmlFor="incident_type" className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 block">
+              <label
+                htmlFor="incident_type"
+                className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 block"
+              >
                 Quel est le problème ?
               </label>
               <select
@@ -169,7 +197,9 @@ export default function ReportIncidentPage() {
                 defaultValue=""
                 className="w-full px-3 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-200 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 appearance-auto"
               >
-                <option value="" disabled>-- Choisir le type --</option>
+                <option value="" disabled>
+                  -- Choisir le type --
+                </option>
                 {DRIVER_INCIDENT_TYPES.map((type) => (
                   <option key={type.id} value={type.code}>
                     {type.label}
@@ -180,7 +210,10 @@ export default function ReportIncidentPage() {
 
             {/* Description - native textarea */}
             <div>
-              <label htmlFor="description" className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 block">
+              <label
+                htmlFor="description"
+                className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 block"
+              >
                 Description
               </label>
               <textarea
@@ -195,7 +228,10 @@ export default function ReportIncidentPage() {
 
             {/* Amount - always rendered but hidden if not needed, avoids conditional DOM issues */}
             <div>
-              <label htmlFor="amount" className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 block">
+              <label
+                htmlFor="amount"
+                className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5 block"
+              >
                 Montant en FCFA (si applicable)
               </label>
               <input
@@ -215,10 +251,17 @@ export default function ReportIncidentPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 {photoPreviews.map((preview, index) => (
                   <div key={index} className="relative">
-                    <img src={preview} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+                    <img
+                      src={preview}
+                      alt=""
+                      className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                    />
                     <button
                       type="button"
-                      onTouchEnd={(e) => { e.preventDefault(); removePhoto(index); }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        removePhoto(index);
+                      }}
                       onClick={() => removePhoto(index)}
                       className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
                     >
@@ -229,8 +272,16 @@ export default function ReportIncidentPage() {
                 {photos.length < 5 && (
                   <label className="w-16 h-16 bg-gray-100 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center active:bg-gray-200">
                     <Camera className="w-5 h-5 text-gray-400" />
-                    <span className="text-[10px] text-gray-400 mt-0.5">Photo</span>
-                    <input type="file" accept="image/*" capture="environment" onChange={handlePhotoCapture} className="hidden" />
+                    <span className="text-[10px] text-gray-400 mt-0.5">
+                      Photo
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoCapture}
+                      className="hidden"
+                    />
                   </label>
                 )}
               </div>
@@ -257,7 +308,7 @@ export default function ReportIncidentPage() {
                 Envoi en cours...
               </span>
             ) : (
-              'Envoyer le signalement'
+              "Envoyer le signalement"
             )}
           </button>
         </div>

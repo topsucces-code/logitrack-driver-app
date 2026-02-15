@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Route,
@@ -15,8 +15,8 @@ import {
   Package,
   AlertTriangle,
   X,
-} from 'lucide-react';
-import { Button } from '../components/ui/Button';
+} from "lucide-react";
+import { Button } from "../components/ui/Button";
 import {
   optimizeRoute,
   getPendingDeliveries,
@@ -24,13 +24,13 @@ import {
   formatDistance,
   DeliveryStop,
   OptimizedRoute,
-} from '../services/routeOptimizationService';
-import { useAuth } from '../contexts/AuthContext';
-import { useLocation } from '../contexts/LocationContext';
-import { useToast } from '../contexts/ToastContext';
-import { useT } from '../contexts/LanguageContext';
-import { hapticSuccess, hapticLight } from '../hooks/useHapticFeedback';
-import { supabase } from '../lib/supabase';
+} from "../services/routeOptimizationService";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocation } from "../contexts/LocationContext";
+import { useToast } from "../contexts/ToastContext";
+import { useT } from "../contexts/LanguageContext";
+import { hapticSuccess, hapticLight } from "../hooks/useHapticFeedback";
+import { supabase } from "../lib/supabase";
 
 export default function RouteOptimizationPage() {
   const navigate = useNavigate();
@@ -42,7 +42,9 @@ export default function RouteOptimizationPage() {
   const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
   const [deliveries, setDeliveries] = useState<DeliveryStop[]>([]);
-  const [optimizedRoute, setOptimizedRoute] = useState<OptimizedRoute | null>(null);
+  const [optimizedRoute, setOptimizedRoute] = useState<OptimizedRoute | null>(
+    null,
+  );
   const [showComparison, setShowComparison] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -63,7 +65,7 @@ export default function RouteOptimizationPage() {
 
   const handleOptimize = async () => {
     if (deliveries.length === 0) {
-      showError('Aucune livraison à optimiser');
+      showError("Aucune livraison à optimiser");
       return;
     }
 
@@ -75,9 +77,7 @@ export default function RouteOptimizationPage() {
 
     const result = optimizeRoute(
       deliveries,
-      position
-        ? { lat: position.lat, lng: position.lng }
-        : undefined
+      position ? { lat: position.lat, lng: position.lng } : undefined,
     );
 
     setOptimizedRoute(result);
@@ -87,7 +87,7 @@ export default function RouteOptimizationPage() {
 
     if (result.savings.percentage > 0) {
       showSuccess(
-        `Itinéraire optimisé ! Économie de ${result.savings.percentage}%`
+        `Itinéraire optimisé ! Économie de ${result.savings.percentage}%`,
       );
     }
   };
@@ -101,23 +101,23 @@ export default function RouteOptimizationPage() {
     try {
       const updates = optimizedRoute.stops.map((stop, index) =>
         supabase
-          .from('logitrack_deliveries')
+          .from("logitrack_deliveries")
           .update({ route_position: index + 1 })
-          .eq('id', stop.id)
+          .eq("id", stop.id),
       );
 
       const results = await Promise.all(updates);
-      const failed = results.filter(r => r.error);
+      const failed = results.filter((r) => r.error);
 
       if (failed.length > 0) {
         showError(`Erreur: ${failed.length} livraison(s) non mises à jour`);
       } else {
         hapticSuccess();
-        showSuccess('Itinéraire appliqué avec succès !');
-        navigate('/');
+        showSuccess("Itinéraire appliqué avec succès !");
+        navigate("/");
       }
     } catch (err) {
-      showError('Erreur lors de la sauvegarde de l\'itinéraire');
+      showError("Erreur lors de la sauvegarde de l'itinéraire");
     } finally {
       setApplying(false);
     }
@@ -128,17 +128,17 @@ export default function RouteOptimizationPage() {
 
     const firstStop = optimizedRoute.stops[0];
     const url = `https://www.google.com/maps/dir/?api=1&destination=${firstStop.lat},${firstStop.lng}`;
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   const priorityColors = {
-    high: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
-    normal: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-    low: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+    high: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+    normal: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
+    low: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400",
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-mobile-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header - Compact */}
       <header className="bg-gradient-to-r from-orange-500 to-orange-600 text-white safe-top px-3 py-2 flex-shrink-0">
         <div className="flex items-center gap-2 mb-2">
@@ -190,7 +190,7 @@ export default function RouteOptimizationPage() {
               Aucune livraison en attente
             </p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
               className="mt-3 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg"
             >
               Retour
@@ -210,7 +210,8 @@ export default function RouteOptimizationPage() {
                       {t.savingsEstimate}
                     </p>
                     <p className="text-xs text-green-600 dark:text-green-400">
-                      {formatDistance(optimizedRoute.savings.distance)} • {formatDuration(optimizedRoute.savings.time)}
+                      {formatDistance(optimizedRoute.savings.distance)} •{" "}
+                      {formatDuration(optimizedRoute.savings.time)}
                     </p>
                   </div>
                   <div className="text-lg font-bold text-green-600 dark:text-green-400">
@@ -257,8 +258,8 @@ export default function RouteOptimizationPage() {
                         <div
                           className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 ${
                             index === 0
-                              ? 'bg-green-500 text-white'
-                              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
+                              ? "bg-green-500 text-white"
+                              : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                           }`}
                         >
                           {index + 1}
@@ -270,13 +271,13 @@ export default function RouteOptimizationPage() {
                             <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
                               {stop.name}
                             </p>
-                            {stop.priority && stop.priority !== 'normal' && (
+                            {stop.priority && stop.priority !== "normal" && (
                               <span
                                 className={`text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 ${
                                   priorityColors[stop.priority]
                                 }`}
                               >
-                                {stop.priority === 'high' ? '!' : ''}
+                                {stop.priority === "high" ? "!" : ""}
                               </span>
                             )}
                           </div>
@@ -285,30 +286,38 @@ export default function RouteOptimizationPage() {
                           </p>
 
                           {/* Segment info */}
-                          {optimizedRoute && index < optimizedRoute.segments.length && (
-                            <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-500 dark:text-gray-400">
-                              <span className="flex items-center gap-0.5">
-                                <Route className="w-3 h-3" />
-                                {formatDistance(optimizedRoute.segments[index].distance)}
-                              </span>
-                              <span className="flex items-center gap-0.5">
-                                <Clock className="w-3 h-3" />
-                                {formatDuration(optimizedRoute.segments[index].duration)}
-                              </span>
-                            </div>
-                          )}
+                          {optimizedRoute &&
+                            index < optimizedRoute.segments.length && (
+                              <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+                                <span className="flex items-center gap-0.5">
+                                  <Route className="w-3 h-3" />
+                                  {formatDistance(
+                                    optimizedRoute.segments[index].distance,
+                                  )}
+                                </span>
+                                <span className="flex items-center gap-0.5">
+                                  <Clock className="w-3 h-3" />
+                                  {formatDuration(
+                                    optimizedRoute.segments[index].duration,
+                                  )}
+                                </span>
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
 
                     {/* Arrow between stops - smaller */}
-                    {index < (optimizedRoute ? optimizedRoute.stops : deliveries).length - 1 && (
+                    {index <
+                      (optimizedRoute ? optimizedRoute.stops : deliveries)
+                        .length -
+                        1 && (
                       <div className="flex justify-center py-0.5">
                         <ArrowRight className="w-3 h-3 text-gray-300 rotate-90" />
                       </div>
                     )}
                   </div>
-                )
+                ),
               )}
             </div>
 
@@ -358,7 +367,7 @@ export default function RouteOptimizationPage() {
 
           {/* Modal */}
           <div
-            className="relative w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-lg max-h-[85vh] flex flex-col animate-in slide-in-from-bottom"
+            className="relative w-full sm:max-w-md bg-white dark:bg-gray-800 rounded-t-xl sm:rounded-lg max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -379,14 +388,18 @@ export default function RouteOptimizationPage() {
               {/* Summary */}
               <div className="grid grid-cols-2 gap-2 mb-3">
                 <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 text-center">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Livraisons</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Livraisons
+                  </p>
                   <p className="text-lg font-bold text-gray-900 dark:text-white">
                     {optimizedRoute.stops.length}
                   </p>
                 </div>
                 {optimizedRoute.savings.time > 0 && (
                   <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center">
-                    <p className="text-xs text-green-600 dark:text-green-400">Temps économisé</p>
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      Temps économisé
+                    </p>
                     <p className="text-lg font-bold text-green-600 dark:text-green-400">
                       {formatDuration(optimizedRoute.savings.time)}
                     </p>
@@ -408,8 +421,8 @@ export default function RouteOptimizationPage() {
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
                           index === 0
-                            ? 'bg-green-500 text-white'
-                            : 'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
                         }`}
                       >
                         {index + 1}
@@ -422,7 +435,7 @@ export default function RouteOptimizationPage() {
                           {stop.address}
                         </p>
                       </div>
-                      {stop.priority === 'high' && (
+                      {stop.priority === "high" && (
                         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 flex-shrink-0">
                           !
                         </span>
@@ -460,7 +473,7 @@ export default function RouteOptimizationPage() {
                 ) : (
                   <Check className="w-4 h-4" />
                 )}
-                {applying ? 'Application...' : 'Appliquer'}
+                {applying ? "Application..." : "Appliquer"}
               </button>
             </div>
           </div>

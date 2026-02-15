@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Wallet,
@@ -13,31 +13,33 @@ import {
   X,
   Search,
   RotateCcw,
-} from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
-import { MobileMoneyDashboard } from '../components/MobileMoneyWallet';
-import { MobileMoneyWithdraw } from '../components/MobileMoneyWithdraw';
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
+import { MobileMoneyDashboard } from "../components/MobileMoneyWallet";
+import { MobileMoneyWithdraw } from "../components/MobileMoneyWithdraw";
 import {
   getTransactions,
   getEarningsHistory,
   formatCurrency,
-} from '../services/mobileMoneyService';
-import { MobileMoneyTransaction } from '../types/mobileMoney';
-import jsPDF from 'jspdf';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
-import { PullToRefreshIndicator } from '../components/PullToRefreshIndicator';
+} from "../services/mobileMoneyService";
+import { MobileMoneyTransaction } from "../types/mobileMoney";
+import jsPDF from "jspdf";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "../components/PullToRefreshIndicator";
 
-type TabType = 'overview' | 'history' | 'analytics';
+type TabType = "overview" | "history" | "analytics";
 
 export default function WalletPage() {
   const navigate = useNavigate();
   const { driver } = useAuth();
   const { showError } = useToast();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<MobileMoneyTransaction[]>([]);
+  const [notifications, setNotifications] = useState<MobileMoneyTransaction[]>(
+    [],
+  );
   const notifRef = useRef<HTMLDivElement>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -54,7 +56,7 @@ export default function WalletPage() {
   // Pull-to-refresh
   const handlePullRefresh = useCallback(async () => {
     await loadNotifs();
-    setRefreshKey(k => k + 1);
+    setRefreshKey((k) => k + 1);
   }, [loadNotifs]);
 
   const { pullDistance, pullState, pullToRefreshProps } = usePullToRefresh({
@@ -69,14 +71,14 @@ export default function WalletPage() {
         setShowNotifications(false);
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [showNotifications]);
 
   if (!driver) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-mobile-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 safe-top">
         <div className="px-4 py-4">
@@ -112,27 +114,49 @@ export default function WalletPage() {
               {showNotifications && (
                 <div className="absolute right-0 top-12 w-72 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                   <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                    <p className="font-semibold text-sm text-gray-900 dark:text-white">Notifications</p>
+                    <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                      Notifications
+                    </p>
                     <button onClick={() => setShowNotifications(false)}>
                       <X className="w-4 h-4 text-gray-400" />
                     </button>
                   </div>
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-gray-500">Aucune notification</div>
+                    <div className="p-4 text-center text-xs text-gray-500">
+                      Aucune notification
+                    </div>
                   ) : (
                     <div className="max-h-64 overflow-y-auto">
                       {notifications.map((tx) => (
-                        <div key={tx.id} className="px-3 py-2.5 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                        <div
+                          key={tx.id}
+                          className="px-3 py-2.5 border-b border-gray-50 dark:border-gray-700 last:border-0"
+                        >
                           <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${tx.type === 'earnings' ? 'bg-green-500' : 'bg-red-500'}`} />
-                            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{tx.description}</p>
+                            <div
+                              className={`w-2 h-2 rounded-full flex-shrink-0 ${tx.type === "earnings" ? "bg-green-500" : "bg-red-500"}`}
+                            />
+                            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                              {tx.description}
+                            </p>
                           </div>
                           <div className="flex items-center justify-between mt-0.5 ml-4">
                             <p className="text-[10px] text-gray-500">
-                              {new Date(tx.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              {new Date(tx.createdAt).toLocaleDateString(
+                                "fr-FR",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
                             </p>
-                            <p className={`text-xs font-bold ${tx.type === 'earnings' ? 'text-green-600' : 'text-red-600'}`}>
-                              {tx.type === 'earnings' ? '+' : '-'}{formatCurrency(tx.amount)}
+                            <p
+                              className={`text-xs font-bold ${tx.type === "earnings" ? "text-green-600" : "text-red-600"}`}
+                            >
+                              {tx.type === "earnings" ? "+" : "-"}
+                              {formatCurrency(tx.amount)}
                             </p>
                           </div>
                         </div>
@@ -148,20 +172,20 @@ export default function WalletPage() {
         {/* Tabs */}
         <div className="flex px-4 gap-1">
           <TabButton
-            active={activeTab === 'overview'}
-            onClick={() => setActiveTab('overview')}
+            active={activeTab === "overview"}
+            onClick={() => setActiveTab("overview")}
             icon={<Wallet className="w-4 h-4" />}
             label="Aperçu"
           />
           <TabButton
-            active={activeTab === 'history'}
-            onClick={() => setActiveTab('history')}
+            active={activeTab === "history"}
+            onClick={() => setActiveTab("history")}
             icon={<History className="w-4 h-4" />}
             label="Historique"
           />
           <TabButton
-            active={activeTab === 'analytics'}
-            onClick={() => setActiveTab('analytics')}
+            active={activeTab === "analytics"}
+            onClick={() => setActiveTab("analytics")}
             icon={<TrendingUp className="w-4 h-4" />}
             label="Statistiques"
           />
@@ -170,17 +194,24 @@ export default function WalletPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto" {...pullToRefreshProps}>
-        <PullToRefreshIndicator pullDistance={pullDistance} pullState={pullState} />
+        <PullToRefreshIndicator
+          pullDistance={pullDistance}
+          pullState={pullState}
+        />
 
-        {activeTab === 'overview' && (
+        {activeTab === "overview" && (
           <div className="p-4" key={`overview-${refreshKey}`}>
             <MobileMoneyDashboard onWithdraw={() => setShowWithdraw(true)} />
           </div>
         )}
 
-        {activeTab === 'history' && <TransactionHistory key={`history-${refreshKey}`} />}
+        {activeTab === "history" && (
+          <TransactionHistory key={`history-${refreshKey}`} />
+        )}
 
-        {activeTab === 'analytics' && <EarningsAnalytics key={`analytics-${refreshKey}`} />}
+        {activeTab === "analytics" && (
+          <EarningsAnalytics key={`analytics-${refreshKey}`} />
+        )}
       </div>
 
       {/* Withdraw Modal */}
@@ -211,8 +242,8 @@ function TabButton({
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium border-b-2 transition-colors ${
         active
-          ? 'text-primary-600 border-primary-500'
-          : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300'
+          ? "text-primary-600 border-primary-500"
+          : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
       }`}
     >
       {icon}
@@ -222,7 +253,7 @@ function TabButton({
 }
 
 // Date range quick filter type
-type DateRangePreset = 'today' | 'week' | 'month' | 'all';
+type DateRangePreset = "today" | "week" | "month" | "all";
 
 // Debounce hook
 function useDebounce(value: string, delay: number): string {
@@ -237,46 +268,53 @@ function useDebounce(value: string, delay: number): string {
 }
 
 // Get date range from preset
-function getDateRangeFromPreset(preset: DateRangePreset): { start: string; end: string } {
+function getDateRangeFromPreset(preset: DateRangePreset): {
+  start: string;
+  end: string;
+} {
   const now = new Date();
   const end = now.toISOString().slice(0, 10);
 
   switch (preset) {
-    case 'today': {
+    case "today": {
       const start = now.toISOString().slice(0, 10);
       return { start, end };
     }
-    case 'week': {
+    case "week": {
       const weekStart = new Date(now);
       const day = weekStart.getDay();
       const diff = day === 0 ? 6 : day - 1; // Monday = start of week
       weekStart.setDate(weekStart.getDate() - diff);
       return { start: weekStart.toISOString().slice(0, 10), end };
     }
-    case 'month': {
+    case "month": {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       return { start: monthStart.toISOString().slice(0, 10), end };
     }
-    case 'all':
+    case "all":
     default:
-      return { start: '', end: '' };
+      return { start: "", end: "" };
   }
 }
 
 // Transaction History Component
 function TransactionHistory() {
   const { showError } = useToast();
-  const [transactions, setTransactions] = useState<MobileMoneyTransaction[]>([]);
+  const [transactions, setTransactions] = useState<MobileMoneyTransaction[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'earnings' | 'withdrawal'>('all');
+  const [filter, setFilter] = useState<"all" | "earnings" | "withdrawal">(
+    "all",
+  );
 
   // Search and date filter state
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
-  const [datePreset, setDatePreset] = useState<DateRangePreset>('all');
-  const [dateStart, setDateStart] = useState('');
-  const [dateEnd, setDateEnd] = useState('');
+  const [datePreset, setDatePreset] = useState<DateRangePreset>("all");
+  const [dateStart, setDateStart] = useState("");
+  const [dateEnd, setDateEnd] = useState("");
 
   useEffect(() => {
     loadTransactions();
@@ -299,24 +337,28 @@ function TransactionHistory() {
   // Handle manual date change (clears the preset)
   const handleDateStartChange = useCallback((value: string) => {
     setDateStart(value);
-    setDatePreset('all');
+    setDatePreset("all");
   }, []);
 
   const handleDateEndChange = useCallback((value: string) => {
     setDateEnd(value);
-    setDatePreset('all');
+    setDatePreset("all");
   }, []);
 
   // Check if any filter is active
-  const hasActiveFilters = debouncedSearch !== '' || dateStart !== '' || dateEnd !== '' || filter !== 'all';
+  const hasActiveFilters =
+    debouncedSearch !== "" ||
+    dateStart !== "" ||
+    dateEnd !== "" ||
+    filter !== "all";
 
   // Reset all filters
   const resetFilters = useCallback(() => {
-    setSearchQuery('');
-    setFilter('all');
-    setDatePreset('all');
-    setDateStart('');
-    setDateEnd('');
+    setSearchQuery("");
+    setFilter("all");
+    setDatePreset("all");
+    setDateStart("");
+    setDateEnd("");
   }, []);
 
   const handleExportPDF = async () => {
@@ -331,29 +373,33 @@ function TransactionHistory() {
 
       // Header
       doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('LogiTrack Africa', margin, y);
+      doc.setFont("helvetica", "bold");
+      doc.text("LogiTrack Africa", margin, y);
       y += 8;
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.setTextColor(100);
-      doc.text(`Releve de transactions — ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`, margin, y);
+      doc.text(
+        `Releve de transactions — ${new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}`,
+        margin,
+        y,
+      );
       y += 12;
 
       // Table header
       doc.setFillColor(245, 245, 245);
-      doc.rect(margin, y - 4, pageWidth - margin * 2, 8, 'F');
+      doc.rect(margin, y - 4, pageWidth - margin * 2, 8, "F");
       doc.setFontSize(8);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont("helvetica", "bold");
       doc.setTextColor(60);
-      doc.text('Date', margin + 2, y);
-      doc.text('Description', margin + 35, y);
-      doc.text('Montant', margin + 110, y);
-      doc.text('Statut', margin + 145, y);
+      doc.text("Date", margin + 2, y);
+      doc.text("Description", margin + 35, y);
+      doc.text("Montant", margin + 110, y);
+      doc.text("Statut", margin + 145, y);
       y += 8;
 
       // Table rows
-      doc.setFont('helvetica', 'normal');
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
 
       for (const tx of transactions) {
@@ -363,17 +409,27 @@ function TransactionHistory() {
         }
 
         doc.setTextColor(40);
-        const date = new Date(tx.createdAt).toLocaleDateString('fr-FR', {
-          day: '2-digit', month: '2-digit', year: '2-digit',
+        const date = new Date(tx.createdAt).toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
         });
         doc.text(date, margin + 2, y);
         doc.text(tx.description.substring(0, 40), margin + 35, y);
 
-        const prefix = tx.type === 'earnings' ? '+' : '-';
-        doc.setTextColor(tx.type === 'earnings' ? 34 : 220, tx.type === 'earnings' ? 139 : 38, tx.type === 'earnings' ? 34 : 38);
+        const prefix = tx.type === "earnings" ? "+" : "-";
+        doc.setTextColor(
+          tx.type === "earnings" ? 34 : 220,
+          tx.type === "earnings" ? 139 : 38,
+          tx.type === "earnings" ? 34 : 38,
+        );
         doc.text(`${prefix}${formatCurrency(tx.amount)} FCFA`, margin + 110, y);
 
-        const statusLabels: Record<string, string> = { completed: 'Complete', pending: 'En attente', failed: 'Echoue' };
+        const statusLabels: Record<string, string> = {
+          completed: "Complete",
+          pending: "En attente",
+          failed: "Echoue",
+        };
         doc.setTextColor(100);
         doc.text(statusLabels[tx.status] || tx.status, margin + 145, y);
         y += 6;
@@ -386,11 +442,15 @@ function TransactionHistory() {
       y += 6;
       doc.setFontSize(8);
       doc.setTextColor(150);
-      doc.text('Document genere automatiquement par LogiTrack Africa', margin, y);
+      doc.text(
+        "Document genere automatiquement par LogiTrack Africa",
+        margin,
+        y,
+      );
 
       doc.save(`logitrack-releve-${new Date().toISOString().slice(0, 10)}.pdf`);
     } catch (err) {
-      showError('Erreur lors de l\'export PDF');
+      showError("Erreur lors de l'export PDF");
     } finally {
       setExporting(false);
     }
@@ -399,8 +459,8 @@ function TransactionHistory() {
   const filteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
       // Type filter
-      if (filter === 'earnings' && tx.type !== 'earnings') return false;
-      if (filter === 'withdrawal' && tx.type !== 'withdrawal') return false;
+      if (filter === "earnings" && tx.type !== "earnings") return false;
+      if (filter === "withdrawal" && tx.type !== "withdrawal") return false;
 
       // Search filter (reference or description)
       if (debouncedSearch) {
@@ -425,18 +485,25 @@ function TransactionHistory() {
   }, [transactions, filter, debouncedSearch, dateStart, dateEnd]);
 
   // Group by date
-  const groupedTransactions = useMemo(() => filteredTransactions.reduce((groups, tx) => {
-    const date = new Date(tx.createdAt).toLocaleDateString('fr-FR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(tx);
-    return groups;
-  }, {} as Record<string, MobileMoneyTransaction[]>), [filteredTransactions]);
+  const groupedTransactions = useMemo(
+    () =>
+      filteredTransactions.reduce(
+        (groups, tx) => {
+          const date = new Date(tx.createdAt).toLocaleDateString("fr-FR", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          });
+          if (!groups[date]) {
+            groups[date] = [];
+          }
+          groups[date].push(tx);
+          return groups;
+        },
+        {} as Record<string, MobileMoneyTransaction[]>,
+      ),
+    [filteredTransactions],
+  );
 
   if (loading) {
     return (
@@ -460,7 +527,7 @@ function TransactionHistory() {
         />
         {searchQuery && (
           <button
-            onClick={() => setSearchQuery('')}
+            onClick={() => setSearchQuery("")}
             className="absolute right-3 top-1/2 -translate-y-1/2"
           >
             <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
@@ -472,19 +539,21 @@ function TransactionHistory() {
       <div className="space-y-2">
         {/* Quick date buttons */}
         <div className="flex gap-1.5 overflow-x-auto pb-1">
-          {([
-            { key: 'today', label: "Aujourd'hui" },
-            { key: 'week', label: 'Cette semaine' },
-            { key: 'month', label: 'Ce mois' },
-            { key: 'all', label: 'Tout' },
-          ] as { key: DateRangePreset; label: string }[]).map(({ key, label }) => (
+          {(
+            [
+              { key: "today", label: "Aujourd'hui" },
+              { key: "week", label: "Cette semaine" },
+              { key: "month", label: "Ce mois" },
+              { key: "all", label: "Tout" },
+            ] as { key: DateRangePreset; label: string }[]
+          ).map(({ key, label }) => (
             <button
               key={key}
               onClick={() => handleDatePreset(key)}
               className={`px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
                 datePreset === key
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                  ? "bg-primary-500 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
               }`}
             >
               {label}
@@ -519,19 +588,19 @@ function TransactionHistory() {
       {/* Type Filters */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         <FilterChip
-          active={filter === 'all'}
-          onClick={() => setFilter('all')}
+          active={filter === "all"}
+          onClick={() => setFilter("all")}
           label="Tout"
         />
         <FilterChip
-          active={filter === 'earnings'}
-          onClick={() => setFilter('earnings')}
+          active={filter === "earnings"}
+          onClick={() => setFilter("earnings")}
           label="Gains"
           color="green"
         />
         <FilterChip
-          active={filter === 'withdrawal'}
-          onClick={() => setFilter('withdrawal')}
+          active={filter === "withdrawal"}
+          onClick={() => setFilter("withdrawal")}
           label="Retraits"
           color="red"
         />
@@ -540,7 +609,8 @@ function TransactionHistory() {
       {/* Result count and reset */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''}
+          {filteredTransactions.length} transaction
+          {filteredTransactions.length !== 1 ? "s" : ""}
         </p>
         {hasActiveFilters && (
           <button
@@ -559,8 +629,12 @@ function TransactionHistory() {
         disabled={exporting || transactions.length === 0}
         className="w-full py-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center gap-2 text-sm text-gray-700 dark:text-gray-300 font-medium disabled:opacity-50"
       >
-        {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-        {exporting ? 'Generation...' : 'Exporter en PDF'}
+        {exporting ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Download className="w-4 h-4" />
+        )}
+        {exporting ? "Generation..." : "Exporter en PDF"}
       </button>
 
       {/* Transactions List */}
@@ -568,7 +642,9 @@ function TransactionHistory() {
         <div className="text-center py-10">
           <History className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            {hasActiveFilters ? 'Aucune transaction correspondante' : 'Aucune transaction'}
+            {hasActiveFilters
+              ? "Aucune transaction correspondante"
+              : "Aucune transaction"}
           </p>
           {hasActiveFilters && (
             <button
@@ -603,23 +679,23 @@ function FilterChip({
   active,
   onClick,
   label,
-  color = 'primary',
+  color = "primary",
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
-  color?: 'primary' | 'green' | 'red';
+  color?: "primary" | "green" | "red";
 }) {
   const colors = {
     primary: active
-      ? 'bg-primary-500 text-white'
-      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+      ? "bg-primary-500 text-white"
+      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
     green: active
-      ? 'bg-green-500 text-white'
-      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+      ? "bg-green-500 text-white"
+      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
     red: active
-      ? 'bg-red-500 text-white'
-      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+      ? "bg-red-500 text-white"
+      : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
   };
 
   return (
@@ -632,11 +708,15 @@ function FilterChip({
   );
 }
 
-function TransactionCard({ transaction }: { transaction: MobileMoneyTransaction }) {
-  const isEarning = transaction.type === 'earnings';
-  const time = new Date(transaction.createdAt).toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
+function TransactionCard({
+  transaction,
+}: {
+  transaction: MobileMoneyTransaction;
+}) {
+  const isEarning = transaction.type === "earnings";
+  const time = new Date(transaction.createdAt).toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
   return (
@@ -644,8 +724,8 @@ function TransactionCard({ transaction }: { transaction: MobileMoneyTransaction 
       <div
         className={`w-10 h-10 rounded-full flex items-center justify-center ${
           isEarning
-            ? 'bg-green-100 dark:bg-green-900/30'
-            : 'bg-red-100 dark:bg-red-900/30'
+            ? "bg-green-100 dark:bg-green-900/30"
+            : "bg-red-100 dark:bg-red-900/30"
         }`}
       >
         {isEarning ? (
@@ -665,24 +745,24 @@ function TransactionCard({ transaction }: { transaction: MobileMoneyTransaction 
       <div className="text-right">
         <p
           className={`font-bold ${
-            isEarning ? 'text-green-600' : 'text-red-600'
+            isEarning ? "text-green-600" : "text-red-600"
           }`}
         >
-          {isEarning ? '+' : '-'}
+          {isEarning ? "+" : "-"}
           {formatCurrency(transaction.amount)}
         </p>
         <p
           className={`text-xs ${
-            transaction.status === 'completed'
-              ? 'text-green-500'
-              : transaction.status === 'pending'
-                ? 'text-yellow-500'
-                : 'text-red-500'
+            transaction.status === "completed"
+              ? "text-green-500"
+              : transaction.status === "pending"
+                ? "text-yellow-500"
+                : "text-red-500"
           }`}
         >
-          {transaction.status === 'completed' && 'Complété'}
-          {transaction.status === 'pending' && 'En attente'}
-          {transaction.status === 'failed' && 'Échoué'}
+          {transaction.status === "completed" && "Complété"}
+          {transaction.status === "pending" && "En attente"}
+          {transaction.status === "failed" && "Échoué"}
         </p>
       </div>
     </div>
@@ -691,7 +771,9 @@ function TransactionCard({ transaction }: { transaction: MobileMoneyTransaction 
 
 // Earnings Analytics Component
 function EarningsAnalytics() {
-  const [history, setHistory] = useState<{ date: string; amount: number }[]>([]);
+  const [history, setHistory] = useState<{ date: string; amount: number }[]>(
+    [],
+  );
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<7 | 14 | 30>(7);
 
@@ -706,9 +788,18 @@ function EarningsAnalytics() {
     setLoading(false);
   };
 
-  const totalEarnings = useMemo(() => history.reduce((sum, d) => sum + d.amount, 0), [history]);
-  const avgDaily = useMemo(() => history.length > 0 ? totalEarnings / history.length : 0, [history, totalEarnings]);
-  const maxEarning = useMemo(() => Math.max(...history.map((d) => d.amount), 1), [history]);
+  const totalEarnings = useMemo(
+    () => history.reduce((sum, d) => sum + d.amount, 0),
+    [history],
+  );
+  const avgDaily = useMemo(
+    () => (history.length > 0 ? totalEarnings / history.length : 0),
+    [history, totalEarnings],
+  );
+  const maxEarning = useMemo(
+    () => Math.max(...history.map((d) => d.amount), 1),
+    [history],
+  );
 
   if (loading) {
     return (
@@ -728,8 +819,8 @@ function EarningsAnalytics() {
             onClick={() => setPeriod(days as 7 | 14 | 30)}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
               period === days
-                ? 'bg-primary-500 text-white'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
+                ? "bg-primary-500 text-white"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
             }`}
           >
             {days} jours
@@ -766,7 +857,9 @@ function EarningsAnalytics() {
           {history.map((day, index) => {
             const height = (day.amount / maxEarning) * 100;
             const date = new Date(day.date);
-            const dayLabel = date.toLocaleDateString('fr-FR', { weekday: 'short' });
+            const dayLabel = date.toLocaleDateString("fr-FR", {
+              weekday: "short",
+            });
 
             return (
               <div key={index} className="flex-1 flex flex-col items-center">
@@ -790,31 +883,34 @@ function EarningsAnalytics() {
           Détail par jour
         </h3>
         <div className="space-y-3">
-          {history.slice().reverse().map((day, index) => {
-            const date = new Date(day.date);
-            const dayLabel = date.toLocaleDateString('fr-FR', {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'short',
-            });
+          {history
+            .slice()
+            .reverse()
+            .map((day, index) => {
+              const date = new Date(day.date);
+              const dayLabel = date.toLocaleDateString("fr-FR", {
+                weekday: "long",
+                day: "numeric",
+                month: "short",
+              });
 
-            return (
-              <div
-                key={index}
-                className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
-              >
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
-                    {dayLabel}
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-gray-400" />
+                    <span className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                      {dayLabel}
+                    </span>
+                  </div>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {formatCurrency(day.amount)}
                   </span>
                 </div>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {formatCurrency(day.amount)}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
     </div>

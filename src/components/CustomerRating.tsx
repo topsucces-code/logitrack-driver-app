@@ -1,10 +1,18 @@
-import { useState } from 'react';
-import { Star, X, MapPin, Clock, ThumbsUp, ThumbsDown, AlertCircle } from 'lucide-react';
-import { Button } from './ui/Button';
-import { supabase } from '../lib/supabase';
-import { useToast } from '../contexts/ToastContext';
-import { hapticLight, hapticSuccess } from '../hooks/useHapticFeedback';
-import { logger } from '../utils/logger';
+import { useState } from "react";
+import {
+  Star,
+  X,
+  MapPin,
+  Clock,
+  ThumbsUp,
+  ThumbsDown,
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "./ui/Button";
+import { supabase } from "../lib/supabase";
+import { useToast } from "../contexts/ToastContext";
+import { hapticLight, hapticSuccess } from "../hooks/useHapticFeedback";
+import { logger } from "../utils/logger";
 
 interface CustomerRatingProps {
   deliveryId: string;
@@ -18,18 +26,58 @@ interface RatingTag {
   id: string;
   label: string;
   icon: React.ReactNode;
-  type: 'positive' | 'negative';
+  type: "positive" | "negative";
 }
 
 const RATING_TAGS: RatingTag[] = [
-  { id: 'friendly', label: 'Aimable', icon: <ThumbsUp className="w-4 h-4" />, type: 'positive' },
-  { id: 'quick_response', label: 'Réactif', icon: <Clock className="w-4 h-4" />, type: 'positive' },
-  { id: 'easy_access', label: 'Accès facile', icon: <MapPin className="w-4 h-4" />, type: 'positive' },
-  { id: 'clear_instructions', label: 'Instructions claires', icon: <ThumbsUp className="w-4 h-4" />, type: 'positive' },
-  { id: 'hard_to_find', label: 'Difficile à trouver', icon: <MapPin className="w-4 h-4" />, type: 'negative' },
-  { id: 'unresponsive', label: 'Peu réactif', icon: <Clock className="w-4 h-4" />, type: 'negative' },
-  { id: 'rude', label: 'Impoli', icon: <ThumbsDown className="w-4 h-4" />, type: 'negative' },
-  { id: 'wrong_info', label: 'Infos incorrectes', icon: <AlertCircle className="w-4 h-4" />, type: 'negative' },
+  {
+    id: "friendly",
+    label: "Aimable",
+    icon: <ThumbsUp className="w-4 h-4" />,
+    type: "positive",
+  },
+  {
+    id: "quick_response",
+    label: "Réactif",
+    icon: <Clock className="w-4 h-4" />,
+    type: "positive",
+  },
+  {
+    id: "easy_access",
+    label: "Accès facile",
+    icon: <MapPin className="w-4 h-4" />,
+    type: "positive",
+  },
+  {
+    id: "clear_instructions",
+    label: "Instructions claires",
+    icon: <ThumbsUp className="w-4 h-4" />,
+    type: "positive",
+  },
+  {
+    id: "hard_to_find",
+    label: "Difficile à trouver",
+    icon: <MapPin className="w-4 h-4" />,
+    type: "negative",
+  },
+  {
+    id: "unresponsive",
+    label: "Peu réactif",
+    icon: <Clock className="w-4 h-4" />,
+    type: "negative",
+  },
+  {
+    id: "rude",
+    label: "Impoli",
+    icon: <ThumbsDown className="w-4 h-4" />,
+    type: "negative",
+  },
+  {
+    id: "wrong_info",
+    label: "Infos incorrectes",
+    icon: <AlertCircle className="w-4 h-4" />,
+    type: "negative",
+  },
 ];
 
 export function CustomerRating({
@@ -43,7 +91,7 @@ export function CustomerRating({
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleStarClick = (star: number) => {
@@ -54,15 +102,13 @@ export function CustomerRating({
   const toggleTag = (tagId: string) => {
     hapticLight();
     setSelectedTags((prev) =>
-      prev.includes(tagId)
-        ? prev.filter((t) => t !== tagId)
-        : [...prev, tagId]
+      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId],
     );
   };
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      showError('Veuillez donner une note');
+      showError("Veuillez donner une note");
       return;
     }
 
@@ -71,7 +117,7 @@ export function CustomerRating({
     try {
       // Save rating to database
       const { error } = await supabase
-        .from('logitrack_customer_ratings')
+        .from("logitrack_customer_ratings")
         .insert({
           delivery_id: deliveryId,
           rating,
@@ -81,44 +127,49 @@ export function CustomerRating({
 
       if (error) {
         // If table doesn't exist, try to update the delivery directly
-        logger.warn('Rating table error, falling back to delivery update', { error });
+        logger.warn("Rating table error, falling back to delivery update", {
+          error,
+        });
 
         // Update delivery with customer rating
         await supabase
-          .from('logitrack_deliveries')
+          .from("logitrack_deliveries")
           .update({
             customer_rating_by_driver: rating,
             customer_feedback_by_driver: comment || null,
           })
-          .eq('id', deliveryId);
+          .eq("id", deliveryId);
       }
 
       hapticSuccess();
-      showSuccess('Merci pour votre évaluation !');
+      showSuccess("Merci pour votre évaluation !");
       onSubmit?.();
       onClose();
     } catch (err) {
-      logger.error('Rating error', { error: err });
-      showError('Erreur lors de l\'envoi de l\'évaluation');
+      logger.error("Rating error", { error: err });
+      showError("Erreur lors de l'envoi de l'évaluation");
     }
 
     setSubmitting(false);
   };
 
   const displayRating = hoverRating || rating;
-  const relevantTags = rating >= 4
-    ? RATING_TAGS.filter((t) => t.type === 'positive')
-    : rating > 0 && rating < 4
-    ? RATING_TAGS.filter((t) => t.type === 'negative')
-    : RATING_TAGS;
+  const relevantTags =
+    rating >= 4
+      ? RATING_TAGS.filter((t) => t.type === "positive")
+      : rating > 0 && rating < 4
+        ? RATING_TAGS.filter((t) => t.type === "negative")
+        : RATING_TAGS;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-      <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom max-h-[90vh] overflow-y-auto">
+      <div className="bg-white w-full rounded-t-3xl p-6 safe-bottom max-h-[90dvh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Évaluer le client</h2>
+            <h2 className="text-xl font-bold text-gray-900">
+              Évaluer le client
+            </h2>
             {customerName && (
               <p className="text-sm text-gray-500">{customerName}</p>
             )}
@@ -156,20 +207,20 @@ export function CustomerRating({
                 <Star
                   className={`w-10 h-10 transition-colors ${
                     star <= displayRating
-                      ? 'fill-yellow-400 text-yellow-400'
-                      : 'text-gray-300'
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-300"
                   }`}
                 />
               </button>
             ))}
           </div>
           <p className="text-center text-sm text-gray-500 mt-2">
-            {rating === 0 && 'Touchez pour noter'}
-            {rating === 1 && 'Très mauvais'}
-            {rating === 2 && 'Mauvais'}
-            {rating === 3 && 'Correct'}
-            {rating === 4 && 'Bien'}
-            {rating === 5 && 'Excellent'}
+            {rating === 0 && "Touchez pour noter"}
+            {rating === 1 && "Très mauvais"}
+            {rating === 2 && "Mauvais"}
+            {rating === 3 && "Correct"}
+            {rating === 4 && "Bien"}
+            {rating === 5 && "Excellent"}
           </p>
         </div>
 
@@ -177,7 +228,8 @@ export function CustomerRating({
         {rating > 0 && (
           <div className="mb-6">
             <p className="text-sm font-medium text-gray-700 mb-3">
-              Qu'est-ce qui a {rating >= 4 ? 'bien fonctionné' : 'posé problème'} ?
+              Qu'est-ce qui a{" "}
+              {rating >= 4 ? "bien fonctionné" : "posé problème"} ?
             </p>
             <div className="flex flex-wrap gap-2">
               {relevantTags.map((tag) => (
@@ -186,10 +238,10 @@ export function CustomerRating({
                   onClick={() => toggleTag(tag.id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
                     selectedTags.includes(tag.id)
-                      ? tag.type === 'positive'
-                        ? 'bg-green-100 text-green-700 border-2 border-green-500'
-                        : 'bg-red-100 text-red-700 border-2 border-red-500'
-                      : 'bg-gray-100 text-gray-700 border-2 border-transparent'
+                      ? tag.type === "positive"
+                        ? "bg-green-100 text-green-700 border-2 border-green-500"
+                        : "bg-red-100 text-red-700 border-2 border-red-500"
+                      : "bg-gray-100 text-gray-700 border-2 border-transparent"
                   }`}
                 >
                   {tag.icon}
@@ -228,11 +280,7 @@ export function CustomerRating({
             Envoyer l'évaluation
           </Button>
 
-          <Button
-            onClick={onClose}
-            variant="ghost"
-            fullWidth
-          >
+          <Button onClick={onClose} variant="ghost" fullWidth>
             Passer
           </Button>
         </div>

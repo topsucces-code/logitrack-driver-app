@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   ArrowUpRight,
   Wallet,
@@ -9,19 +9,16 @@ import {
   ChevronDown,
   Info,
   RotateCcw,
-} from 'lucide-react';
-import {
-  MobileMoneyWallet,
-  MobileMoneyProvider,
-} from '../types/mobileMoney';
+} from "lucide-react";
+import { MobileMoneyWallet, MobileMoneyProvider } from "../types/mobileMoney";
 import {
   MOBILE_MONEY_PROVIDERS,
   getWallets,
   initiateWithdrawal,
   calculateFees,
   formatCurrency,
-} from '../services/mobileMoneyService';
-import { paymentLogger } from '../utils/logger';
+} from "../services/mobileMoneyService";
+import { paymentLogger } from "../utils/logger";
 
 interface MobileMoneyWithdrawProps {
   onClose: () => void;
@@ -35,11 +32,12 @@ export function MobileMoneyWithdraw({
   maxAmount,
 }: MobileMoneyWithdrawProps) {
   const [wallets, setWallets] = useState<MobileMoneyWallet[]>([]);
-  const [selectedWallet, setSelectedWallet] = useState<MobileMoneyWallet | null>(null);
-  const [amount, setAmount] = useState('');
+  const [selectedWallet, setSelectedWallet] =
+    useState<MobileMoneyWallet | null>(null);
+  const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showWalletPicker, setShowWalletPicker] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -54,33 +52,37 @@ export function MobileMoneyWithdraw({
       const data = await getWallets();
       setWallets(data);
       // Sélectionner le wallet par défaut
-      const defaultWallet = data.find(w => w.isDefault) || data[0];
+      const defaultWallet = data.find((w) => w.isDefault) || data[0];
       setSelectedWallet(defaultWallet || null);
     } catch (error) {
-      paymentLogger.error('Erreur chargement wallets', { error });
+      paymentLogger.error("Erreur chargement wallets", { error });
     } finally {
       setLoading(false);
     }
   };
 
   const amountNum = parseInt(amount) || 0;
-  const fees = selectedWallet ? calculateFees(amountNum, selectedWallet.provider) : 0;
+  const fees = selectedWallet
+    ? calculateFees(amountNum, selectedWallet.provider)
+    : 0;
   const totalAmount = amountNum + fees;
   const availableBalance = maxAmount ?? (selectedWallet?.balance || 0);
-  const provider = selectedWallet ? MOBILE_MONEY_PROVIDERS[selectedWallet.provider] : null;
+  const provider = selectedWallet
+    ? MOBILE_MONEY_PROVIDERS[selectedWallet.provider]
+    : null;
 
   const quickAmounts = [5000, 10000, 25000, 50000];
 
   const handleAmountChange = (value: string) => {
     // Garder uniquement les chiffres
-    const cleaned = value.replace(/\D/g, '');
+    const cleaned = value.replace(/\D/g, "");
     setAmount(cleaned);
-    setError('');
+    setError("");
   };
 
   const handleQuickAmount = (value: number) => {
     setAmount(value.toString());
-    setError('');
+    setError("");
   };
 
   const handleWithdraw = async (isRetry = false) => {
@@ -88,7 +90,7 @@ export function MobileMoneyWithdraw({
 
     // Validations
     if (amountNum > availableBalance) {
-      setError('Solde insuffisant');
+      setError("Solde insuffisant");
       return;
     }
 
@@ -98,10 +100,10 @@ export function MobileMoneyWithdraw({
     }
 
     setProcessing(true);
-    setError('');
+    setError("");
 
     if (isRetry) {
-      setRetryCount(prev => prev + 1);
+      setRetryCount((prev) => prev + 1);
     } else {
       setRetryCount(0);
     }
@@ -121,10 +123,10 @@ export function MobileMoneyWithdraw({
           onClose();
         }, 2000);
       } else {
-        setError(result.error || 'Erreur lors du retrait');
+        setError(result.error || "Erreur lors du retrait");
       }
     } catch (err) {
-      setError('Erreur de connexion');
+      setError("Erreur de connexion");
     } finally {
       setProcessing(false);
     }
@@ -157,7 +159,8 @@ export function MobileMoneyWithdraw({
             Retrait initié !
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
-            {formatCurrency(amountNum)} en cours de transfert vers votre compte {provider?.name}
+            {formatCurrency(amountNum)} en cours de transfert vers votre compte{" "}
+            {provider?.name}
           </p>
           <p className="text-sm text-gray-400">
             Vous recevrez une confirmation par SMS
@@ -169,7 +172,7 @@ export function MobileMoneyWithdraw({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[90dvh] overflow-y-auto animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -210,7 +213,7 @@ export function MobileMoneyWithdraw({
                 <div className="flex items-center gap-3">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                    style={{ backgroundColor: provider.color + '20' }}
+                    style={{ backgroundColor: provider.color + "20" }}
                   >
                     {provider.icon}
                   </div>
@@ -258,10 +261,10 @@ export function MobileMoneyWithdraw({
                   disabled={qAmount > availableBalance}
                   className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
                     amount === qAmount.toString()
-                      ? 'bg-primary-500 text-white'
+                      ? "bg-primary-500 text-white"
                       : qAmount > availableBalance
-                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        ? "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
                   {(qAmount / 1000).toFixed(0)}K
@@ -280,19 +283,29 @@ export function MobileMoneyWithdraw({
           {amountNum > 0 && (
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Montant</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  Montant
+                </span>
                 <span className="text-gray-900 dark:text-white font-medium">
                   {formatCurrency(amountNum)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500 dark:text-gray-400">Frais</span>
-                <span className={fees === 0 ? 'text-green-500' : 'text-gray-900 dark:text-white'}>
-                  {fees === 0 ? 'Gratuit' : formatCurrency(fees)}
+                <span
+                  className={
+                    fees === 0
+                      ? "text-green-500"
+                      : "text-gray-900 dark:text-white"
+                  }
+                >
+                  {fees === 0 ? "Gratuit" : formatCurrency(fees)}
                 </span>
               </div>
               <div className="border-t border-gray-200 dark:border-gray-600 pt-3 flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300 font-medium">Total</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
+                  Total
+                </span>
                 <span className="text-gray-900 dark:text-white font-bold">
                   {formatCurrency(totalAmount)}
                 </span>
@@ -301,7 +314,7 @@ export function MobileMoneyWithdraw({
           )}
 
           {/* Info frais Wave */}
-          {provider?.id === 'wave' && (
+          {provider?.id === "wave" && (
             <div className="flex items-start gap-2 p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
               <Info className="w-5 h-5 text-cyan-500 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-cyan-700 dark:text-cyan-400">
@@ -315,12 +328,16 @@ export function MobileMoneyWithdraw({
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  {error}
+                </p>
               </div>
               {retryCount < MAX_RETRIES && (
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-red-400 dark:text-red-500">
-                    {retryCount > 0 ? `Tentative ${retryCount}/${MAX_RETRIES}` : ''}
+                    {retryCount > 0
+                      ? `Tentative ${retryCount}/${MAX_RETRIES}`
+                      : ""}
                   </span>
                   <button
                     onClick={handleRetryWithdrawal}
@@ -334,7 +351,8 @@ export function MobileMoneyWithdraw({
               )}
               {retryCount >= MAX_RETRIES && (
                 <p className="mt-2 text-xs text-red-400 dark:text-red-500">
-                  Nombre maximum de tentatives atteint. Veuillez réessayer plus tard.
+                  Nombre maximum de tentatives atteint. Veuillez réessayer plus
+                  tard.
                 </p>
               )}
             </div>
@@ -354,7 +372,7 @@ export function MobileMoneyWithdraw({
             ) : (
               <>
                 <ArrowUpRight className="w-5 h-5" />
-                Retirer {amountNum > 0 ? formatCurrency(amountNum) : ''}
+                Retirer {amountNum > 0 ? formatCurrency(amountNum) : ""}
               </>
             )}
           </button>
@@ -391,7 +409,7 @@ function WalletPickerModal({
 }) {
   return (
     <div className="fixed inset-0 bg-black/40 z-[60] flex items-end justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl w-full max-h-[60vh] overflow-y-auto animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl w-full max-h-[60dvh] overflow-y-auto animate-slide-up">
         <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <h3 className="font-semibold text-gray-900 dark:text-white">
             Choisir un compte
@@ -412,13 +430,13 @@ function WalletPickerModal({
                 onClick={() => onSelect(wallet)}
                 className={`w-full flex items-center gap-3 p-4 rounded-lg border-2 transition-all ${
                   isSelected
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800'
+                    ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
+                    : "border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
                 }`}
               >
                 <div
                   className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
-                  style={{ backgroundColor: provider.color + '20' }}
+                  style={{ backgroundColor: provider.color + "20" }}
                 >
                   {provider.icon}
                 </div>

@@ -341,7 +341,7 @@ export default function DashboardPage() {
 
   if (!driver) {
     return (
-      <div className="h-screen flex items-center justify-center">
+      <div className="h-mobile-screen flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -351,7 +351,7 @@ export default function DashboardPage() {
   const driverRating = calculateRating(driver.rating_sum, driver.rating_count);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-mobile-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-primary-500 text-white safe-top px-3 pt-3 pb-3">
         <div className="flex items-center justify-between mb-3">
@@ -436,7 +436,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto" {...pullToRefreshProps}>
+      <div className="flex-1 overflow-y-auto pb-16" {...pullToRefreshProps}>
         <PullToRefreshIndicator
           pullDistance={pullDistance}
           pullState={pullState}

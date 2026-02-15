@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { deliveryLogger } from '../utils/logger';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { deliveryLogger } from "../utils/logger";
 import {
   ArrowLeft,
   MapPin,
@@ -18,29 +18,29 @@ import {
   SwitchCamera,
   Eraser,
   Pencil,
-} from 'lucide-react';
-import { GoogleMap, MarkerF } from '@react-google-maps/api';
-import { useGoogleMaps } from '../components/GoogleMapsProvider';
-import { useAuth } from '../contexts/AuthContext';
-import { useLocation } from '../contexts/LocationContext';
-import { supabase, Delivery } from '../lib/supabase';
-import { MAP_CONFIG } from '../config/app.config';
+} from "lucide-react";
+import { GoogleMap, MarkerF } from "@react-google-maps/api";
+import { useGoogleMaps } from "../components/GoogleMapsProvider";
+import { useAuth } from "../contexts/AuthContext";
+import { useLocation } from "../contexts/LocationContext";
+import { supabase, Delivery } from "../lib/supabase";
+import { MAP_CONFIG } from "../config/app.config";
 import {
   PICKUP_MARKER_URL,
   DELIVERY_MARKER_URL,
   DRIVER_MARKER_URL,
   MARKER_SIZE,
   MARKER_ANCHOR,
-} from '../config/mapIcons';
-import { useToast } from '../contexts/ToastContext';
-import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
-import { SOSButton } from '../components/SOSButton';
-import { NavigationButton } from '../components/NavigationButton';
-import { NavigationMapView } from '../components/NavigationMapView';
-import { Button } from '../components/ui/Button';
-import { CustomerRating } from '../components/CustomerRating';
-import { CommunicationButton } from '../components/DeliveryCommunication';
-import { ShareTrackingButton } from '../components/ShareTracking';
+} from "../config/mapIcons";
+import { useToast } from "../contexts/ToastContext";
+import { useRealtimeSubscription } from "../hooks/useRealtimeSubscription";
+import { SOSButton } from "../components/SOSButton";
+import { NavigationButton } from "../components/NavigationButton";
+import { NavigationMapView } from "../components/NavigationMapView";
+import { Button } from "../components/ui/Button";
+import { CustomerRating } from "../components/CustomerRating";
+import { CommunicationButton } from "../components/DeliveryCommunication";
+import { ShareTrackingButton } from "../components/ShareTracking";
 
 // GPS proximity radius in meters for pickup/delivery validation
 const GPS_PROXIMITY_RADIUS_M = 200;
@@ -48,17 +48,23 @@ const GPS_PROXIMITY_RADIUS_M = 200;
 /**
  * Calculate distance between two coordinates in meters using the Haversine formula.
  */
-function getDistanceMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function getDistanceMeters(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371000; // Earth radius in meters
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
-
 
 function makeMarkerIcon(url: string) {
   return {
@@ -82,15 +88,18 @@ function MiniMap({
   const { isLoaded } = useGoogleMaps();
   const center = pickupCoords || deliveryCoords || MAP_CONFIG.defaultCenter;
 
-  const onLoad = useCallback((map: google.maps.Map) => {
-    const bounds = new google.maps.LatLngBounds();
-    if (pickupCoords) bounds.extend(pickupCoords);
-    if (deliveryCoords) bounds.extend(deliveryCoords);
-    if (driverPos) bounds.extend(driverPos);
-    if (!bounds.isEmpty()) {
-      map.fitBounds(bounds, 30);
-    }
-  }, [pickupCoords, deliveryCoords, driverPos]);
+  const onLoad = useCallback(
+    (map: google.maps.Map) => {
+      const bounds = new google.maps.LatLngBounds();
+      if (pickupCoords) bounds.extend(pickupCoords);
+      if (deliveryCoords) bounds.extend(deliveryCoords);
+      if (driverPos) bounds.extend(driverPos);
+      if (!bounds.isEmpty()) {
+        map.fitBounds(bounds, 30);
+      }
+    },
+    [pickupCoords, deliveryCoords, driverPos],
+  );
 
   if (!isLoaded) {
     return (
@@ -103,13 +112,13 @@ function MiniMap({
   return (
     <div className="h-36 relative">
       <GoogleMap
-        mapContainerStyle={{ width: '100%', height: '100%' }}
+        mapContainerStyle={{ width: "100%", height: "100%" }}
         center={center}
         zoom={MAP_CONFIG.defaultZoom}
         options={{
           disableDefaultUI: true,
           zoomControl: false,
-          gestureHandling: 'none',
+          gestureHandling: "none",
         }}
         onLoad={onLoad}
       >
@@ -117,14 +126,16 @@ function MiniMap({
           <MarkerF
             position={pickupCoords}
             icon={makeMarkerIcon(PICKUP_MARKER_URL)}
-            title={delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}
+            title={
+              delivery.pickup_contact_name || delivery.vendor_name || "Pickup"
+            }
           />
         )}
         {deliveryCoords && (
           <MarkerF
             position={deliveryCoords}
             icon={makeMarkerIcon(DELIVERY_MARKER_URL)}
-            title={delivery.delivery_contact_name || 'Livraison'}
+            title={delivery.delivery_contact_name || "Livraison"}
           />
         )}
         {driverPos && (
@@ -152,33 +163,39 @@ export default function DeliveryDetailPage() {
   const [showProofModal, setShowProofModal] = useState(() => {
     // Restore proof modal state after camera killed the WebView
     try {
-      const saved = localStorage.getItem('proof_pending');
+      const saved = localStorage.getItem("proof_pending");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.deliveryId === id) return true;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return false;
   });
   const [proofPhoto, setProofPhoto] = useState<string | null>(null);
   const [recipientName, setRecipientName] = useState(() => {
     try {
-      const saved = localStorage.getItem('proof_pending');
+      const saved = localStorage.getItem("proof_pending");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.deliveryId === id) return parsed.recipientName || '';
+        if (parsed.deliveryId === id) return parsed.recipientName || "";
       }
-    } catch { /* ignore */ }
-    return '';
+    } catch {
+      /* ignore */
+    }
+    return "";
   });
   const [proofRestored, setProofRestored] = useState(() => {
     try {
-      const saved = localStorage.getItem('proof_pending');
+      const saved = localStorage.getItem("proof_pending");
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.deliveryId === id) return true;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
     return false;
   });
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -187,7 +204,7 @@ export default function DeliveryDetailPage() {
   const [navigationTarget, setNavigationTarget] = useState<{
     coords: { lat: number; lng: number };
     label: string;
-    type: 'pickup' | 'delivery';
+    type: "pickup" | "delivery";
   } | null>(null);
 
   // Fetch delivery
@@ -196,14 +213,14 @@ export default function DeliveryDetailPage() {
 
     async function fetchDelivery() {
       const { data, error } = await supabase
-        .from('logitrack_deliveries')
-        .select('*')
-        .eq('id', id)
+        .from("logitrack_deliveries")
+        .select("*")
+        .eq("id", id)
         .single();
 
       if (error) {
-        showError('Course introuvable');
-        navigate('/');
+        showError("Course introuvable");
+        navigate("/");
         return;
       }
 
@@ -217,8 +234,8 @@ export default function DeliveryDetailPage() {
   // Subscribe to updates with graceful cleanup
   useRealtimeSubscription({
     channelName: `logitrack-delivery-${id}`,
-    table: 'logitrack_deliveries',
-    event: 'UPDATE',
+    table: "logitrack_deliveries",
+    event: "UPDATE",
     filter: id ? `id=eq.${id}` : undefined,
     onPayload: useCallback((payload) => {
       setDelivery(payload.new as Delivery);
@@ -226,11 +243,14 @@ export default function DeliveryDetailPage() {
   });
 
   // Update delivery status
-  async function updateStatus(newStatus: string, extraData?: Record<string, any>) {
+  async function updateStatus(
+    newStatus: string,
+    extraData?: Record<string, any>,
+  ) {
     if (!delivery) return;
 
     // GPS proximity validation only for picked_up and delivered
-    const needsGps = ['picked_up', 'delivered'].includes(newStatus);
+    const needsGps = ["picked_up", "delivered"].includes(newStatus);
 
     // Try to get position: use cached position or fetch fresh one
     let currentPos = position;
@@ -244,24 +264,40 @@ export default function DeliveryDetailPage() {
 
     // GPS proximity check (soft: warn but don't block if GPS unavailable)
     if (needsGps && currentPos) {
-      if (newStatus === 'picked_up' && delivery.pickup_latitude && delivery.pickup_longitude) {
+      if (
+        newStatus === "picked_up" &&
+        delivery.pickup_latitude &&
+        delivery.pickup_longitude
+      ) {
         const dist = getDistanceMeters(
-          currentPos.lat, currentPos.lng,
-          Number(delivery.pickup_latitude), Number(delivery.pickup_longitude)
+          currentPos.lat,
+          currentPos.lng,
+          Number(delivery.pickup_latitude),
+          Number(delivery.pickup_longitude),
         );
         if (dist > GPS_PROXIMITY_RADIUS_M) {
-          showError(`Vous êtes à ${Math.round(dist)}m du point de collecte. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
+          showError(
+            `Vous êtes à ${Math.round(dist)}m du point de collecte. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`,
+          );
           return;
         }
       }
 
-      if (newStatus === 'delivered' && delivery.delivery_latitude && delivery.delivery_longitude) {
+      if (
+        newStatus === "delivered" &&
+        delivery.delivery_latitude &&
+        delivery.delivery_longitude
+      ) {
         const dist = getDistanceMeters(
-          currentPos.lat, currentPos.lng,
-          Number(delivery.delivery_latitude), Number(delivery.delivery_longitude)
+          currentPos.lat,
+          currentPos.lng,
+          Number(delivery.delivery_latitude),
+          Number(delivery.delivery_longitude),
         );
         if (dist > GPS_PROXIMITY_RADIUS_M) {
-          showError(`Vous êtes à ${Math.round(dist)}m du point de livraison. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`);
+          showError(
+            `Vous êtes à ${Math.round(dist)}m du point de livraison. Rapprochez-vous (max ${GPS_PROXIMITY_RADIUS_M}m).`,
+          );
           return;
         }
       }
@@ -270,7 +306,7 @@ export default function DeliveryDetailPage() {
     setUpdating(true);
 
     try {
-      const { data, error } = await supabase.rpc('update_delivery_status', {
+      const { data, error } = await supabase.rpc("update_delivery_status", {
         p_delivery_id: delivery.id,
         p_status: newStatus,
         p_lat: currentPos?.lat || 0,
@@ -279,24 +315,26 @@ export default function DeliveryDetailPage() {
       });
 
       if (error || !data?.success) {
-        showError(data?.error || error?.message || 'Erreur lors de la mise à jour');
+        showError(
+          data?.error || error?.message || "Erreur lors de la mise à jour",
+        );
       } else {
         // Refresh delivery data immediately (don't wait for realtime)
         const { data: updated } = await supabase
-          .from('logitrack_deliveries')
-          .select('*')
-          .eq('id', delivery.id)
+          .from("logitrack_deliveries")
+          .select("*")
+          .eq("id", delivery.id)
           .single();
         if (updated) setDelivery(updated as Delivery);
 
-        if (newStatus === 'delivered') {
+        if (newStatus === "delivered") {
           refreshDriver();
           setDeliveryCompleted(true);
           setShowRatingModal(true);
         }
       }
     } catch (err) {
-      showError('Erreur réseau. Vérifiez votre connexion.');
+      showError("Erreur réseau. Vérifiez votre connexion.");
     } finally {
       setUpdating(false);
     }
@@ -305,16 +343,23 @@ export default function DeliveryDetailPage() {
   // Save proof state to localStorage (without photo - too large for localStorage)
   function saveProofState() {
     try {
-      localStorage.setItem('proof_pending', JSON.stringify({
-        deliveryId: delivery?.id || id,
-        recipientName,
-      }));
-    } catch { /* quota exceeded or unavailable */ }
+      localStorage.setItem(
+        "proof_pending",
+        JSON.stringify({
+          deliveryId: delivery?.id || id,
+          recipientName,
+        }),
+      );
+    } catch {
+      /* quota exceeded or unavailable */
+    }
   }
 
   // In-app camera state
   const [showInAppCamera, setShowInAppCamera] = useState(false);
-  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [facingMode, setFacingMode] = useState<"environment" | "user">(
+    "environment",
+  );
   const videoNodeRef = useRef<HTMLVideoElement | null>(null);
   const activeStreamRef = useRef<MediaStream | null>(null);
 
@@ -323,12 +368,16 @@ export default function DeliveryDetailPage() {
   const sigCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  async function openCameraStream(facing: 'environment' | 'user') {
+  async function openCameraStream(facing: "environment" | "user") {
     // Stop any existing stream
-    activeStreamRef.current?.getTracks().forEach(t => t.stop());
+    activeStreamRef.current?.getTracks().forEach((t) => t.stop());
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 960 } },
+        video: {
+          facingMode: facing,
+          width: { ideal: 1280 },
+          height: { ideal: 960 },
+        },
         audio: false,
       });
       activeStreamRef.current = stream;
@@ -337,20 +386,20 @@ export default function DeliveryDetailPage() {
         videoNodeRef.current.play().catch(() => {});
       }
     } catch (err) {
-      deliveryLogger.error('getUserMedia error', { error: err });
-      showError('Impossible d\'accéder à la caméra');
+      deliveryLogger.error("getUserMedia error", { error: err });
+      showError("Impossible d'accéder à la caméra");
       setShowInAppCamera(false);
     }
   }
 
   function stopCameraStream() {
-    activeStreamRef.current?.getTracks().forEach(t => t.stop());
+    activeStreamRef.current?.getTracks().forEach((t) => t.stop());
     activeStreamRef.current = null;
     setShowInAppCamera(false);
   }
 
   function switchCamera() {
-    const newFacing = facingMode === 'environment' ? 'user' : 'environment';
+    const newFacing = facingMode === "environment" ? "user" : "environment";
     setFacingMode(newFacing);
     openCameraStream(newFacing);
   }
@@ -358,13 +407,13 @@ export default function DeliveryDetailPage() {
   function captureFrame() {
     const video = videoNodeRef.current;
     if (!video) return;
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
     setProofPhoto(dataUrl);
     setProofRestored(false);
     stopCameraStream();
@@ -373,14 +422,16 @@ export default function DeliveryDetailPage() {
   // Open camera (in-app to avoid Android killing WebView)
   async function takePhoto() {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
-      stream.getTracks().forEach(t => t.stop());
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode },
+      });
+      stream.getTracks().forEach((t) => t.stop());
       setShowInAppCamera(true);
       // Small delay to let the video element mount
       setTimeout(() => openCameraStream(facingMode), 100);
     } catch (err) {
-      deliveryLogger.error('Camera permission denied', { error: err });
-      showError('Autorisez l\'accès à la caméra dans les paramètres');
+      deliveryLogger.error("Camera permission denied", { error: err });
+      showError("Autorisez l'accès à la caméra dans les paramètres");
     }
   }
 
@@ -391,7 +442,7 @@ export default function DeliveryDetailPage() {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    if ('touches' in e) {
+    if ("touches" in e) {
       return {
         x: (e.touches[0].clientX - rect.left) * scaleX,
         y: (e.touches[0].clientY - rect.top) * scaleY,
@@ -406,7 +457,7 @@ export default function DeliveryDetailPage() {
   function startDrawing(e: React.MouseEvent | React.TouchEvent) {
     e.preventDefault();
     setIsDrawing(true);
-    const ctx = sigCanvasRef.current?.getContext('2d');
+    const ctx = sigCanvasRef.current?.getContext("2d");
     if (!ctx) return;
     const { x, y } = getCanvasXY(e);
     ctx.beginPath();
@@ -416,14 +467,14 @@ export default function DeliveryDetailPage() {
   function draw(e: React.MouseEvent | React.TouchEvent) {
     e.preventDefault();
     if (!isDrawing) return;
-    const ctx = sigCanvasRef.current?.getContext('2d');
+    const ctx = sigCanvasRef.current?.getContext("2d");
     if (!ctx) return;
     const { x, y } = getCanvasXY(e);
     ctx.lineTo(x, y);
-    ctx.strokeStyle = '#1a1a1a';
+    ctx.strokeStyle = "#1a1a1a";
     ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.stroke();
   }
 
@@ -431,14 +482,14 @@ export default function DeliveryDetailPage() {
     if (!isDrawing) return;
     setIsDrawing(false);
     if (sigCanvasRef.current) {
-      setSignatureData(sigCanvasRef.current.toDataURL('image/png'));
+      setSignatureData(sigCanvasRef.current.toDataURL("image/png"));
     }
   }
 
   function clearSignature() {
     const canvas = sigCanvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setSignatureData(null);
@@ -453,53 +504,57 @@ export default function DeliveryDetailPage() {
     try {
       // Upload photo to storage
       const photoFileName = `${delivery.id}-${Date.now()}.jpg`;
-      const base64Data = proofPhoto.replace(/^data:image\/\w+;base64,/, '');
+      const base64Data = proofPhoto.replace(/^data:image\/\w+;base64,/, "");
 
       const { error: uploadError } = await supabase.storage
-        .from('delivery-proofs')
+        .from("delivery-proofs")
         .upload(photoFileName, decode(base64Data), {
-          contentType: 'image/jpeg',
+          contentType: "image/jpeg",
         });
 
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
-        .from('delivery-proofs')
+        .from("delivery-proofs")
         .getPublicUrl(photoFileName);
 
       // Upload signature if present
       let signatureUrl: string | null = null;
       if (signatureData) {
         const sigFileName = `${delivery.id}-sig-${Date.now()}.png`;
-        const sigBase64 = signatureData.replace(/^data:image\/\w+;base64,/, '');
+        const sigBase64 = signatureData.replace(/^data:image\/\w+;base64,/, "");
 
         const { error: sigError } = await supabase.storage
-          .from('delivery-proofs')
+          .from("delivery-proofs")
           .upload(sigFileName, decode(sigBase64), {
-            contentType: 'image/png',
+            contentType: "image/png",
           });
 
         if (!sigError) {
           const { data: sigUrl } = supabase.storage
-            .from('delivery-proofs')
+            .from("delivery-proofs")
             .getPublicUrl(sigFileName);
           signatureUrl = sigUrl.publicUrl;
         }
       }
 
       // Update status with proof
-      await updateStatus('delivered', {
+      await updateStatus("delivered", {
         p_confirmation_photo_url: urlData.publicUrl,
         p_recipient_name: recipientName || null,
         ...(signatureUrl ? { p_signature_url: signatureUrl } : {}),
       });
 
-      try { localStorage.removeItem('proof_pending'); } catch { /* ignore */ }
+      try {
+        localStorage.removeItem("proof_pending");
+      } catch {
+        /* ignore */
+      }
       setShowProofModal(false);
       setSignatureData(null);
     } catch (err) {
-      deliveryLogger.error('Error completing delivery', { error: err });
-      showError('Erreur lors de l\'envoi de la preuve');
+      deliveryLogger.error("Error completing delivery", { error: err });
+      showError("Erreur lors de l'envoi de la preuve");
     }
 
     setUpdating(false);
@@ -507,67 +562,81 @@ export default function DeliveryDetailPage() {
 
   // Call phone number
   function callPhone(phone: string) {
-    window.open(`tel:${phone}`, '_system');
+    window.open(`tel:${phone}`, "_system");
   }
 
   if (loading || !delivery) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-mobile-screen flex items-center justify-center bg-gray-50">
         <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   // Get coordinates from the new schema
-  const pickupCoords = delivery.pickup_latitude && delivery.pickup_longitude
-    ? { lat: Number(delivery.pickup_latitude), lng: Number(delivery.pickup_longitude) }
-    : null;
-  const deliveryCoords = delivery.delivery_latitude && delivery.delivery_longitude
-    ? { lat: Number(delivery.delivery_latitude), lng: Number(delivery.delivery_longitude) }
-    : null;
+  const pickupCoords =
+    delivery.pickup_latitude && delivery.pickup_longitude
+      ? {
+          lat: Number(delivery.pickup_latitude),
+          lng: Number(delivery.pickup_longitude),
+        }
+      : null;
+  const deliveryCoords =
+    delivery.delivery_latitude && delivery.delivery_longitude
+      ? {
+          lat: Number(delivery.delivery_latitude),
+          lng: Number(delivery.delivery_longitude),
+        }
+      : null;
 
   const trackingLabel = delivery.tracking_code
     ? `Détails #${delivery.tracking_code}`
-    : 'Détails';
+    : "Détails";
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900" style={{ height: '100dvh' }}>
+    <div className="h-mobile-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Breadcrumb */}
       <nav className="bg-white dark:bg-gray-800 safe-top px-3 py-2 flex items-center text-xs">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         >
           Accueil
         </button>
         <ChevronRight className="w-3 h-3 text-gray-400 mx-1 flex-shrink-0" />
         <button
-          onClick={() => navigate('/history')}
+          onClick={() => navigate("/history")}
           className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
         >
           Courses
         </button>
         <ChevronRight className="w-3 h-3 text-gray-400 mx-1 flex-shrink-0" />
-        <span className="text-gray-900 dark:text-white font-medium truncate">{trackingLabel}</span>
+        <span className="text-gray-900 dark:text-white font-medium truncate">
+          {trackingLabel}
+        </span>
       </nav>
 
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 py-2.5 flex items-center gap-2.5">
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center"
         >
           <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
         </button>
         <div className="flex-1">
-          <h1 className="font-semibold text-gray-900 dark:text-white text-sm">Course #{delivery.id.slice(0, 8)}</h1>
+          <h1 className="font-semibold text-gray-900 dark:text-white text-sm">
+            Course #{delivery.id.slice(0, 8)}
+          </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-            {delivery.status === 'assigned' && 'Nouvelle course assignée'}
-            {delivery.status === 'accepted' && 'Assignée - En route vers pickup'}
-            {delivery.status === 'picking_up' && 'En route vers le point de collecte'}
-            {delivery.status === 'picked_up' && 'Colis récupéré'}
-            {delivery.status === 'in_transit' && 'En transit vers le client'}
-            {delivery.status === 'arriving' && 'Arrivé - Livraison en cours'}
+            {delivery.status === "assigned" && "Nouvelle course assignée"}
+            {delivery.status === "accepted" &&
+              "Assignée - En route vers pickup"}
+            {delivery.status === "picking_up" &&
+              "En route vers le point de collecte"}
+            {delivery.status === "picked_up" && "Colis récupéré"}
+            {delivery.status === "in_transit" && "En transit vers le client"}
+            {delivery.status === "arriving" && "Arrivé - Livraison en cours"}
           </p>
         </div>
         {delivery.is_express && (
@@ -591,21 +660,31 @@ export default function DeliveryDetailPage() {
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
         {/* Pickup */}
-        <div className={`bg-white dark:bg-gray-800 rounded-lg p-3 ${
-          ['assigned', 'accepted', 'picking_up'].includes(delivery.status)
-            ? 'border-2 border-green-500'
-            : ''
-        }`}>
+        <div
+          className={`bg-white dark:bg-gray-800 rounded-lg p-3 ${
+            ["assigned", "accepted", "picking_up"].includes(delivery.status)
+              ? "border-2 border-green-500"
+              : ""
+          }`}
+        >
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <MapPin className="w-3.5 h-3.5 text-green-600" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400">Point de collecte</p>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">{delivery.pickup_contact_name || delivery.vendor_name || 'Pickup'}</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                Point de collecte
+              </p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                {delivery.pickup_contact_name ||
+                  delivery.vendor_name ||
+                  "Pickup"}
+              </p>
             </div>
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1.5">{delivery.pickup_address}</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1.5">
+            {delivery.pickup_address}
+          </p>
           {delivery.pickup_instructions && (
             <p className="text-xs text-gray-500 italic mb-2">
               Instructions: {delivery.pickup_instructions}
@@ -613,7 +692,11 @@ export default function DeliveryDetailPage() {
           )}
           <div className="flex gap-2">
             <button
-              onClick={() => callPhone(delivery.pickup_contact_phone || delivery.vendor_phone || '')}
+              onClick={() =>
+                callPhone(
+                  delivery.pickup_contact_phone || delivery.vendor_phone || "",
+                )
+              }
               className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700"
             >
               <Phone className="w-4 h-4" />
@@ -630,8 +713,8 @@ export default function DeliveryDetailPage() {
                 onInAppNavigate={() => {
                   setNavigationTarget({
                     coords: pickupCoords,
-                    label: delivery.pickup_address || 'Point de collecte',
-                    type: 'pickup',
+                    label: delivery.pickup_address || "Point de collecte",
+                    type: "pickup",
                   });
                   setShowNavigationMap(true);
                 }}
@@ -641,21 +724,29 @@ export default function DeliveryDetailPage() {
         </div>
 
         {/* Delivery */}
-        <div className={`bg-white dark:bg-gray-800 rounded-lg p-3 ${
-          ['picked_up', 'in_transit', 'arriving'].includes(delivery.status)
-            ? 'border-2 border-red-500'
-            : ''
-        }`}>
+        <div
+          className={`bg-white dark:bg-gray-800 rounded-lg p-3 ${
+            ["picked_up", "in_transit", "arriving"].includes(delivery.status)
+              ? "border-2 border-red-500"
+              : ""
+          }`}
+        >
           <div className="flex items-center gap-2 mb-2">
             <div className="w-7 h-7 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <MapPin className="w-3.5 h-3.5 text-red-600" />
             </div>
             <div>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400">Point de livraison</p>
-              <p className="font-semibold text-gray-900 dark:text-white text-sm">{delivery.delivery_contact_name || 'Destination'}</p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                Point de livraison
+              </p>
+              <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                {delivery.delivery_contact_name || "Destination"}
+              </p>
             </div>
           </div>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1.5">{delivery.delivery_address}</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1.5">
+            {delivery.delivery_address}
+          </p>
           {delivery.delivery_instructions && (
             <p className="text-xs text-gray-500 italic mb-2">
               Instructions: {delivery.delivery_instructions}
@@ -663,7 +754,7 @@ export default function DeliveryDetailPage() {
           )}
           <div className="flex gap-2">
             <button
-              onClick={() => callPhone(delivery.delivery_contact_phone || '')}
+              onClick={() => callPhone(delivery.delivery_contact_phone || "")}
               className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700"
             >
               <Phone className="w-4 h-4" />
@@ -680,8 +771,8 @@ export default function DeliveryDetailPage() {
                 onInAppNavigate={() => {
                   setNavigationTarget({
                     coords: deliveryCoords,
-                    label: delivery.delivery_address || 'Point de livraison',
-                    type: 'delivery',
+                    label: delivery.delivery_address || "Point de livraison",
+                    type: "delivery",
                   });
                   setShowNavigationMap(true);
                 }}
@@ -692,8 +783,8 @@ export default function DeliveryDetailPage() {
           <div className="flex gap-2 mt-2">
             <CommunicationButton
               deliveryId={delivery.id}
-              recipientName={delivery.delivery_contact_name || 'Client'}
-              recipientPhone={delivery.delivery_contact_phone || ''}
+              recipientName={delivery.delivery_contact_name || "Client"}
+              recipientPhone={delivery.delivery_contact_phone || ""}
             />
             <ShareTrackingButton
               deliveryId={delivery.id}
@@ -708,12 +799,17 @@ export default function DeliveryDetailPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
             <div className="flex items-center gap-1.5 mb-1.5">
               <Package className="w-4 h-4 text-gray-400" />
-              <p className="font-medium text-gray-900 dark:text-white text-sm">Description du colis</p>
+              <p className="font-medium text-gray-900 dark:text-white text-sm">
+                Description du colis
+              </p>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{delivery.package_description}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {delivery.package_description}
+            </p>
             {delivery.package_size && (
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Taille: <span className="capitalize">{delivery.package_size}</span>
+                Taille:{" "}
+                <span className="capitalize">{delivery.package_size}</span>
               </p>
             )}
           </div>
@@ -729,16 +825,18 @@ export default function DeliveryDetailPage() {
               </p>
             </div>
             <div className="text-right text-sm text-gray-500">
-              <p>{Number(delivery.distance_km)?.toFixed(1) || '?'} km</p>
+              <p>{Number(delivery.distance_km)?.toFixed(1) || "?"} km</p>
               {delivery.tracking_code && <p>#{delivery.tracking_code}</p>}
             </div>
           </div>
         </div>
 
         <button
-          onClick={() => navigate(`/delivery/${delivery.id}/report-incident`, {
-            state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() }
-          })}
+          onClick={() =>
+            navigate(`/delivery/${delivery.id}/report-incident`, {
+              state: { trackingCode: delivery.id.slice(0, 8).toUpperCase() },
+            })
+          }
           className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-sm font-medium transition-colors"
         >
           <AlertTriangle className="w-4 h-4" />
@@ -748,9 +846,9 @@ export default function DeliveryDetailPage() {
 
       {/* Action Button - bottom bar for ALL statuses */}
       <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-3 py-2 safe-bottom">
-        {delivery.status === 'assigned' && (
+        {delivery.status === "assigned" && (
           <Button
-            onClick={() => updateStatus('accepted')}
+            onClick={() => updateStatus("accepted")}
             loading={updating}
             fullWidth
             icon={<CheckCircle className="w-5 h-5" />}
@@ -760,9 +858,9 @@ export default function DeliveryDetailPage() {
           </Button>
         )}
 
-        {delivery.status === 'accepted' && (
+        {delivery.status === "accepted" && (
           <Button
-            onClick={() => updateStatus('picking_up')}
+            onClick={() => updateStatus("picking_up")}
             loading={updating}
             fullWidth
             icon={<Navigation className="w-5 h-5" />}
@@ -772,9 +870,9 @@ export default function DeliveryDetailPage() {
           </Button>
         )}
 
-        {delivery.status === 'picking_up' && (
+        {delivery.status === "picking_up" && (
           <Button
-            onClick={() => updateStatus('picked_up')}
+            onClick={() => updateStatus("picked_up")}
             loading={updating}
             fullWidth
             icon={<Package className="w-5 h-5" />}
@@ -784,9 +882,9 @@ export default function DeliveryDetailPage() {
           </Button>
         )}
 
-        {delivery.status === 'picked_up' && (
+        {delivery.status === "picked_up" && (
           <Button
-            onClick={() => updateStatus('in_transit')}
+            onClick={() => updateStatus("in_transit")}
             loading={updating}
             fullWidth
             icon={<Navigation className="w-5 h-5" />}
@@ -796,9 +894,9 @@ export default function DeliveryDetailPage() {
           </Button>
         )}
 
-        {delivery.status === 'in_transit' && (
+        {delivery.status === "in_transit" && (
           <Button
-            onClick={() => updateStatus('arriving')}
+            onClick={() => updateStatus("arriving")}
             loading={updating}
             fullWidth
             icon={<MapPin className="w-5 h-5" />}
@@ -808,11 +906,13 @@ export default function DeliveryDetailPage() {
           </Button>
         )}
 
-        {delivery.status === 'arriving' && (
+        {delivery.status === "arriving" && (
           <div className="space-y-1.5">
             <div className="flex gap-2">
               <button
-                onClick={() => navigate(`/delivery/${delivery.id}/client-absent`)}
+                onClick={() =>
+                  navigate(`/delivery/${delivery.id}/client-absent`)
+                }
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-medium transition-colors"
               >
                 <UserX className="w-3.5 h-3.5" />
@@ -836,11 +936,21 @@ export default function DeliveryDetailPage() {
         <div className="fixed inset-0 z-[60] bg-black flex flex-col">
           {/* Camera header */}
           <div className="absolute top-0 left-0 right-0 z-10 p-3 pt-6 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
-            <button type="button" onClick={stopCameraStream} className="p-2 rounded-full bg-black/40">
+            <button
+              type="button"
+              onClick={stopCameraStream}
+              className="p-2 rounded-full bg-black/40"
+            >
               <XCircle className="w-6 h-6 text-white" />
             </button>
-            <span className="text-white text-sm font-medium">Photo de preuve</span>
-            <button type="button" onClick={switchCamera} className="p-2 rounded-full bg-black/40">
+            <span className="text-white text-sm font-medium">
+              Photo de preuve
+            </span>
+            <button
+              type="button"
+              onClick={switchCamera}
+              className="p-2 rounded-full bg-black/40"
+            >
               <SwitchCamera className="w-6 h-6 text-white" />
             </button>
           </div>
@@ -862,7 +972,10 @@ export default function DeliveryDetailPage() {
               className="w-18 h-18 rounded-full border-[5px] border-white flex items-center justify-center active:scale-90 transition-transform"
               style={{ width: 72, height: 72 }}
             >
-              <div className="w-14 h-14 rounded-full bg-white" style={{ width: 56, height: 56 }} />
+              <div
+                className="w-14 h-14 rounded-full bg-white"
+                style={{ width: 56, height: 56 }}
+              />
             </button>
           </div>
         </div>
@@ -871,13 +984,18 @@ export default function DeliveryDetailPage() {
       {/* Proof Modal */}
       {showProofModal && !deliveryCompleted && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-          <div className="bg-white dark:bg-gray-800 w-full rounded-t-xl safe-bottom max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 w-full rounded-t-xl safe-bottom max-h-[90dvh] overflow-y-auto">
             <div className="sticky top-0 bg-white dark:bg-gray-800 px-3 pt-3 pb-2 border-b border-gray-100 dark:border-gray-700 z-10">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-gray-900 dark:text-white">Preuve de livraison</h2>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">
+                  Preuve de livraison
+                </h2>
                 <button
                   type="button"
-                  onTouchEnd={(e) => { e.preventDefault(); setShowProofModal(false); }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    setShowProofModal(false);
+                  }}
                   onClick={() => setShowProofModal(false)}
                   className="p-1.5 text-gray-400 hover:text-gray-600"
                 >
@@ -895,7 +1013,9 @@ export default function DeliveryDetailPage() {
                 </label>
                 {proofRestored && !proofPhoto && (
                   <div className="mb-2 px-3 py-2 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-xs text-yellow-800 font-medium">Veuillez reprendre la photo</p>
+                    <p className="text-xs text-yellow-800 font-medium">
+                      Veuillez reprendre la photo
+                    </p>
                   </div>
                 )}
                 {proofPhoto ? (
@@ -907,7 +1027,10 @@ export default function DeliveryDetailPage() {
                     />
                     <button
                       type="button"
-                      onTouchEnd={(e) => { e.preventDefault(); takePhoto(); }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        takePhoto();
+                      }}
                       onClick={takePhoto}
                       className="absolute bottom-2 right-2 px-2.5 py-1.5 bg-black/60 text-white text-xs rounded-lg flex items-center gap-1"
                     >
@@ -918,12 +1041,17 @@ export default function DeliveryDetailPage() {
                 ) : (
                   <button
                     type="button"
-                    onTouchEnd={(e) => { e.preventDefault(); takePhoto(); }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      takePhoto();
+                    }}
                     onClick={takePhoto}
                     className="w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center gap-1.5 text-gray-500 dark:text-gray-400 active:border-primary-500 active:text-primary-500"
                   >
                     <Camera className="w-7 h-7" />
-                    <span className="text-sm font-medium">Prendre une photo</span>
+                    <span className="text-sm font-medium">
+                      Prendre une photo
+                    </span>
                   </button>
                 )}
               </div>
@@ -960,7 +1088,10 @@ export default function DeliveryDetailPage() {
                     </button>
                   )}
                 </div>
-                <div className="relative bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden" style={{ height: 120 }}>
+                <div
+                  className="relative bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden"
+                  style={{ height: 120 }}
+                >
                   <canvas
                     ref={sigCanvasRef}
                     width={700}
@@ -976,7 +1107,9 @@ export default function DeliveryDetailPage() {
                   />
                   {!signatureData && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <p className="text-gray-400 dark:text-gray-500 text-sm">Signez ici avec le doigt</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-sm">
+                        Signez ici avec le doigt
+                      </p>
                     </div>
                   )}
                 </div>
@@ -985,7 +1118,10 @@ export default function DeliveryDetailPage() {
               {/* Confirm button */}
               <button
                 type="button"
-                onTouchEnd={(e) => { e.preventDefault(); if (proofPhoto && !updating) completeDelivery(); }}
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  if (proofPhoto && !updating) completeDelivery();
+                }}
                 onClick={completeDelivery}
                 disabled={!proofPhoto || updating}
                 className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold text-sm rounded-lg disabled:opacity-40 flex items-center justify-center gap-2"
@@ -1006,15 +1142,15 @@ export default function DeliveryDetailPage() {
       {showRatingModal && deliveryCompleted && (
         <CustomerRating
           deliveryId={delivery.id}
-          customerName={delivery.delivery_contact_name || 'Client'}
+          customerName={delivery.delivery_contact_name || "Client"}
           address={delivery.delivery_address}
           onClose={() => {
             setShowRatingModal(false);
-            navigate('/');
+            navigate("/");
           }}
           onSubmit={() => {
             setShowRatingModal(false);
-            navigate('/');
+            navigate("/");
           }}
         />
       )}
@@ -1040,7 +1176,7 @@ function decode(base64: string): Uint8Array {
     bytes[i] = binaryString.charCodeAt(i);
   }
   if (bytes.length === 0) {
-    throw new Error('Photo invalide : données vides');
+    throw new Error("Photo invalide : données vides");
   }
   return bytes;
 }

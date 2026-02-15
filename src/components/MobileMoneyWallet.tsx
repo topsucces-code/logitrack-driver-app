@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Wallet,
   Plus,
@@ -17,7 +17,7 @@ import {
   Phone,
   User,
   AlertCircle,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   MobileMoneyWallet as WalletType,
   MobileMoneyProvider,
@@ -25,7 +25,7 @@ import {
   TransactionStatus,
   TransactionType,
   EarningsSummary,
-} from '../types/mobileMoney';
+} from "../types/mobileMoney";
 import {
   MOBILE_MONEY_PROVIDERS,
   getWallets,
@@ -36,16 +36,20 @@ import {
   removeWallet,
   formatCurrency,
   validatePhoneNumber,
-} from '../services/mobileMoneyService';
-import { paymentLogger } from '../utils/logger';
+} from "../services/mobileMoneyService";
+import { paymentLogger } from "../utils/logger";
 
 interface MobileMoneyDashboardProps {
   onWithdraw?: () => void;
 }
 
-export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) {
+export function MobileMoneyDashboard({
+  onWithdraw,
+}: MobileMoneyDashboardProps) {
   const [wallets, setWallets] = useState<WalletType[]>([]);
-  const [transactions, setTransactions] = useState<MobileMoneyTransaction[]>([]);
+  const [transactions, setTransactions] = useState<MobileMoneyTransaction[]>(
+    [],
+  );
   const [earnings, setEarnings] = useState<EarningsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,7 +66,7 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
       setTransactions(transactionsData);
       setEarnings(earningsData);
     } catch (error) {
-      paymentLogger.error('Erreur chargement données', { error });
+      paymentLogger.error("Erreur chargement données", { error });
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -87,7 +91,7 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
   }
 
   const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0);
-  const defaultWallet = wallets.find(w => w.isDefault);
+  const defaultWallet = wallets.find((w) => w.isDefault);
 
   return (
     <div className="space-y-6">
@@ -100,23 +104,29 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Wallet className="w-5 h-5" />
-              <span className="text-sm font-medium text-white/80">Solde disponible</span>
+              <span className="text-sm font-medium text-white/80">
+                Solde disponible
+              </span>
             </div>
             <button
               onClick={handleRefresh}
               disabled={refreshing}
               className="p-2 hover:bg-white/10 rounded-full transition-colors"
             >
-              <RefreshCcw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCcw
+                className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
+              />
             </button>
           </div>
 
-          <p className="text-4xl font-bold mb-2">{formatCurrency(totalBalance)}</p>
+          <p className="text-4xl font-bold mb-2">
+            {formatCurrency(totalBalance)}
+          </p>
 
           {earnings && earnings.pending > 0 && (
             <p className="text-sm text-white/70 flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              +{formatCurrency(earnings.pending)} en attente
+              <Clock className="w-4 h-4" />+{formatCurrency(earnings.pending)}{" "}
+              en attente
             </p>
           )}
 
@@ -125,19 +135,25 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
             <div>
               <p className="text-xs text-white/60">Aujourd'hui</p>
               <p className="text-lg font-semibold">
-                {earnings ? formatCurrency(earnings.today).replace(' FCFA', '') : '-'}
+                {earnings
+                  ? formatCurrency(earnings.today).replace(" FCFA", "")
+                  : "-"}
               </p>
             </div>
             <div>
               <p className="text-xs text-white/60">Cette semaine</p>
               <p className="text-lg font-semibold">
-                {earnings ? formatCurrency(earnings.thisWeek).replace(' FCFA', '') : '-'}
+                {earnings
+                  ? formatCurrency(earnings.thisWeek).replace(" FCFA", "")
+                  : "-"}
               </p>
             </div>
             <div>
               <p className="text-xs text-white/60">Ce mois</p>
               <p className="text-lg font-semibold">
-                {earnings ? formatCurrency(earnings.thisMonth).replace(' FCFA', '') : '-'}
+                {earnings
+                  ? formatCurrency(earnings.thisMonth).replace(" FCFA", "")
+                  : "-"}
               </p>
             </div>
           </div>
@@ -168,7 +184,7 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
           Mes comptes
         </h3>
         <div className="space-y-2">
-          {wallets.map(wallet => (
+          {wallets.map((wallet) => (
             <WalletCard
               key={wallet.id}
               wallet={wallet}
@@ -179,7 +195,9 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
           {wallets.length === 0 && (
             <div className="text-center py-8">
               <CreditCard className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 dark:text-gray-400">Aucun compte Mobile Money</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                Aucun compte Mobile Money
+              </p>
               <button
                 onClick={() => setShowAddWallet(true)}
                 className="mt-3 text-primary-600 font-medium"
@@ -202,7 +220,7 @@ export function MobileMoneyDashboard({ onWithdraw }: MobileMoneyDashboardProps) 
           </button>
         </div>
         <div className="space-y-2">
-          {transactions.slice(0, 5).map(transaction => (
+          {transactions.slice(0, 5).map((transaction) => (
             <TransactionItem key={transaction.id} transaction={transaction} />
           ))}
           {transactions.length === 0 && (
@@ -245,7 +263,7 @@ function WalletCard({
       <div className="flex items-center gap-3">
         <div
           className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
-          style={{ backgroundColor: provider.color + '20' }}
+          style={{ backgroundColor: provider.color + "20" }}
         >
           {provider.icon}
         </div>
@@ -322,18 +340,22 @@ function WalletCard({
 }
 
 // Item Transaction
-function TransactionItem({ transaction }: { transaction: MobileMoneyTransaction }) {
+function TransactionItem({
+  transaction,
+}: {
+  transaction: MobileMoneyTransaction;
+}) {
   const provider = MOBILE_MONEY_PROVIDERS[transaction.provider];
 
   const getStatusIcon = (status: TransactionStatus) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-      case 'pending':
-      case 'processing':
+      case "pending":
+      case "processing":
         return <Clock className="w-4 h-4 text-yellow-500" />;
-      case 'failed':
-      case 'cancelled':
+      case "failed":
+      case "cancelled":
         return <XCircle className="w-4 h-4 text-red-500" />;
       default:
         return null;
@@ -342,16 +364,36 @@ function TransactionItem({ transaction }: { transaction: MobileMoneyTransaction 
 
   const getTypeInfo = (type: TransactionType) => {
     switch (type) {
-      case 'earnings':
-        return { icon: <ArrowDownLeft className="w-4 h-4" />, color: 'text-green-500', prefix: '+' };
-      case 'withdrawal':
-        return { icon: <ArrowUpRight className="w-4 h-4" />, color: 'text-red-500', prefix: '-' };
-      case 'payment':
-        return { icon: <CreditCard className="w-4 h-4" />, color: 'text-blue-500', prefix: '-' };
-      case 'refund':
-        return { icon: <RefreshCcw className="w-4 h-4" />, color: 'text-purple-500', prefix: '+' };
+      case "earnings":
+        return {
+          icon: <ArrowDownLeft className="w-4 h-4" />,
+          color: "text-green-500",
+          prefix: "+",
+        };
+      case "withdrawal":
+        return {
+          icon: <ArrowUpRight className="w-4 h-4" />,
+          color: "text-red-500",
+          prefix: "-",
+        };
+      case "payment":
+        return {
+          icon: <CreditCard className="w-4 h-4" />,
+          color: "text-blue-500",
+          prefix: "-",
+        };
+      case "refund":
+        return {
+          icon: <RefreshCcw className="w-4 h-4" />,
+          color: "text-purple-500",
+          prefix: "+",
+        };
       default:
-        return { icon: <Wallet className="w-4 h-4" />, color: 'text-gray-500', prefix: '' };
+        return {
+          icon: <Wallet className="w-4 h-4" />,
+          color: "text-gray-500",
+          prefix: "",
+        };
     }
   };
 
@@ -361,7 +403,9 @@ function TransactionItem({ transaction }: { transaction: MobileMoneyTransaction 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center ${typeInfo.color}`}>
+        <div
+          className={`w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center ${typeInfo.color}`}
+        >
           {typeInfo.icon}
         </div>
 
@@ -373,13 +417,18 @@ function TransactionItem({ transaction }: { transaction: MobileMoneyTransaction 
             {getStatusIcon(transaction.status)}
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {date.toLocaleDateString('fr-FR')} à {date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            {date.toLocaleDateString("fr-FR")} à{" "}
+            {date.toLocaleTimeString("fr-FR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </p>
         </div>
 
         <div className="text-right">
           <p className={`font-semibold ${typeInfo.color}`}>
-            {typeInfo.prefix}{formatCurrency(transaction.amount)}
+            {typeInfo.prefix}
+            {formatCurrency(transaction.amount)}
           </p>
           {transaction.fees > 0 && (
             <p className="text-xs text-gray-400">
@@ -400,16 +449,17 @@ function AddWalletModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [step, setStep] = useState<'provider' | 'details'>('provider');
-  const [selectedProvider, setSelectedProvider] = useState<MobileMoneyProvider | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [accountName, setAccountName] = useState('');
+  const [step, setStep] = useState<"provider" | "details">("provider");
+  const [selectedProvider, setSelectedProvider] =
+    useState<MobileMoneyProvider | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const handleSelectProvider = (provider: MobileMoneyProvider) => {
     setSelectedProvider(provider);
-    setStep('details');
+    setStep("details");
   };
 
   const handleSubmit = async () => {
@@ -417,19 +467,19 @@ function AddWalletModal({
 
     const validation = validatePhoneNumber(phoneNumber);
     if (!validation.valid) {
-      setError('Numéro de téléphone invalide');
+      setError("Numéro de téléphone invalide");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     const result = await addWallet(selectedProvider, phoneNumber, accountName);
 
     if (result.success) {
       onSuccess();
     } else {
-      setError(result.error || 'Erreur lors de l\'ajout');
+      setError(result.error || "Erreur lors de l'ajout");
     }
 
     setLoading(false);
@@ -437,11 +487,11 @@ function AddWalletModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[80vh] overflow-y-auto animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[80dvh] overflow-y-auto animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {step === 'provider' ? 'Choisir un opérateur' : 'Détails du compte'}
+            {step === "provider" ? "Choisir un opérateur" : "Détails du compte"}
           </h2>
           <button
             onClick={onClose}
@@ -452,11 +502,11 @@ function AddWalletModal({
         </div>
 
         <div className="p-4">
-          {step === 'provider' ? (
+          {step === "provider" ? (
             <div className="space-y-3">
               {Object.values(MOBILE_MONEY_PROVIDERS)
-                .filter(p => p.isActive)
-                .map(provider => (
+                .filter((p) => p.isActive)
+                .map((provider) => (
                   <button
                     key={provider.id}
                     onClick={() => handleSelectProvider(provider.id)}
@@ -464,7 +514,7 @@ function AddWalletModal({
                   >
                     <div
                       className="w-14 h-14 rounded-lg flex items-center justify-center text-3xl"
-                      style={{ backgroundColor: provider.color + '20' }}
+                      style={{ backgroundColor: provider.color + "20" }}
                     >
                       {provider.icon}
                     </div>
@@ -474,7 +524,7 @@ function AddWalletModal({
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {provider.fees.percentage === 0
-                          ? 'Sans frais'
+                          ? "Sans frais"
                           : `Frais: ${provider.fees.percentage}%`}
                       </p>
                     </div>
@@ -488,7 +538,10 @@ function AddWalletModal({
                 <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                    style={{ backgroundColor: MOBILE_MONEY_PROVIDERS[selectedProvider].color + '20' }}
+                    style={{
+                      backgroundColor:
+                        MOBILE_MONEY_PROVIDERS[selectedProvider].color + "20",
+                    }}
                   >
                     {MOBILE_MONEY_PROVIDERS[selectedProvider].icon}
                   </div>
@@ -497,7 +550,8 @@ function AddWalletModal({
                       {MOBILE_MONEY_PROVIDERS[selectedProvider].name}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Code USSD: {MOBILE_MONEY_PROVIDERS[selectedProvider].ussdCode}
+                      Code USSD:{" "}
+                      {MOBILE_MONEY_PROVIDERS[selectedProvider].ussdCode}
                     </p>
                   </div>
                 </div>
@@ -540,13 +594,15 @@ function AddWalletModal({
               {error && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {error}
+                  </p>
                 </div>
               )}
 
               <div className="flex gap-3 pt-2">
                 <button
-                  onClick={() => setStep('provider')}
+                  onClick={() => setStep("provider")}
                   className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
                 >
                   Retour
@@ -559,7 +615,7 @@ function AddWalletModal({
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    'Ajouter'
+                    "Ajouter"
                   )}
                 </button>
               </div>

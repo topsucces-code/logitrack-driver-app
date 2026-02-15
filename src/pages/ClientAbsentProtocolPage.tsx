@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { deliveryLogger } from '../utils/logger';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { deliveryLogger } from "../utils/logger";
 import {
   ArrowLeft,
   Phone,
@@ -10,11 +10,11 @@ import {
   RotateCcw,
   CheckCircle,
   Info,
-} from 'lucide-react';
-import { supabase, Delivery } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
-import { PROTOCOL_CONFIG } from '../config/app.config';
-import { useToast } from '../contexts/ToastContext';
+} from "lucide-react";
+import { supabase, Delivery } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
+import { PROTOCOL_CONFIG } from "../config/app.config";
+import { useToast } from "../contexts/ToastContext";
 
 // Types pour les étapes
 type ProtocolStep = 1 | 2 | 3;
@@ -47,14 +47,14 @@ export default function ClientAbsentProtocolPage() {
 
     async function fetchDelivery() {
       const { data, error } = await supabase
-        .from('logitrack_deliveries')
-        .select('*')
-        .eq('id', id)
+        .from("logitrack_deliveries")
+        .select("*")
+        .eq("id", id)
         .single();
 
       if (error) {
-        deliveryLogger.error('Error fetching delivery', { error });
-        navigate('/');
+        deliveryLogger.error("Error fetching delivery", { error });
+        navigate("/");
         return;
       }
 
@@ -65,8 +65,16 @@ export default function ClientAbsentProtocolPage() {
       try {
         const savedState = localStorage.getItem(`protocol_${id}`);
         if (savedState) {
-          const state = JSON.parse(savedState) as { callAttempts: Array<{ timestamp: string }>; timerSeconds: number };
-          setCallAttempts(state.callAttempts.map((c) => ({ ...c, timestamp: new Date(c.timestamp) })));
+          const state = JSON.parse(savedState) as {
+            callAttempts: Array<{ timestamp: string }>;
+            timerSeconds: number;
+          };
+          setCallAttempts(
+            state.callAttempts.map((c) => ({
+              ...c,
+              timestamp: new Date(c.timestamp),
+            })),
+          );
           setTimerSeconds(state.timerSeconds || 0);
           setProtocolStarted(true);
           setTimerActive(true);
@@ -97,14 +105,17 @@ export default function ClientAbsentProtocolPage() {
         clearInterval(interval);
         return;
       }
-      setTimerSeconds(prev => {
+      setTimerSeconds((prev) => {
         const newSeconds = prev + 1;
         // Sauvegarder l'état
         if (id) {
-          localStorage.setItem(`protocol_${id}`, JSON.stringify({
-            callAttempts: callAttemptsRef.current,
-            timerSeconds: newSeconds,
-          }));
+          localStorage.setItem(
+            `protocol_${id}`,
+            JSON.stringify({
+              callAttempts: callAttemptsRef.current,
+              timerSeconds: newSeconds,
+            }),
+          );
         }
         return newSeconds;
       });
@@ -128,7 +139,7 @@ export default function ClientAbsentProtocolPage() {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Calculer le temps restant
@@ -147,7 +158,7 @@ export default function ClientAbsentProtocolPage() {
     if (!delivery || callAttempts.length >= PROTOCOL_CONFIG.maxCalls) return;
 
     // Ouvrir l'application téléphone
-    window.open(`tel:${delivery.delivery_contact_phone}`, '_system');
+    window.open(`tel:${delivery.delivery_contact_phone}`, "_system");
 
     // Enregistrer la tentative
     const newAttempt: CallAttempt = { timestamp: new Date() };
@@ -157,10 +168,13 @@ export default function ClientAbsentProtocolPage() {
 
     // Sauvegarder l'état
     if (id) {
-      localStorage.setItem(`protocol_${id}`, JSON.stringify({
-        callAttempts: newAttempts,
-        timerSeconds,
-      }));
+      localStorage.setItem(
+        `protocol_${id}`,
+        JSON.stringify({
+          callAttempts: newAttempts,
+          timerSeconds,
+        }),
+      );
     }
   };
 
@@ -172,38 +186,43 @@ export default function ClientAbsentProtocolPage() {
 
     try {
       // Enregistrer l'incident client absent
-      const { error: incidentError } = await supabase.from('logitrack_incidents').insert({
-        delivery_id: delivery.id,
-        tracking_code: delivery.id.slice(0, 8).toUpperCase(),
-        reporter_type: 'driver',
-        reporter_id: driver.id,
-        reporter_name: driver.full_name,
-        reporter_phone: driver.phone,
-        driver_id: driver.id,
-        category: 'customer',
-        incident_type: 'client_absent',
-        title: 'Client absent - Protocole complété',
-        description: `Client injoignable après ${callAttempts.length} tentatives d'appel et ${formatTime(timerSeconds)} d'attente. Retour du colis au vendeur.`,
-        priority: 'medium',
-        status: 'resolved',
-        photos: [],
-        disputed_amount: 0,
-        resolution: 'no_action',
-        resolution_notes: 'Protocole client absent complété. Paiement partiel appliqué.',
-      });
+      const { error: incidentError } = await supabase
+        .from("logitrack_incidents")
+        .insert({
+          delivery_id: delivery.id,
+          tracking_code: delivery.id.slice(0, 8).toUpperCase(),
+          reporter_type: "driver",
+          reporter_id: driver.id,
+          reporter_name: driver.full_name,
+          reporter_phone: driver.phone,
+          driver_id: driver.id,
+          category: "customer",
+          incident_type: "client_absent",
+          title: "Client absent - Protocole complété",
+          description: `Client injoignable après ${callAttempts.length} tentatives d'appel et ${formatTime(timerSeconds)} d'attente. Retour du colis au vendeur.`,
+          priority: "medium",
+          status: "resolved",
+          photos: [],
+          disputed_amount: 0,
+          resolution: "no_action",
+          resolution_notes:
+            "Protocole client absent complété. Paiement partiel appliqué.",
+        });
 
       if (incidentError) {
-        deliveryLogger.error('Error creating incident', { error: incidentError });
+        deliveryLogger.error("Error creating incident", {
+          error: incidentError,
+        });
       }
 
       // Mettre à jour le statut de la livraison
       const { error: updateError } = await supabase
-        .from('logitrack_deliveries')
+        .from("logitrack_deliveries")
         .update({
-          status: 'returned',
+          status: "returned",
           cancellation_reason: `Client absent - Protocole complété: ${callAttempts.length} appels, ${formatTime(timerSeconds)} d'attente`,
         })
-        .eq('id', delivery.id);
+        .eq("id", delivery.id);
 
       if (updateError) {
         throw updateError;
@@ -213,16 +232,15 @@ export default function ClientAbsentProtocolPage() {
       localStorage.removeItem(`protocol_${id}`);
 
       // Naviguer vers le dashboard avec message de succès
-      navigate('/', {
+      navigate("/", {
         state: {
-          message: 'Protocole complété. Vous serez payé 50% de la course.',
-          type: 'success'
-        }
+          message: "Protocole complété. Vous serez payé 50% de la course.",
+          type: "success",
+        },
       });
-
     } catch (err) {
-      deliveryLogger.error('Error returning package', { error: err });
-      showError('Erreur lors du retour du colis');
+      deliveryLogger.error("Error returning package", { error: err });
+      showError("Erreur lors du retour du colis");
     }
 
     setReturning(false);
@@ -236,18 +254,19 @@ export default function ClientAbsentProtocolPage() {
 
   if (loading || !delivery) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
+      <div className="h-mobile-screen flex items-center justify-center bg-gray-50">
         <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   // Conditions pour pouvoir retourner le colis
-  const canReturn = (callAttempts.length >= PROTOCOL_CONFIG.maxCalls && timerExpired) ||
-                   (callAttempts.length >= PROTOCOL_CONFIG.maxCalls && timerSeconds >= 300); // Au moins 5 min après 3 appels
+  const canReturn =
+    (callAttempts.length >= PROTOCOL_CONFIG.maxCalls && timerExpired) ||
+    (callAttempts.length >= PROTOCOL_CONFIG.maxCalls && timerSeconds >= 300); // Au moins 5 min après 3 appels
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-mobile-screen flex flex-col bg-gray-50">
       {/* Header */}
       <header className="bg-amber-500 text-white safe-top px-4 py-4">
         <div className="flex items-center gap-3 mb-4">
@@ -263,7 +282,12 @@ export default function ClientAbsentProtocolPage() {
               <h1 className="text-lg font-bold">CLIENT ABSENT</h1>
             </div>
             <p className="text-sm text-amber-100">
-              Étape {step}/3 : {step === 1 ? 'Premier appel' : step === 2 ? 'Tentatives supplémentaires' : 'Attente expirée'}
+              Étape {step}/3 :{" "}
+              {step === 1
+                ? "Premier appel"
+                : step === 2
+                  ? "Tentatives supplémentaires"
+                  : "Attente expirée"}
             </p>
           </div>
         </div>
@@ -274,9 +298,13 @@ export default function ClientAbsentProtocolPage() {
         {/* Info client */}
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <p className="text-sm text-gray-500 mb-1">Client</p>
-          <p className="font-semibold text-gray-900">{delivery.delivery_contact_name || 'Client'}</p>
+          <p className="font-semibold text-gray-900">
+            {delivery.delivery_contact_name || "Client"}
+          </p>
           <p className="text-sm text-gray-600">{delivery.delivery_address}</p>
-          <p className="text-sm text-primary-600 mt-1">{delivery.delivery_contact_phone}</p>
+          <p className="text-sm text-primary-600 mt-1">
+            {delivery.delivery_contact_phone}
+          </p>
         </div>
 
         {/* État du protocole */}
@@ -289,7 +317,8 @@ export default function ClientAbsentProtocolPage() {
               Le client ne répond pas ?
             </h2>
             <p className="text-gray-600 mb-6">
-              Démarrez le protocole client absent pour documenter vos tentatives de contact.
+              Démarrez le protocole client absent pour documenter vos tentatives
+              de contact.
             </p>
             <button
               onClick={startProtocol}
@@ -306,7 +335,9 @@ export default function ClientAbsentProtocolPage() {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Phone className="w-5 h-5 text-gray-500" />
-                  <span className="font-medium text-gray-900">Appels effectués</span>
+                  <span className="font-medium text-gray-900">
+                    Appels effectués
+                  </span>
                 </div>
                 <span className="text-2xl font-bold text-amber-600">
                   {callAttempts.length}/{PROTOCOL_CONFIG.maxCalls}
@@ -319,7 +350,9 @@ export default function ClientAbsentProtocolPage() {
                   <div
                     key={num}
                     className={`flex-1 h-2 rounded-full ${
-                      callAttempts.length >= num ? 'bg-amber-500' : 'bg-gray-200'
+                      callAttempts.length >= num
+                        ? "bg-amber-500"
+                        : "bg-gray-200"
                     }`}
                   />
                 ))}
@@ -331,7 +364,8 @@ export default function ClientAbsentProtocolPage() {
                   className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg flex items-center justify-center gap-2"
                 >
                   <Phone className="w-5 h-5" />
-                  Appeler à nouveau ({callAttempts.length + 1}/{PROTOCOL_CONFIG.maxCalls})
+                  Appeler à nouveau ({callAttempts.length + 1}/
+                  {PROTOCOL_CONFIG.maxCalls})
                 </button>
               )}
 
@@ -347,7 +381,9 @@ export default function ClientAbsentProtocolPage() {
             <div className="bg-white rounded-lg p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-5 h-5 text-gray-500" />
-                <span className="font-medium text-gray-900">Temps d'attente</span>
+                <span className="font-medium text-gray-900">
+                  Temps d'attente
+                </span>
               </div>
 
               <div className="text-center py-4">
@@ -362,7 +398,7 @@ export default function ClientAbsentProtocolPage() {
                 <div className="mt-4 h-3 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-1000 ${
-                      timerExpired ? 'bg-green-500' : 'bg-amber-500'
+                      timerExpired ? "bg-green-500" : "bg-amber-500"
                     }`}
                     style={{
                       width: `${Math.min((timerSeconds / PROTOCOL_CONFIG.waitTimeSeconds) * 100, 100)}%`,
@@ -383,11 +419,17 @@ export default function ClientAbsentProtocolPage() {
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-blue-500 mt-0.5" />
                 <div className="text-sm text-blue-800">
-                  <p className="font-medium mb-2">Après 15 minutes sans réponse :</p>
+                  <p className="font-medium mb-2">
+                    Après 15 minutes sans réponse :
+                  </p>
                   <ul className="space-y-1">
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                      Tu seras payé <strong>{PROTOCOL_CONFIG.partialPaymentPercent}%</strong> de la course
+                      Tu seras payé{" "}
+                      <strong>
+                        {PROTOCOL_CONFIG.partialPaymentPercent}%
+                      </strong>{" "}
+                      de la course
                     </li>
                     <li className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
@@ -401,20 +443,20 @@ export default function ClientAbsentProtocolPage() {
             {/* Historique des appels */}
             {callAttempts.length > 0 && (
               <div className="bg-white rounded-lg p-4 shadow-sm">
-                <p className="font-medium text-gray-900 mb-3">Historique des appels</p>
+                <p className="font-medium text-gray-900 mb-3">
+                  Historique des appels
+                </p>
                 <div className="space-y-2">
                   {callAttempts.map((attempt, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between text-sm py-2 border-b border-gray-100 last:border-0"
                     >
-                      <span className="text-gray-600">
-                        Appel {index + 1}
-                      </span>
+                      <span className="text-gray-600">Appel {index + 1}</span>
                       <span className="text-gray-500">
-                        {attempt.timestamp.toLocaleTimeString('fr-FR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                        {attempt.timestamp.toLocaleTimeString("fr-FR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })}
                       </span>
                     </div>

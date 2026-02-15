@@ -1,6 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Check, CheckCheck, Package, Wallet, AlertTriangle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  Package,
+  Wallet,
+  AlertTriangle,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 import {
   getNotifications,
   getUnreadCount,
@@ -8,9 +15,9 @@ import {
   markAllAsRead,
   subscribeToNotifications,
   type AppNotification,
-} from '../services/notificationService';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+} from "../services/notificationService";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 function NotificationItem({
   notif,
@@ -44,7 +51,7 @@ function NotificationItem({
           }
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     observer.observe(el);
@@ -65,29 +72,41 @@ function NotificationItem({
       onClick={() => !isRead && onRead(notif.id)}
       className={`w-full px-3 py-2.5 flex items-start gap-2.5 border-b border-gray-50 dark:border-gray-700 text-left transition-all duration-500 cursor-pointer ${
         !isRead
-          ? 'bg-primary-50/50 dark:bg-primary-900/20'
-          : 'opacity-70 hover:opacity-100 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+          ? "bg-primary-50/50 dark:bg-primary-900/20"
+          : "opacity-70 hover:opacity-100 hover:bg-gray-50 dark:hover:bg-gray-700/50"
       }`}
     >
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-        isRead ? 'bg-gray-50 dark:bg-gray-700/50' : 'bg-gray-100 dark:bg-gray-700'
-      }`}>
+      <div
+        className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+          isRead
+            ? "bg-gray-50 dark:bg-gray-700/50"
+            : "bg-gray-100 dark:bg-gray-700"
+        }`}
+      >
         {getNotifIcon(notif)}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <p className={`font-medium text-sm truncate ${
-            isRead ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'
-          }`}>
-            {notif.title || 'Notification'}
+          <p
+            className={`font-medium text-sm truncate ${
+              isRead
+                ? "text-gray-500 dark:text-gray-400"
+                : "text-gray-900 dark:text-white"
+            }`}
+          >
+            {notif.title || "Notification"}
           </p>
           {!isRead && (
             <span className="w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 animate-pulse" />
           )}
         </div>
-        <p className={`text-xs line-clamp-2 ${
-          isRead ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-400'
-        }`}>
+        <p
+          className={`text-xs line-clamp-2 ${
+            isRead
+              ? "text-gray-400 dark:text-gray-500"
+              : "text-gray-600 dark:text-gray-400"
+          }`}
+        >
           {notif.body}
         </p>
         <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
@@ -136,8 +155,8 @@ export function NotificationBell() {
       }
     }
     if (showPanel) {
-      document.addEventListener('mousedown', handleClick);
-      return () => document.removeEventListener('mousedown', handleClick);
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
     }
   }, [showPanel]);
 
@@ -157,8 +176,8 @@ export function NotificationBell() {
     await markAsRead(notifId);
     setNotifications((prev) =>
       prev.map((n) =>
-        n.id === notifId ? { ...n, delivered_at: new Date().toISOString() } : n
-      )
+        n.id === notifId ? { ...n, delivered_at: new Date().toISOString() } : n,
+      ),
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
   }, []);
@@ -167,20 +186,23 @@ export function NotificationBell() {
     if (!driver) return;
     await markAllAsRead(driver.id);
     setNotifications((prev) =>
-      prev.map((n) => ({ ...n, delivered_at: n.delivered_at || new Date().toISOString() }))
+      prev.map((n) => ({
+        ...n,
+        delivered_at: n.delivered_at || new Date().toISOString(),
+      })),
     );
     setUnreadCount(0);
   }
 
   function getNotifIcon(notif: AppNotification) {
-    const title = (notif.title || '').toLowerCase();
-    if (title.includes('livraison') || title.includes('colis')) {
+    const title = (notif.title || "").toLowerCase();
+    if (title.includes("livraison") || title.includes("colis")) {
       return <Package className="w-4 h-4 text-primary-500" />;
     }
-    if (title.includes('paiement') || title.includes('gain')) {
+    if (title.includes("paiement") || title.includes("gain")) {
       return <Wallet className="w-4 h-4 text-green-500" />;
     }
-    if (title.includes('urgent') || title.includes('alerte')) {
+    if (title.includes("urgent") || title.includes("alerte")) {
       return <AlertTriangle className="w-4 h-4 text-red-500" />;
     }
     return <Bell className="w-4 h-4 text-gray-500" />;
@@ -195,21 +217,21 @@ export function NotificationBell() {
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center min-w-[18px] h-[18px]">
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
       </button>
 
       {/* Notification Panel */}
       {showPanel && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-[70vh] flex flex-col">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-[70dvh] flex flex-col">
           {/* Header */}
           <div className="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
               Notifications
               {unreadCount > 0 && (
                 <span className="ml-1.5 text-xs font-normal text-gray-500">
-                  ({unreadCount} non lue{unreadCount > 1 ? 's' : ''})
+                  ({unreadCount} non lue{unreadCount > 1 ? "s" : ""})
                 </span>
               )}
             </h3>

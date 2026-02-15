@@ -207,7 +207,7 @@ export default function ProfilePage() {
   const rating = calculateRating(driver.rating_sum, driver.rating_count);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-mobile-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-top px-3 py-2.5 flex items-center gap-2.5">
         <button

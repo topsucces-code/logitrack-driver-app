@@ -1,22 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
-import { QrCode, X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
-import { Button } from './ui/Button';
+import { useState, useEffect, useRef } from "react";
+import { QrCode, X, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { Button } from "./ui/Button";
 import {
   isScanningSupported,
   requestScanPermission,
   parseTrackingCode,
   validateDeliveryCode,
-} from '../services/qrScannerService';
-import { useToast } from '../contexts/ToastContext';
-import { hapticSuccess, hapticError, hapticLight } from '../hooks/useHapticFeedback';
-import { Html5Qrcode } from 'html5-qrcode';
+} from "../services/qrScannerService";
+import { useToast } from "../contexts/ToastContext";
+import {
+  hapticSuccess,
+  hapticError,
+  hapticLight,
+} from "../hooks/useHapticFeedback";
+import { Html5Qrcode } from "html5-qrcode";
 
 interface QRScannerProps {
   onScan: (data: string, parsed: ReturnType<typeof parseTrackingCode>) => void;
   onClose: () => void;
   deliveryId?: string;
   trackingCode?: string;
-  mode?: 'scan' | 'verify';
+  mode?: "scan" | "verify";
 }
 
 export function QRScanner({
@@ -24,13 +28,13 @@ export function QRScanner({
   onClose,
   deliveryId,
   trackingCode,
-  mode = 'scan',
+  mode = "scan",
 }: QRScannerProps) {
   const { showSuccess, showError } = useToast();
   const [supported, setSupported] = useState<boolean | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
-  const [manualCode, setManualCode] = useState('');
+  const [manualCode, setManualCode] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const readerRef = useRef<HTMLDivElement>(null);
   const processedRef = useRef(false);
@@ -52,17 +56,17 @@ export function QRScanner({
     async function initScanner() {
       const hasPermission = await requestScanPermission();
       if (!hasPermission || !mounted) {
-        if (mounted) setScanError('Permission caméra refusée');
+        if (mounted) setScanError("Permission caméra refusée");
         return;
       }
 
       try {
-        const scanner = new Html5Qrcode('qr-reader');
+        const scanner = new Html5Qrcode("qr-reader");
         scannerRef.current = scanner;
         setScanning(true);
 
         await scanner.start(
-          { facingMode: 'environment' },
+          { facingMode: "environment" },
           {
             fps: 10,
             qrbox: { width: 250, height: 250 },
@@ -75,11 +79,11 @@ export function QRScanner({
           },
           () => {
             // QR code not found in frame — ignore
-          }
+          },
         );
       } catch (err) {
         if (mounted) {
-          setScanError('Impossible de démarrer la caméra');
+          setScanError("Impossible de démarrer la caméra");
           setScanning(false);
         }
       }
@@ -106,16 +110,20 @@ export function QRScanner({
     }
     setScanning(false);
 
-    if (mode === 'verify' && deliveryId) {
-      const validation = validateDeliveryCode(decodedText, deliveryId, trackingCode);
+    if (mode === "verify" && deliveryId) {
+      const validation = validateDeliveryCode(
+        decodedText,
+        deliveryId,
+        trackingCode,
+      );
 
       if (validation.isValid) {
         hapticSuccess();
-        showSuccess('Code vérifié avec succès !');
+        showSuccess("Code vérifié avec succès !");
         onScan(decodedText, parsed);
       } else {
         hapticError();
-        showError('Ce code ne correspond pas à cette livraison');
+        showError("Ce code ne correspond pas à cette livraison");
         // Allow re-scan
         processedRef.current = false;
         restartScanner();
@@ -131,14 +139,14 @@ export function QRScanner({
       if (scannerRef.current) {
         setScanning(true);
         await scannerRef.current.start(
-          { facingMode: 'environment' },
+          { facingMode: "environment" },
           { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1 },
           (decodedText) => {
             if (processedRef.current) return;
             processedRef.current = true;
             handleScanResult(decodedText);
           },
-          () => {}
+          () => {},
         );
       }
     } catch {
@@ -148,27 +156,27 @@ export function QRScanner({
 
   const handleManualSubmit = () => {
     if (!manualCode.trim()) {
-      showError('Veuillez entrer un code');
+      showError("Veuillez entrer un code");
       return;
     }
 
     hapticLight();
     const parsed = parseTrackingCode(manualCode.trim());
 
-    if (mode === 'verify' && deliveryId) {
+    if (mode === "verify" && deliveryId) {
       const validation = validateDeliveryCode(
         manualCode.trim(),
         deliveryId,
-        trackingCode
+        trackingCode,
       );
 
       if (validation.isValid) {
         hapticSuccess();
-        showSuccess('Code vérifié avec succès !');
+        showSuccess("Code vérifié avec succès !");
         onScan(manualCode.trim(), parsed);
       } else {
         hapticError();
-        showError('Ce code ne correspond pas à cette livraison');
+        showError("Ce code ne correspond pas à cette livraison");
       }
     } else {
       onScan(manualCode.trim(), parsed);
@@ -177,7 +185,7 @@ export function QRScanner({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-      <div className="bg-white dark:bg-gray-800 w-full rounded-t-2xl p-4 safe-bottom max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 w-full rounded-t-2xl p-4 safe-bottom max-h-[90dvh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -186,12 +194,12 @@ export function QRScanner({
             </div>
             <div>
               <h2 className="text-base font-bold text-gray-900 dark:text-white">
-                {mode === 'verify' ? 'Vérifier le colis' : 'Scanner un code'}
+                {mode === "verify" ? "Vérifier le colis" : "Scanner un code"}
               </h2>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {mode === 'verify'
-                  ? 'Scannez le code QR du colis'
-                  : 'QR Code ou code-barres'}
+                {mode === "verify"
+                  ? "Scannez le code QR du colis"
+                  : "QR Code ou code-barres"}
               </p>
             </div>
           </div>
@@ -204,9 +212,11 @@ export function QRScanner({
         </div>
 
         {/* Expected Code (Verify Mode) */}
-        {mode === 'verify' && trackingCode && (
+        {mode === "verify" && trackingCode && (
           <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">Code attendu</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+              Code attendu
+            </p>
             <p className="font-mono font-bold text-base text-gray-900 dark:text-white">
               {trackingCode}
             </p>
@@ -224,7 +234,7 @@ export function QRScanner({
               id="qr-reader"
               ref={readerRef}
               className="w-full rounded-lg overflow-hidden bg-black"
-              style={{ minHeight: '250px' }}
+              style={{ minHeight: "250px" }}
             />
             {scanning && (
               <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
@@ -258,7 +268,9 @@ export function QRScanner({
         <div className="mb-4">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">ou entrez manuellement</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              ou entrez manuellement
+            </span>
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
           </div>
 

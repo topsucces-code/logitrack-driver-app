@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Phone, Lock, Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { phoneSchema, passwordSchema, validateForm } from '../lib/validations';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Phone, Lock, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { phoneSchema, passwordSchema, validateForm } from "../lib/validations";
 
 export default function LoginPage() {
   const { signIn } = useAuth();
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // Validate with Zod
-    const cleanPhone = phone.replace(/\D/g, '');
+    const cleanPhone = phone.replace(/\D/g, "");
     const phoneValidation = validateForm(phoneSchema, cleanPhone);
     if (!phoneValidation.success) {
       setError(Object.values(phoneValidation.errors)[0]);
@@ -34,14 +34,14 @@ export default function LoginPage() {
     const { error: signInError } = await signIn(phone, password);
 
     if (signInError) {
-      setError('Identifiants incorrects');
+      setError("Identifiants incorrects");
     }
 
     setLoading(false);
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 flex flex-col relative overflow-hidden">
+    <div className="h-mobile-screen bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 flex flex-col relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 blob" />
@@ -57,7 +57,9 @@ export default function LoginPage() {
               <span className="text-3xl">🚀</span>
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight mb-0.5">LogiTrack</h1>
+          <h1 className="text-2xl font-bold tracking-tight mb-0.5">
+            LogiTrack
+          </h1>
           <p className="text-white/90 text-sm font-medium">Espace Livreur</p>
         </div>
       </div>
@@ -65,8 +67,12 @@ export default function LoginPage() {
       {/* Form Container */}
       <div className="flex-1 bg-white dark:bg-gray-900 rounded-t-[24px] px-4 pt-5 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] relative z-10 animate-slide-up overflow-y-auto">
         <div className="animate-fade-in-up">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Connexion</h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">Connectez-vous pour commencer à livrer</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+            Connexion
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
+            Connectez-vous pour commencer à livrer
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Phone Input */}
@@ -98,7 +104,7 @@ export default function LoginPage() {
                   <Lock className="w-4 h-4 text-primary-500" />
                 </div>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -109,7 +115,11 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -117,7 +127,9 @@ export default function LoginPage() {
             {/* Error Message */}
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-lg animate-scale-in">
-                <p className="text-red-600 dark:text-red-400 text-xs font-medium">{error}</p>
+                <p className="text-red-600 dark:text-red-400 text-xs font-medium">
+                  {error}
+                </p>
               </div>
             )}
 
@@ -144,8 +156,11 @@ export default function LoginPage() {
           {/* Register Link */}
           <div className="mt-5 text-center pt-4 border-t border-gray-100 dark:border-gray-800">
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Pas encore de compte ?{' '}
-              <Link to="/register" className="text-primary-600 dark:text-primary-400 font-bold hover:text-primary-700 transition-colors">
+              Pas encore de compte ?{" "}
+              <Link
+                to="/register"
+                className="text-primary-600 dark:text-primary-400 font-bold hover:text-primary-700 transition-colors"
+              >
                 S'inscrire
               </Link>
             </p>

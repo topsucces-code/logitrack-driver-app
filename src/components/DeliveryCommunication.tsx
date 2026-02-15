@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   MessageCircle,
   Mic,
@@ -8,10 +8,10 @@ import {
   ChevronRight,
   Send,
   Volume2,
-} from 'lucide-react';
-import { VoiceMessageRecorder, PresetMessages } from './VoiceMessage';
-import { ShareTrackingButton } from './ShareTracking';
-import { logger } from '../utils/logger';
+} from "lucide-react";
+import { VoiceMessageRecorder, PresetMessages } from "./VoiceMessage";
+import { ShareTrackingButton } from "./ShareTracking";
+import { logger } from "../utils/logger";
 
 interface DeliveryCommunicationProps {
   deliveryId: string;
@@ -20,7 +20,7 @@ interface DeliveryCommunicationProps {
   onClose: () => void;
 }
 
-type TabType = 'quick' | 'voice' | 'share';
+type TabType = "quick" | "voice" | "share";
 
 export function DeliveryCommunication({
   deliveryId,
@@ -28,7 +28,7 @@ export function DeliveryCommunication({
   recipientPhone,
   onClose,
 }: DeliveryCommunicationProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('quick');
+  const [activeTab, setActiveTab] = useState<TabType>("quick");
   const [sentMessage, setSentMessage] = useState<string | null>(null);
 
   const handleSendPreset = async (message: string, key: string) => {
@@ -37,16 +37,22 @@ export function DeliveryCommunication({
 
     // Ouvrir WhatsApp avec le message pré-rempli
     const encodedMessage = encodeURIComponent(message);
-    const cleanPhone = recipientPhone.replace(/[\s\-\(\)]/g, '').replace('+', '');
-    window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+    const cleanPhone = recipientPhone
+      .replace(/[\s\-\(\)]/g, "")
+      .replace("+", "");
+    window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, "_blank");
 
     // Reset après 3 secondes
     setTimeout(() => setSentMessage(null), 3000);
   };
 
-  const handleSendVoice = async (audioBlob: Blob, duration: number, audioBase64?: string) => {
+  const handleSendVoice = async (
+    audioBlob: Blob,
+    duration: number,
+    audioBase64?: string,
+  ) => {
     // En production, envoyer le message vocal via API
-    logger.info('Voice message sent', { duration, size: audioBlob.size });
+    logger.info("Voice message sent", { duration, size: audioBlob.size });
 
     // Pour l'instant, afficher un message de succès
     setSentMessage(`Message vocal (${duration}s) envoyé`);
@@ -55,7 +61,7 @@ export function DeliveryCommunication({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[85vh] overflow-hidden animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[85dvh] overflow-hidden animate-slide-up">
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between mb-3">
@@ -94,20 +100,20 @@ export function DeliveryCommunication({
           {/* Tabs */}
           <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <TabButton
-              active={activeTab === 'quick'}
-              onClick={() => setActiveTab('quick')}
+              active={activeTab === "quick"}
+              onClick={() => setActiveTab("quick")}
               icon={<MessageCircle className="w-4 h-4" />}
               label="Rapide"
             />
             <TabButton
-              active={activeTab === 'voice'}
-              onClick={() => setActiveTab('voice')}
+              active={activeTab === "voice"}
+              onClick={() => setActiveTab("voice")}
               icon={<Mic className="w-4 h-4" />}
               label="Vocal"
             />
             <TabButton
-              active={activeTab === 'share'}
-              onClick={() => setActiveTab('share')}
+              active={activeTab === "share"}
+              onClick={() => setActiveTab("share")}
               icon={<Share2 className="w-4 h-4" />}
               label="Partager"
             />
@@ -115,7 +121,7 @@ export function DeliveryCommunication({
         </div>
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto max-h-[60vh]">
+        <div className="p-4 overflow-y-auto max-h-[60dvh]">
           {/* Success Toast */}
           {sentMessage && (
             <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center gap-2">
@@ -127,7 +133,7 @@ export function DeliveryCommunication({
           )}
 
           {/* Quick Messages */}
-          {activeTab === 'quick' && (
+          {activeTab === "quick" && (
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                 Appuyez sur un message pour l'envoyer via WhatsApp
@@ -137,7 +143,7 @@ export function DeliveryCommunication({
           )}
 
           {/* Voice Message */}
-          {activeTab === 'voice' && (
+          {activeTab === "voice" && (
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Enregistrez un message vocal pour le client
@@ -151,7 +157,7 @@ export function DeliveryCommunication({
           )}
 
           {/* Share Tracking */}
-          {activeTab === 'share' && (
+          {activeTab === "share" && (
             <div className="space-y-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Partagez le lien de suivi en temps réel avec le client
@@ -183,7 +189,8 @@ export function DeliveryCommunication({
               <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <Volume2 className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-blue-700 dark:text-blue-400">
-                  Le client recevra un lien pour suivre votre position en direct jusqu'à la livraison.
+                  Le client recevra un lien pour suivre votre position en direct
+                  jusqu'à la livraison.
                 </p>
               </div>
             </div>
@@ -211,8 +218,8 @@ function TabButton({
       onClick={onClick}
       className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-colors ${
         active
-          ? 'bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-400 shadow-sm'
-          : 'text-gray-500 dark:text-gray-400'
+          ? "bg-white dark:bg-gray-600 text-primary-600 dark:text-primary-400 shadow-sm"
+          : "text-gray-500 dark:text-gray-400"
       }`}
     >
       {icon}

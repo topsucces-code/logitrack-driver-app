@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   CreditCard,
   Phone,
@@ -9,11 +9,8 @@ import {
   Clock,
   Shield,
   Info,
-} from 'lucide-react';
-import {
-  MobileMoneyProvider,
-  PaymentResult,
-} from '../types/mobileMoney';
+} from "lucide-react";
+import { MobileMoneyProvider, PaymentResult } from "../types/mobileMoney";
 import {
   MOBILE_MONEY_PROVIDERS,
   initiatePayment,
@@ -21,7 +18,7 @@ import {
   calculateFees,
   formatCurrency,
   validatePhoneNumber,
-} from '../services/mobileMoneyService';
+} from "../services/mobileMoneyService";
 
 interface MobileMoneyPaymentProps {
   amount: number;
@@ -32,7 +29,13 @@ interface MobileMoneyPaymentProps {
   onSuccess?: (result: PaymentResult) => void;
 }
 
-type PaymentStep = 'provider' | 'phone' | 'confirm' | 'processing' | 'success' | 'failed';
+type PaymentStep =
+  | "provider"
+  | "phone"
+  | "confirm"
+  | "processing"
+  | "success"
+  | "failed";
 
 export function MobileMoneyPayment({
   amount,
@@ -42,43 +45,46 @@ export function MobileMoneyPayment({
   onClose,
   onSuccess,
 }: MobileMoneyPaymentProps) {
-  const [step, setStep] = useState<PaymentStep>('provider');
-  const [selectedProvider, setSelectedProvider] = useState<MobileMoneyProvider | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState(recipientPhone || '');
+  const [step, setStep] = useState<PaymentStep>("provider");
+  const [selectedProvider, setSelectedProvider] =
+    useState<MobileMoneyProvider | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState(recipientPhone || "");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [result, setResult] = useState<PaymentResult | null>(null);
 
-  const provider = selectedProvider ? MOBILE_MONEY_PROVIDERS[selectedProvider] : null;
+  const provider = selectedProvider
+    ? MOBILE_MONEY_PROVIDERS[selectedProvider]
+    : null;
   const fees = selectedProvider ? calculateFees(amount, selectedProvider) : 0;
   const totalAmount = amount + fees;
 
   const handleSelectProvider = (providerId: MobileMoneyProvider) => {
     setSelectedProvider(providerId);
     if (recipientPhone) {
-      setStep('confirm');
+      setStep("confirm");
     } else {
-      setStep('phone');
+      setStep("phone");
     }
   };
 
   const handlePhoneSubmit = () => {
     const validation = validatePhoneNumber(phoneNumber);
     if (!validation.valid) {
-      setError('Numéro de téléphone invalide');
+      setError("Numéro de téléphone invalide");
       return;
     }
     setPhoneNumber(validation.formatted);
-    setError('');
-    setStep('confirm');
+    setError("");
+    setStep("confirm");
   };
 
   const handleInitiatePayment = async () => {
     if (!selectedProvider) return;
 
-    setStep('processing');
+    setStep("processing");
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       const paymentResult = await initiatePayment({
@@ -91,27 +97,29 @@ export function MobileMoneyPayment({
 
       if (paymentResult.success && paymentResult.transaction) {
         // Simuler attente de confirmation
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 3000));
 
         // Confirmer le paiement
-        const confirmResult = await confirmPayment(paymentResult.transaction.id);
+        const confirmResult = await confirmPayment(
+          paymentResult.transaction.id,
+        );
 
         setResult(confirmResult);
 
         if (confirmResult.success) {
-          setStep('success');
+          setStep("success");
           onSuccess?.(confirmResult);
         } else {
-          setError(confirmResult.error || 'Paiement échoué');
-          setStep('failed');
+          setError(confirmResult.error || "Paiement échoué");
+          setStep("failed");
         }
       } else {
-        setError(paymentResult.error || 'Erreur lors du paiement');
-        setStep('failed');
+        setError(paymentResult.error || "Erreur lors du paiement");
+        setStep("failed");
       }
     } catch (err) {
-      setError('Erreur de connexion');
-      setStep('failed');
+      setError("Erreur de connexion");
+      setStep("failed");
     } finally {
       setLoading(false);
     }
@@ -119,7 +127,7 @@ export function MobileMoneyPayment({
 
   const renderContent = () => {
     switch (step) {
-      case 'provider':
+      case "provider":
         return (
           <div className="space-y-4">
             {/* Montant */}
@@ -142,7 +150,7 @@ export function MobileMoneyPayment({
               </p>
               <div className="space-y-2">
                 {Object.values(MOBILE_MONEY_PROVIDERS)
-                  .filter(p => p.isActive)
+                  .filter((p) => p.isActive)
                   .map((prov) => {
                     const provFees = calculateFees(amount, prov.id);
                     return (
@@ -153,7 +161,7 @@ export function MobileMoneyPayment({
                       >
                         <div
                           className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl"
-                          style={{ backgroundColor: prov.color + '20' }}
+                          style={{ backgroundColor: prov.color + "20" }}
                         >
                           {prov.icon}
                         </div>
@@ -163,7 +171,7 @@ export function MobileMoneyPayment({
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
                             {provFees === 0
-                              ? 'Sans frais'
+                              ? "Sans frais"
                               : `Frais: ${formatCurrency(provFees)}`}
                           </p>
                         </div>
@@ -180,7 +188,7 @@ export function MobileMoneyPayment({
           </div>
         );
 
-      case 'phone':
+      case "phone":
         return (
           <div className="space-y-4">
             {/* Provider selected */}
@@ -188,7 +196,7 @@ export function MobileMoneyPayment({
               <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                  style={{ backgroundColor: provider.color + '20' }}
+                  style={{ backgroundColor: provider.color + "20" }}
                 >
                   {provider.icon}
                 </div>
@@ -215,7 +223,7 @@ export function MobileMoneyPayment({
                   value={phoneNumber}
                   onChange={(e) => {
                     setPhoneNumber(e.target.value);
-                    setError('');
+                    setError("");
                   }}
                   placeholder="+225 07 07 12 34 56"
                   className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white text-lg"
@@ -229,13 +237,15 @@ export function MobileMoneyPayment({
             {error && (
               <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
                 <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {error}
+                </p>
               </div>
             )}
 
             <div className="flex gap-3">
               <button
-                onClick={() => setStep('provider')}
+                onClick={() => setStep("provider")}
                 className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Retour
@@ -251,25 +261,35 @@ export function MobileMoneyPayment({
           </div>
         );
 
-      case 'confirm':
+      case "confirm":
         return (
           <div className="space-y-4">
             {/* Récapitulatif */}
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Montant</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  Montant
+                </span>
                 <span className="text-gray-900 dark:text-white font-medium">
                   {formatCurrency(amount)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500 dark:text-gray-400">Frais</span>
-                <span className={fees === 0 ? 'text-green-500' : 'text-gray-900 dark:text-white'}>
-                  {fees === 0 ? 'Gratuit' : formatCurrency(fees)}
+                <span
+                  className={
+                    fees === 0
+                      ? "text-green-500"
+                      : "text-gray-900 dark:text-white"
+                  }
+                >
+                  {fees === 0 ? "Gratuit" : formatCurrency(fees)}
                 </span>
               </div>
               <div className="border-t border-gray-200 dark:border-gray-600 pt-3 flex justify-between">
-                <span className="text-gray-700 dark:text-gray-300 font-semibold">Total</span>
+                <span className="text-gray-700 dark:text-gray-300 font-semibold">
+                  Total
+                </span>
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
                   {formatCurrency(totalAmount)}
                 </span>
@@ -282,7 +302,7 @@ export function MobileMoneyPayment({
                 <div className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
-                    style={{ backgroundColor: provider.color + '20' }}
+                    style={{ backgroundColor: provider.color + "20" }}
                   >
                     {provider.icon}
                   </div>
@@ -303,7 +323,11 @@ export function MobileMoneyPayment({
               <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-blue-700 dark:text-blue-400">
-                  <p>Après validation, composez <strong>{provider.ussdCode}</strong> pour confirmer le paiement</p>
+                  <p>
+                    Après validation, composez{" "}
+                    <strong>{provider.ussdCode}</strong> pour confirmer le
+                    paiement
+                  </p>
                 </div>
               </div>
             )}
@@ -316,7 +340,7 @@ export function MobileMoneyPayment({
 
             <div className="flex gap-3">
               <button
-                onClick={() => setStep(recipientPhone ? 'provider' : 'phone')}
+                onClick={() => setStep(recipientPhone ? "provider" : "phone")}
                 className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium rounded-lg"
               >
                 Retour
@@ -331,7 +355,7 @@ export function MobileMoneyPayment({
           </div>
         );
 
-      case 'processing':
+      case "processing":
         return (
           <div className="text-center py-8">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
@@ -354,7 +378,7 @@ export function MobileMoneyPayment({
           </div>
         );
 
-      case 'success':
+      case "success":
         return (
           <div className="text-center py-8">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
@@ -377,7 +401,7 @@ export function MobileMoneyPayment({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Date</span>
                   <span className="text-gray-900 dark:text-white">
-                    {new Date().toLocaleString('fr-FR')}
+                    {new Date().toLocaleString("fr-FR")}
                   </span>
                 </div>
               </div>
@@ -391,7 +415,7 @@ export function MobileMoneyPayment({
           </div>
         );
 
-      case 'failed':
+      case "failed":
         return (
           <div className="text-center py-8">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
@@ -401,7 +425,7 @@ export function MobileMoneyPayment({
               Paiement échoué
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {error || 'Une erreur est survenue'}
+              {error || "Une erreur est survenue"}
             </p>
             <div className="flex gap-3">
               <button
@@ -412,8 +436,8 @@ export function MobileMoneyPayment({
               </button>
               <button
                 onClick={() => {
-                  setStep('provider');
-                  setError('');
+                  setStep("provider");
+                  setError("");
                 }}
                 className="flex-1 py-3 btn-gradient text-white font-medium rounded-lg"
               >
@@ -430,9 +454,9 @@ export function MobileMoneyPayment({
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-slide-up">
+      <div className="bg-white dark:bg-gray-800 rounded-t-3xl sm:rounded-lg w-full sm:max-w-md max-h-[90dvh] overflow-y-auto animate-slide-up">
         {/* Header */}
-        {step !== 'processing' && step !== 'success' && step !== 'failed' && (
+        {step !== "processing" && step !== "success" && step !== "failed" && (
           <div className="sticky top-0 bg-white dark:bg-gray-800 px-4 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-primary-500" />
@@ -449,9 +473,7 @@ export function MobileMoneyPayment({
           </div>
         )}
 
-        <div className="p-4">
-          {renderContent()}
-        </div>
+        <div className="p-4">{renderContent()}</div>
       </div>
     </div>
   );
@@ -464,7 +486,7 @@ export function PayWithMobileMoneyButton({
   deliveryId,
   recipientPhone,
   onSuccess,
-  className = '',
+  className = "",
 }: {
   amount: number;
   description: string;
