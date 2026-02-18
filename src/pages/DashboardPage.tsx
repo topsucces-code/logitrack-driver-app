@@ -28,6 +28,7 @@ import { DeliveryCardSkeleton } from "../components/ui/Skeleton";
 import { NotificationBell } from "../components/NotificationBell";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "../components/PullToRefreshIndicator";
+import { useBranding } from "../contexts/BrandingContext";
 import { useSwipeGesture } from "../hooks/useSwipeGesture";
 import {
   subscribeToNotifications,
@@ -41,6 +42,7 @@ export default function DashboardPage() {
   const { driver, refreshDriver, isVerified } = useAuth();
   const { startTracking } = useLocation();
   const { showError, showSuccess } = useToast();
+  const { headerColor } = useBranding();
 
   // Resume delivery proof flow if Android killed the WebView during camera
   useEffect(() => {
@@ -353,7 +355,7 @@ export default function DashboardPage() {
   return (
     <div className="h-mobile-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-primary-500 text-white safe-top px-3 pt-3 pb-3">
+      <header className="text-white safe-top px-3 pt-3 pb-3" style={{ backgroundColor: headerColor }}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">

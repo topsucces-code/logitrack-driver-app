@@ -6,6 +6,7 @@ import { ToastProvider } from "./contexts/ToastContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { GoogleMapsProvider } from "./components/GoogleMapsProvider";
+import { BrandingProvider } from "./contexts/BrandingContext";
 import { OfflineBanner } from "./components/OfflineBanner";
 import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 import { initOfflineQueue } from "./services/offlineQueue";
@@ -286,21 +287,23 @@ export default function App() {
   return (
     <BrowserRouter>
       <ThemeProvider>
-        <LanguageProvider>
-          <AuthProvider>
-            <LocationProvider>
-              <GoogleMapsProvider>
-                <ToastProvider>
-                  <OfflineBanner />
-                  <PWAInstallPrompt />
-                  <div className="h-mobile-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-                    <AppRoutes />
-                  </div>
-                </ToastProvider>
-              </GoogleMapsProvider>
-            </LocationProvider>
-          </AuthProvider>
-        </LanguageProvider>
+        <BrandingProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <LocationProvider>
+                <GoogleMapsProvider>
+                  <ToastProvider>
+                    <OfflineBanner />
+                    <PWAInstallPrompt />
+                    <div className="h-mobile-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
+                      <AppRoutes />
+                    </div>
+                  </ToastProvider>
+                </GoogleMapsProvider>
+              </LocationProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </BrandingProvider>
       </ThemeProvider>
     </BrowserRouter>
   );
